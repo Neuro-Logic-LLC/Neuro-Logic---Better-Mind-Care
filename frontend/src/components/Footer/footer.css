@@ -1,0 +1,769 @@
+/* ===== Footer Layout ===== */
+.footer {
+  background: var(--soft-white);
+  color: var(--charcoal);
+  font-family: var(--font-body);
+  position: relative;
+  z-index: 10;
+}
+
+.footer a {
+  color: inherit;
+}
+
+/* Container */
+.footer__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+/* 1) Newsletter band */
+.footer-newsletter {
+  background: var(--soft-blue);
+}
+
+.footer-newsletter__title {
+  font-family: var(--font-heading);
+  color: var(--teal);
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.footer-newsletter__copy {
+  color: var(--charcoal);
+  margin-bottom: 14px;
+  max-width: 72ch;
+}
+
+.footer-newsletter__hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.footer-newsletter__hero-symbol {
+  position: absolute;
+  left: 5%;             /* move it into the corner */
+  bottom: 20%;         
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(120px, 22vw, 260px);
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.5); /* see-through */
+  user-select: none;
+  z-index: 10;          /* behind text */
+}
+
+.footer-newsletter {
+  position: relative;
+  overflow: hidden; /* hides overflow from big symbol */
+}
+
+
+.footer-newsletter__form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 50%;
+}
+
+.footer-newsletter__form-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+/* 
+.footer-newsletter__glyph {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 28px;
+  color: rgba(119, 119, 119, 0.55);
+  user-select: none;
+}
+
+.footer-newsletter__form input[type='email'] {
+  flex: 1;
+  min-width: 260px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid #d9e3ec;
+  background: #fff;
+  font-size: 16px;
+  color: var(--charcoal);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.footer-newsletter__form input[type='email']:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(23, 109, 129, 0.12);
+}
+
+/* Pill submit button */
+.footer-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 9999px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 16px;
+  color: #fff;
+  background: var(--teal);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.08s ease;
+}
+
+.footer-btn:hover {
+  background: var(--gold-amber);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.footer-btn:active {
+  transform: translateY(0);
+}
+
+.footer-btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* Layout for title/copy alongside form */
+.footer-newsletter .footer__container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.footer-newsletter__content {
+  padding-right: 0;
+  max-width: 720px;
+}
+.footer-newsletter__title {
+  color: var(--charcoal) !important;   /* override teal */
+  font-family: var(--font-heading);
+  font-weight: 400;                  
+  font-size: clamp(20px, 2vw, 28px);   /* smaller, scales smoothly */
+  line-height: 1.3;
+  margin-bottom: 8px;
+} 
+
+/* 2) Link grid */
+.footer-links {
+  background: var(--color-surface);
+}
+
+.footer-links__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* two link cols + social */
+  gap: 40px;
+  align-items: start;
+}
+
+.footer-links nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links a {
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-block;
+  padding: 6px 0;
+}
+
+.footer-links a:hover {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.footer-links a:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+/* Social block */
+.footer-social h3 {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  color: var(--charcoal);
+  margin-bottom: 12px;
+}
+
+.footer-social__icons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.icon-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  text-decoration: none;
+  color: #fff;
+  background: #777777;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.08s ease, filter 0.2s ease;
+}
+
+.icon-circle:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  border-radius: 9999px;
+}
+
+.icon-circle:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.icon-circle:active {
+  transform: translateY(0);
+}
+
+.icon-circle__icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.icon-circle--facebook {
+  background: #1877f2;
+}
+
+.icon-circle--instagram {
+  background: linear-gradient(135deg, #f58529 0%, #dd2a7b 55%, #8134af 75%, #515bd4 100%);
+}
+
+.icon-circle--x {
+  background: #35383f;
+}
+
+.icon-circle--linkedin {
+  background: #0a66c2;
+}
+/* Bottom bar */
+.footer-bottom {
+  border-top: 1px solid #e6edf4;
+  background: #fff;
+}
+
+.footer-bottom__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.footer-bottom__links {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.footer-bottom__links a {
+  color: var(--teal);
+  text-decoration: underline;
+}
+
+.footer-logo {
+  height: 34px;
+  width: auto;
+}
+
+.footer-bottom__inner p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--charcoal);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .footer-newsletter__hero {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer-links__grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .footer-newsletter__form {
+    justify-content: flex-start;
+  }
+
+  .footer-newsletter__form-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .footer-newsletter__glyph {
+    display: none;
+  }
+
+  .footer-btn {
+    width: 100%;
+  }
+}
+/* container + ring */
+.icon-circle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  text-decoration: none;
+  /* IMPORTANT: make glyph white by default */
+  color: #fff !important;
+}
+
+.icon-circle__svg {
+  position: absolute;
+  inset: 0;             /* stretch ring svg to the circle */
+  width: 100%;
+  height: 100%;
+}
+
+.icon-circle__ring {
+  fill: #777777;        /* your desired grey */
+  transition: fill .2s ease;
+}
+
+.icon-circle:hover .icon-circle__ring { fill: #5d5d5d; }
+
+/* place the brand glyph in the middle */
+.icon-circle__icon {
+  position: absolute;
+  width: 18px;          /* tweak to taste (16–20px looks good) */
+  height: 18px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: block;
+  /* glyph color follows .icon-circle { color } = white */
+}
+
+/* ===== Footer Layout ===== */
+.footer {
+  background: var(--soft-white);
+  color: var(--charcoal);
+  font-family: var(--font-body);
+}
+
+.footer a {
+  color: inherit;
+}
+
+/* Container */
+.footer__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+/* 1) Newsletter band */
+.footer-newsletter {
+  background: var(--soft-blue);
+}
+
+.footer-newsletter__title {
+  font-family: var(--font-heading);
+  color: var(--teal);
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.footer-newsletter__copy {
+  color: var(--charcoal);
+  margin-bottom: 14px;
+  max-width: 72ch;
+}
+
+.footer-newsletter__hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.footer-newsletter__hero-symbol {
+  position: absolute;
+  left: 5%;             /* move it into the corner */
+  bottom: 20%;         
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(120px, 22vw, 260px);
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.5); /* see-through */
+  user-select: none;
+  z-index: 3;          /* behind text */
+}
+
+.footer-newsletter {
+  position: relative;
+  overflow: hidden; /* hides overflow from big symbol */
+}
+
+.footer-newsletter__hero-copy {
+  flex: 1;
+  z-index:3; /* above symbol */
+  color:(var--charcoal);
+ 
+
+  
+}
+
+.footer-newsletter__form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 50%;
+}
+
+.footer-newsletter__form-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.footer-newsletter__glyph {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 28px;
+  color: rgba(119, 119, 119, 0.55);
+  user-select: none;
+}
+
+.footer-newsletter__form input[type='email'] {
+  flex: 1;
+  min-width: 260px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid #d9e3ec;
+  background: #fff;
+  font-size: 16px;
+  color: var(--charcoal);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.footer-newsletter__form input[type='email']:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(23, 109, 129, 0.12);
+}
+
+/* Pill submit button */
+.footer-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 9999px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 16px;
+  color: #fff;
+  background: var(--teal);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.08s ease;
+}
+
+.footer-btn:hover {
+  background: var(--gold-amber);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.footer-btn:active {
+  transform: translateY(0);
+}
+
+.footer-btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* Layout for title/copy alongside form */
+.footer-newsletter .footer__container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.footer-newsletter__content {
+  padding-right: 0;
+  max-width: 720px;
+}
+.footer-newsletter__title {
+  color: var(--charcoal) !important;   /* override teal */
+  font-family: var(--font-heading);
+  font-weight: 400;                  
+  font-size: clamp(20px, 2vw, 28px);   /* smaller, scales smoothly */
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+/* 2) Link grid */
+.footer-links {
+  background: var(--color-surface);
+}
+
+.footer-links__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* two link cols + social */
+  gap: 40px;
+  align-items: start;
+}
+
+.footer-links nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links a {
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-block;
+  padding: 6px 0;
+}
+
+.footer-links a:hover {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.footer-links a:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+/* Social block */
+.footer-social h3 {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  color: var(--charcoal);
+  margin-bottom: 12px;
+}
+
+.footer-social__icons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.icon-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  text-decoration: none;
+  color: #fff;
+  background: #777777;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.08s ease, filter 0.2s ease;
+}
+
+.icon-circle:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  border-radius: 9999px;
+}
+
+.icon-circle:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.icon-circle:active {
+  transform: translateY(0);
+}
+
+.icon-circle__icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.icon-circle--facebook {
+  background: #1877f2;
+}
+
+.icon-circle--instagram {
+  background: linear-gradient(135deg, #f58529 0%, #dd2a7b 55%, #8134af 75%, #515bd4 100%);
+}
+
+.icon-circle--x {
+  background: #35383f;
+}
+
+.icon-circle--linkedin {
+  background: #0a66c2;
+}
+/* Bottom bar */
+.footer-bottom {
+  border-top: 1px solid #e6edf4;
+  background: #fff;
+}
+
+.footer-bottom__inner {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.footer-logo {
+  height: 38px;
+  width: auto;
+}
+
+.footer-bottom__inner p,
+.footer-bottom__meta p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--charcoal);
+}
+
+.footer-bottom__meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.footer-legal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.footer-legal a {
+  color: var(--teal);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.footer-legal a:hover,
+.footer-legal a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.footer-bottom__inner span[aria-hidden='true'] {
+  opacity: 0.5;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .footer-newsletter__hero {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer-links__grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .footer-newsletter__form {
+    justify-content: flex-start;
+  }
+
+  .footer-newsletter__form-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .footer-newsletter__glyph {
+    display: none;
+  }
+
+  .footer-btn {
+    width: 100%;
+  }
+}
+/* container + ring */
+.icon-circle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  text-decoration: none;
+  /* IMPORTANT: make glyph white by default */
+  color: #fff !important;
+}
+
+.icon-circle__svg {
+  position: absolute;
+  inset: 0;             /* stretch ring svg to the circle */
+  width: 100%;
+  height: 100%;
+}
+
+.icon-circle__ring {
+  fill: #777777;        /* your desired grey */
+  transition: fill .2s ease;
+}
+
+.icon-circle:hover .icon-circle__ring { fill: #5d5d5d; }
+
+/* place the brand glyph in the middle */
+.icon-circle__icon {
+  position: absolute;
+  width: 18px;          /* tweak to taste (16–20px looks good) */
+  height: 18px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: block;
+  /* glyph color follows .icon-circle { color } = white */
+}

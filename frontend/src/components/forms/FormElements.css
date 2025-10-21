@@ -1,0 +1,272 @@
+/* ===== Shared Form Styling (Intake, Demographics, Questionnaires) ===== */
+
+.intake-form {
+  width: min(680px, 100%);
+  margin: 0 auto 2.5rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  background: #ffffff;
+  color: var(--color-text, var(--charcoal));
+  border-radius: var(--radius-lg, 24px);
+  box-shadow: var(--shadow-md, 0 12px 32px rgba(23, 109, 129, 0.12));
+  font-family: var(--font-body, 'Open Sans', system-ui, sans-serif);
+  display: grid;
+  gap: clamp(1.2rem, 3vw, 1.75rem);
+}
+
+.intake-form h2,
+.intake-form h3 {
+  font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
+  color: var(--teal);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.intake-form h2 {
+  font-size: clamp(1.65rem, 3vw, 2.1rem);
+  font-weight: 800;
+}
+
+.intake-form h3 {
+  font-size: clamp(1.2rem, 2.2vw, 1.45rem);
+  font-weight: 600;
+}
+
+.intake-form p {
+  margin: 0;
+  color: color-mix(in oklab, var(--charcoal) 82%, white);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.intake-form fieldset {
+  border: 1px solid color-mix(in oklab, var(--soft-blue) 55%, white);
+  border-radius: var(--radius-md, 16px);
+  padding: 1.25rem clamp(1rem, 3vw, 1.75rem);
+  background: color-mix(in oklab, var(--soft-blue) 12%, white);
+  margin: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.intake-form legend {
+  font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--teal);
+  padding: 0 0.4rem;
+}
+
+.intake-form select,
+.intake-form textarea {
+  font-family: inherit;
+  font-size: 1rem;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.intake-form select,
+.intake-form textarea,
+.intake-form input[type='date'],
+.intake-form input[type='tel'],
+.intake-form input[type='number'] {
+  padding: 0.75rem 0.95rem;
+  border-radius: var(--radius-sm, 10px);
+  border: 1px solid color-mix(in oklab, var(--charcoal) 30%, white);
+  background: var(--soft-white);
+  color: inherit;
+}
+
+.intake-form select:focus,
+.intake-form textarea:focus,
+.intake-form input[type='date']:focus,
+.intake-form input[type='tel']:focus,
+.intake-form input[type='number']:focus {
+  border-color: var(--gold-amber);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold-amber) 42%, white);
+  background: #fff;
+}
+
+.intake-form .input-group {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.intake-form .input-group:not(:last-child) {
+  margin-bottom: 0.85rem;
+}
+
+.intake-form .input-label,
+.intake-form label {
+  font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--teal);
+}
+
+.intake-form .input-label .required {
+  color: var(--warm-coral);
+}
+
+/* ===== Question blocks ===== */
+.question-block {
+  border: 1px solid color-mix(in oklab, var(--soft-blue) 45%, white);
+  border-radius: var(--radius-md, 16px);
+  padding: clamp(1rem, 3vw, 1.5rem);
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--soft-blue) 18%, white),
+    #fff
+  );
+  display: grid;
+  gap: 0.9rem;
+}
+
+.question-label {
+  font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--teal);
+}
+
+.question-options {
+  display: grid;
+  gap: 0.65rem;
+}
+
+@media (min-width: 520px) {
+  .question-options {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}
+
+.radio-option,
+.checkbox-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  color: color-mix(in oklab, var(--charcoal) 85%, white);
+  background: rgba(23, 109, 129, 0.07);
+  border-radius: 999px;
+  padding: 0.5rem 0.85rem;
+  transition:
+    background-color 0.2s ease,
+    transform 0.08s ease,
+    box-shadow 0.2s ease;
+}
+
+.radio-option:hover,
+.checkbox-option:hover {
+  background: rgba(249, 160, 63, 0.18);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(249, 160, 63, 0.12);
+}
+
+.radio-option input,
+.checkbox-option input {
+  accent-color: var(--teal);
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checkbox-option input {
+  border-radius: 6px;
+}
+
+.question-options .checkbox-option,
+.question-options .radio-option {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid color-mix(in oklab, var(--soft-blue) 35%, white);
+}
+
+.question-options .checkbox-option:hover,
+.question-options .radio-option:hover {
+  background: color-mix(in oklab, var(--soft-blue) 22%, white);
+}
+
+/* ===== Messages ===== */
+.error-message {
+  color: var(--warm-coral);
+  font-size: 0.92rem;
+  margin-top: 0.3rem;
+}
+
+.help-message {
+  color: color-mix(in oklab, var(--charcoal) 65%, white);
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+/* ===== Form controls ===== */
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.form-actions button {
+  min-width: 130px;
+}
+
+.form-actions .btn {
+  background: var(--teal);
+  color: #fff;
+}
+
+.form-actions .btn:hover {
+  background: var(--gold-amber);
+  color: #fff;
+}
+
+.btn:disabled {
+  background-color: color-mix(in oklab, var(--soft-blue) 25%, #fff);
+  color: color-mix(in oklab, var(--charcoal) 55%, white);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn.error {
+  border-color: var(--warm-coral);
+  background-color: color-mix(in oklab, var(--warm-coral) 12%, #fff);
+  color: var(--warm-coral);
+}
+
+/* ===== Layout helpers ===== */
+.form-divider {
+  height: 1px;
+  width: 100%;
+  background: color-mix(in oklab, var(--teal) 45%, white);
+}
+
+.patient-selector {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.patient-selector select {
+  width: min(320px, 100%);
+}
+
+/* ===== Responsive tweaks ===== */
+@media (max-width: 540px) {
+  .intake-form {
+    padding: 1.5rem;
+    border-radius: var(--radius-md, 16px);
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+}

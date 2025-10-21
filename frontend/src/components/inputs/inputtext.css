@@ -1,0 +1,54 @@
+/* ====== Input Group ====== */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.25rem;
+}
+
+/* Label */
+.input-label {
+  font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--teal);
+  margin-bottom: 0.5rem;
+}
+
+.required {
+  color: var(--warm-coral); /* subtle accent for required */
+  margin-left: 2px;
+}
+
+/* Input Field */
+.input-field {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 1rem;
+  font-family: var(--font-body, 'Open Sans', system-ui, sans-serif);
+  color: var(--charcoal);
+  background-color: var(--soft-white);
+  border: 1px solid color-mix(in oklab, var(--charcoal) 30%, white);
+  border-radius: 8px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.input-field::placeholder {
+  color: color-mix(in oklab, var(--charcoal) 50%, white);
+  font-style: italic;
+}
+
+/* Focused state — WCAG accessible */
+.input-field:focus {
+  border-color: var(--gold-amber);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold-amber) 40%, white);
+}
+
+/* Disabled */
+.input-field:disabled {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}

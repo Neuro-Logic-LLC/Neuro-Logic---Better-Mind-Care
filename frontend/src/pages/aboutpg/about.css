@@ -1,0 +1,90 @@
+/* ===== About Page (brand-updated, clean) ===== */
+.about-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  line-height: 1.7;
+  background: var(--color-surface, #ffffff);
+  border-radius: var(--radius-lg, 24px);
+  box-shadow: var(--shadow-md, 0 6px 16px rgba(0, 0, 0, 0.1));
+  color: var(--color-text, var(--charcoal)); /* correct: body copy color */
+  font-family: var(--font-body, 'Open Sans', system-ui, sans-serif);
+}
+
+/* Headings follow new typography + color */
+.about-page h1,
+.about-page h2 {
+  font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
+  color: var(--color-heading, var(--teal));
+  letter-spacing: -0.01em;
+}
+
+.about-page h1 {
+  font-size: clamp(2rem, 3vw, 2.5rem);
+  margin-bottom: 1.25rem;
+  font-weight: 800; /* Outfit Bold look */
+}
+
+.about-page h2 {
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+/* Body text */
+.about-page p {
+  margin-bottom: 1rem;
+  color: var(--color-text, var(--charcoal));
+}
+
+/* Lists: clean, with brand bullets */
+.about-page ul {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 1rem;
+}
+.about-page li {
+  margin-bottom: 0.75rem;
+  position: relative;
+  padding-left: 1.5rem;
+}
+.about-page li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--teal: );
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--soft-white) 60%, transparent);
+}
+
+/* Subtle section rule using Sky Blue */
+.about-page hr,
+.about-page .rule {
+  border: 0;
+  height: 2px;
+  background: var(--soft-blue);
+  opacity: 0.5;
+  margin: 1.5rem 0;
+}
+
+/* Optional link styling — only needed if you add <a> tags
+.about-page a {
+  color: var(--color-link, var(--gold-amber));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color .15s ease;
+}
+.about-page a:hover { color: var(--color-link-hover, #008db0); text-decoration-thickness: 2px; }
+.about-page a:focus-visible { outline: 3px solid var(--gold-amber); outline-offset: 3px; border-radius: 4px; }
+*/
+
+/* Responsive spacing tune-up */
+@media (max-width: 640px) {
+  .about-page {
+    padding: 1.25rem;
+  }
+}

@@ -1,0 +1,172 @@
+/* ===== Sign Up (brand-updated) ===== */
+
+/* Resend box */
+.resend-confirmation-box {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--teal);
+  border-radius: var(--radius-sm, 10px);
+  background: color-mix(in oklab, var(--soft-blue) 20%, #fff);
+  text-align: center;
+  color: var(--charcoal);
+  font-family: var(--font-body, 'Open Sans', system-ui, sans-serif);
+}
+
+/* App shell (unchanged layout) */
+html,
+body,
+#root {
+  height: 100%;
+}
+.AppShell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.PageBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Form wrapper */
+.auth-form {
+  max-width: 520px;
+  margin: 32px auto;
+  padding: 0 16px;
+  font-family: var(--font-body, 'Open Sans', system-ui, sans-serif);
+  color: var(--charcoal);
+}
+
+.auth-form form {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px;
+  width: 100%;
+  max-width: 520px;
+}
+
+/* Labels (optional but helpful) */
+.auth-form label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--teal);
+  font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
+}
+
+/* Inputs */
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 1rem;
+  font-family: var(--font-body, 'Open Sans', system-ui, sans-serif);
+  color: var(--charcoal);
+  background: #fff;
+  border: 1px solid var(--soft-blue);
+  border-radius: var(--radius-sm, 10px);
+  margin: 7px 0;
+  box-sizing: border-box;
+  cursor: text;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.form-input:focus {
+  border-color: var(--gold-amber);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold-amber) 40%, white);
+  outline: none;
+}
+
+/* Help + Error text */
+.field-help {
+  margin-top: -6px;
+  font-size: 0.9rem;
+  color: var(--color-muted, #5a6b7a);
+}
+
+.field-error {
+  font-size: 0.9rem;
+  color: var(--warm-coral);
+}
+
+/* Validation states (toggle these classes via JS) */
+.form-input.is-invalid {
+  border-color: var(--warm-coral);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--warm-coral) 35%, white);
+}
+.form-input.is-valid {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--teal) 30%, white);
+}
+
+/* Title */
+.title {
+  margin-left: 58px;
+  margin-bottom: 10px;
+  font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
+  color: var(--teal);
+  letter-spacing: -0.01em;
+  font-weight: 800;
+}
+
+/* Submit button */
+.btn-submit {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 1rem;
+  font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
+  font-weight: 600;
+  background-color: var(--teal);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md, 16px);
+  cursor: pointer;
+  margin-top: 15px;
+  transition:
+    background-color 0.2s ease,
+    transform 0.08s ease,
+    box-shadow 0.2s ease;
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.06));
+}
+
+.btn-submit:hover {
+  background-color: var(--gold-amber);
+  transform: translateY(-1px);
+}
+.btn-submit:active {
+  background-color: var(--color-link-hover, #008db0);
+  transform: translateY(0);
+}
+.btn-submit:focus-visible {
+  outline: 3px solid var(--gold-amber);
+  outline-offset: 3px;
+}
+
+/* Hide native reveal/clear buttons for password fields (keep your working fix) */
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear,
+input[type='password']::-webkit-contacts-auto-fill-button,
+input[type='password']::-webkit-credentials-auto-fill-button {
+  display: none !important;
+}
+input[type='password']::-webkit-clear-button,
+input[type='password']::-webkit-inner-spin-button,
+input[type='password']::-webkit-calendar-picker-indicator {
+  display: none !important;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .btn-submit {
+    transition: none;
+  }
+}
+
+/* Small screens */
+@media (max-width: 480px) {
+  .title {
+    margin-left: 0;
+    text-align: center;
+  }
+}

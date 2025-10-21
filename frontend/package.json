@@ -1,0 +1,73 @@
+{
+  "name": "better-mind-care",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@aws-sdk/client-ssm": "^3.859.0",
+    "@aws-sdk/credential-providers": "^3.859.0",
+    "@fortawesome/free-brands-svg-icons": "^7.1.0",
+    "@stripe/stripe-js": "^7.9.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^13.5.0",
+    "aws-sdk": "^2.1692.0",
+    "axios": "^1.12.1",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
+    "dayjs": "^1.11.13",
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "google-auth-library": "^10.2.1",
+    "http-proxy-middleware": "^2.0.9",
+    "jsonwebtoken": "^9.0.2",
+    "jspdf": "^3.0.1",
+    "jwks-rsa": "^3.2.0",
+    "knex": "^3.1.0",
+    "node-fetch": "^2.7.0",
+    "node-mailer": "^0.1.1",
+    "oauth4webapi": "^3.6.2",
+    "openid-client": "^6.6.3",
+    "pg": "^8.16.3",
+    "react": "^18.3.1",
+    "react-big-calendar": "^1.19.4",
+    "react-dom": "^18.3.1",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^6.30.1",
+    "react-scripts": "5.0.1",
+    "stripe": "^18.5.0",
+    "uuid": "^11.1.0",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "format": "prettier --write .",
+    "check-format": "prettier --check ."
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}

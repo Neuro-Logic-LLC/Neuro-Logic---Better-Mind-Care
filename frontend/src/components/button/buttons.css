@@ -1,0 +1,120 @@
+/* ===== Base ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.06));
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.08s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn:focus-visible {
+  outline: 3px solid var(--gold-amber);
+  outline-offset: 3px;
+}
+
+/* ===== Primary (orange → teal) ===== */
+.btn-primary {
+  background-color: var(--gold-amber);
+  color: var(--soft-white);
+}
+.btn-primary:hover {
+  background-color: var(--teal);
+  color: var(--soft-white);
+}
+
+/* ===== Secondary (teal → deeper teal) ===== */
+.btn-secondary {
+  background-color: var(--teal);
+  color: var(--soft-white);
+}
+.btn-secondary:hover {
+  background-color: #125463;
+  color: var(--soft-white);
+}
+
+/* ===== Outline ===== */
+.btn-outline {
+  background-color: #fff;
+  color: var(--teal);
+  border: 2px solid var(--teal);
+}
+.btn-outline:hover {
+  background-color: var(--soft-white);
+}
+
+/* Disabled */
+.btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ===== Pill Buttons (Compact CTA style) ===== */
+.btn-pill-one,
+.btn-pill-two {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px; /* full pill */
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.2px;
+  height: 36px; /* fixed height */
+  padding: 0 12px;
+  line-height: 1.1;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.06));
+  transition:
+    background-color 0.25s ease,
+    transform 0.08s ease,
+    color 0.2s ease;
+  color: var(--soft-white);
+}
+
+/* Pill One — Orange → Teal */
+.btn-pill-one {
+  background-color: var(--gold-amber); /* orange */
+  color: var(--soft-white);
+  padding-bottom: 15px;
+}
+.btn-pill-one:hover {
+  background-color: var(--teal); /* teal on hover */
+  color: var(--soft-white);
+  transform: translateY(-1px);
+}
+
+/* Pill Two — Teal → Orange */
+.btn-pill-two {
+  background-color: var(--teal); /* teal */
+  color: var(--soft-white);
+}
+.btn-pill-two:hover {
+  background-color: var(--gold-amber); /* orange on hover */
+  color: var(--soft-white);
+  transform: translateY(-1px);
+}
+
+/* Optional: active press effect */
+.btn-pill-one:active,
+.btn-pill-two:active {
+  transform: translateY(0);
+}

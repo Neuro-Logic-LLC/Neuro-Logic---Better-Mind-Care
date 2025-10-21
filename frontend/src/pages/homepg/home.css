@@ -1,0 +1,20 @@
+/* Remove the global link underline just for this page */
+a {
+  text-decoration: none;
+}
+
+/* Keep hover color if you want it */
+a:hover {
+  text-decoration: none;
+  color: var(--color-link-hover);
+}
+
+/* If you specifically want your buttons (PillOne / PillTwo) immune from underline and link colors */
+a.btn,
+a.btn:link,
+a.btn:visited,
+a.btn:hover,
+a.btn:active {
+  text-decoration: none !important;
+  color: inherit;
+}

@@ -1,0 +1,278 @@
+{
+  "PatientOrderID": 210824,
+  "PatientID": 113002,
+  "Specimens": [
+    {
+      "Specimen": "Spe-ci-men-123",
+      "OBXValues": [
+        {
+          "ObservationIdentifier": "001016^Calcium^L^17861-6^Calcium^LN",
+          "ObservationValue": "9.2",
+          "Units": "mg/dL",
+          "ReferenceRange": "8.7-10.3",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 1,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001032^Glucose^L^2345-7^Glucose^LN",
+          "ObservationValue": "102",
+          "Units": "mg/dL",
+          "ReferenceRange": "70-99",
+          "AbnormalFlags": "H",
+          "OrdinalPosition": 2,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001040^BUN^L^3094-0^Urea nitrogen^LN",
+          "ObservationValue": "6",
+          "Units": "mg/dL",
+          "ReferenceRange": "8-27",
+          "AbnormalFlags": "L",
+          "OrdinalPosition": 3,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001057^Uric Acid^L^3084-1^Urate^LN",
+          "ObservationValue": "3.6",
+          "Units": "mg/dL",
+          "ReferenceRange": "3.0-7.2",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 4,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001065^Cholesterol, Total^L^2093-3^Cholesterol^LN",
+          "ObservationValue": "233",
+          "Units": "mg/dL",
+          "ReferenceRange": "100-199",
+          "AbnormalFlags": "H",
+          "OrdinalPosition": 5,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001073^Protein, Total^L^2885-2^Protein^LN",
+          "ObservationValue": "7.0",
+          "Units": "g/dL",
+          "ReferenceRange": "6.0-8.5",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 6,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001081^Albumin^L^1751-7^Albumin^LN",
+          "ObservationValue": "4.5",
+          "Units": "g/dL",
+          "ReferenceRange": "3.9-4.9",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 7,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001099^Bilirubin, Total^L^1975-2^Bilirubin^LN",
+          "ObservationValue": "0.3",
+          "Units": "mg/dL",
+          "ReferenceRange": "0.0-1.2",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 8,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001107^Alkaline Phosphatase^L^6768-6^Alkaline phosphatase^LN",
+          "ObservationValue": "95",
+          "Units": "IU/L",
+          "ReferenceRange": "44-121",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 9,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001123^AST (SGOT)^L^1920-8^Aspartate aminotransferase^LN",
+          "ObservationValue": "18",
+          "Units": "IU/L",
+          "ReferenceRange": "0-40",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 10,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001149^Thyroxine (T4)^L^3026-2^Thyroxine^LN",
+          "ObservationValue": "7.5",
+          "Units": "ug/dL",
+          "ReferenceRange": "4.5-12.0",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 11,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001172^Triglycerides^L^2571-8^Triglyceride^LN",
+          "ObservationValue": "87",
+          "Units": "mg/dL",
+          "ReferenceRange": "0-149",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 12,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001180^Potassium^L^2823-3^Potassium^LN",
+          "ObservationValue": "4.7",
+          "Units": "mmol/L",
+          "ReferenceRange": "3.5-5.2",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 13,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001198^Sodium^L^2951-2^Sodium^LN",
+          "ObservationValue": "137",
+          "Units": "mmol/L",
+          "ReferenceRange": "134-144",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 14,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001206^Chloride^L^2075-0^Chloride^LN",
+          "ObservationValue": "100",
+          "Units": "mmol/L",
+          "ReferenceRange": "96-106",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 15,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001339^Iron^L^2498-4^Iron^LN",
+          "ObservationValue": "61",
+          "Units": "ug/dL",
+          "ReferenceRange": "27-139",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 16,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001347^Iron Bind.Cap.(TIBC)^L^2500-7^Iron binding capacity^LN",
+          "ObservationValue": "267",
+          "Units": "ug/dL",
+          "ReferenceRange": "250-450",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 17,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001348^UIBC^L^2501-5^Iron binding capacity.unsaturated^LN",
+          "ObservationValue": "206",
+          "Units": "ug/dL",
+          "ReferenceRange": "118-369",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 18,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001370^Creatinine^L^2160-0^Creatinine^LN",
+          "ObservationValue": "0.66",
+          "Units": "mg/dL",
+          "ReferenceRange": "0.57-1.00",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 19,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001472^Estim. Avg Glu (eAG)^L^27353-2^Estimated average glucose^LN",
+          "ObservationValue": "114",
+          "Units": "mg/dL",
+          "ReferenceRange": "",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 20,
+          "DATETIMEOfObservation": "2024-04-04T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001481^Hemoglobin A1c^L^4548-4^Hemoglobin A1c/Hemoglobin.total^LN",
+          "ObservationValue": "5.8",
+          "Units": "%",
+          "ReferenceRange": "4.8-5.6",
+          "AbnormalFlags": "H",
+          "OrdinalPosition": 21,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001503^Vitamin B12^L^2132-9^Cobalamins^LN",
+          "ObservationValue": "1535",
+          "Units": "pg/mL",
+          "ReferenceRange": "232-1245",
+          "AbnormalFlags": "H",
+          "OrdinalPosition": 22,
+          "DATETIMEOfObservation": "2024-04-04T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001537^Magnesium^L^19123-9^Magnesium^LN",
+          "ObservationValue": "1.8",
+          "Units": "mg/dL",
+          "ReferenceRange": "1.6-2.3",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 23,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001545^ALT (SGPT)^L^1742-6^Alanine aminotransferase^LN",
+          "ObservationValue": "12",
+          "Units": "IU/L",
+          "ReferenceRange": "0-32",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 24,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001578^Carbon Dioxide, Total^L^2028-9^Carbon dioxide^LN",
+          "ObservationValue": "21",
+          "Units": "mmol/L",
+          "ReferenceRange": "20-29",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 25,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001610^Fibrinogen Activity^L^3255-7^Fibrinogen^LN",
+          "ObservationValue": "357",
+          "Units": "mg/dL",
+          "ReferenceRange": "193-507",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 26,
+          "DATETIMEOfObservation": "2024-03-30T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001776^Immunoglobulin G, Qn, Serum^L^2465-3^IgG^LN",
+          "ObservationValue": "1120",
+          "Units": "mg/dL",
+          "ReferenceRange": "586-1602",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 27,
+          "DATETIMEOfObservation": "2024-04-04T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001784^Immunoglobulin A, Qn, Serum^L^2458-8^IgA^LN",
+          "ObservationValue": "221",
+          "Units": "mg/dL",
+          "ReferenceRange": "87-352",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 28,
+          "DATETIMEOfObservation": "2024-04-04T00:00:00"
+        },
+        {
+          "ObservationIdentifier": "001792^Immunoglobulin M, Qn, Serum^L^2472-9^IgM^LN",
+          "ObservationValue": "137",
+          "Units": "mg/dL",
+          "ReferenceRange": "26-217",
+          "AbnormalFlags": "",
+          "OrdinalPosition": 29,
+          "DATETIMEOfObservation": "2024-04-04T00:00:00"
+        }
+      ]
+    }
+  ],
+  "DateCollected": "2025-10-18T10:26:35",
+  "OrderingProvider": "4208675309^KATZ^A^^^^^N",
+  "FirstName": "Gerg",
+  "LastName": "Mannherr",
+  "PatientDOB": "10/21/1995 10:26:35 AM",
+  "ExternalClientID": "1B2FA0C0-3CBB-402A-9800-F3965A2D3DF5"
+}

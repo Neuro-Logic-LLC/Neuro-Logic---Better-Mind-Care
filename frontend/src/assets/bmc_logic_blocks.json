@@ -1,0 +1,119 @@
+{
+    "recommendationBlocks": [
+      {
+        "id": "rec_3912292",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Answers to these health questions, in addition to lab results, will be used to trigger recommendations in the Report. All questions shall be on one page."
+      },
+      {
+        "id": "rec_28564184",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "App \u2013 The User-facing application that collects user-entered demographic information during Order, receives and processes lab results and/or Screening test results (if applicable), 2) Applies health recommendation logic, and 3) Delivers personalized medical recommendations in a User-facing Patient report."
+      },
+      {
+        "id": "rec_98754871",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Automatically generate a customized PDF or HTML report of inputs (when completed) and recommendations."
+      },
+      {
+        "id": "rec_82696748",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Data Processing & Recommendation Logic"
+      },
+      {
+        "id": "rec_80879669",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Each test result will include concise information about that marker, including relevant research findings, data related to Alzheimer\u2019s disease, and target ranges that may differ from the standard reference ranges provided by the laboratory. These interpretive statements are standardized and will be consistent across all customers. They will also include general suggestions and potential strategies to help achieve target goals if results are outside the desired range."
+      },
+      {
+        "id": "rec_54544202",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Forms:  1) Patient Intake Form, 2)  Lab Order Form, 3) Screening Test Order Form"
+      },
+      {
+        "id": "rec_17440403",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "In V1, Patient Intake information will be performed via a Zoom meeting or telephone call. Answers will be recorded in an electronic form by Company representative. Data from this form will help drive the content in the Patient Report. Users will select an available day/time for a scheduled meeting. When a user completes their registration, a notification will be sent to Admin via calendar scheduling tool or via internal channels."
+      },
+      {
+        "id": "rec_23998745",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Labs orders will be optional. If selected by User, labs will be bundled, meaning there will not be an a-la-cart selection. This shall be presented to users after they complete their Patient Intake meeting. TBD how this purchase process will work."
+      },
+      {
+        "id": "rec_96309340",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Option for user to order lab tests and/or screening tests that were not selected during intake"
+      },
+      {
+        "id": "rec_7505788",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Patient Intake \u2013 The process of collecting essential health, lifestyle, and medical history information from Patients (or Users on patient\u2019s behalf) to help guide personalized care and treatment planning."
+      },
+      {
+        "id": "rec_28335651",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Patient Report - The primary deliverable that our Users are purchasing. Patient Report will use information collected in the user forms and Lab Results to construct a customized report with health information and recommendations for the Patient."
+      },
+      {
+        "id": "rec_48485948",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Patient Report: Output of recommendations for user"
+      },
+      {
+        "id": "rec_70624887",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Purchase confirmation (from company) shall confirm their scheduled Intake meeting date that they selected as well as an overview for next steps and instructions for joining the intake meeting (perhaps Calandly can do this in the meeting confirmation email)"
+      },
+      {
+        "id": "rec_34339297",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Recommendation Table: UserID, Text, CreatedAt"
+      },
+      {
+        "id": "rec_66843891",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Recommendations and reports shall be stored for future access by User and Admin."
+      },
+      {
+        "id": "rec_16692538",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Rules engine shall output personalized recommendation content into the Report"
+      },
+      {
+        "id": "rec_2979558",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Screening tests will be optional. If selected by User, screening tests will be bundled, meaning there will not be an a-la-cart selection. This shall be presented to users after they complete their Patient Intake meeting and presented with option to purchase Screening tests. TBD how this purchase process will work."
+      },
+      {
+        "id": "rec_86058012",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "Support for 500 concurrent users initially"
+      },
+      {
+        "id": "rec_33126722",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "System should process input and return recommendations in < 2 seconds"
+      },
+      {
+        "id": "rec_63059012",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "These recommended labs are triggered by the Health Questions form . The lab order form will be presented to all users after they complete their Health Questions. We will be bundling these labs into one order. There will not be an a-la-cart selection. There is a chance that we will be receiving labs from >1 organization."
+      },
+      {
+        "id": "rec_70149780",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "This document outlines the functional requirements for BetterMindCare, a SaaS platform that, 1) collects user-entered health information from User forms, Lab Results (if applicable), and Screening Tests (if applicable) and 2) processes collected data and applies health recommendation logic, and 3) produces custom content and health recommendations in a Patient Report."
+      },
+      {
+        "id": "rec_98708660",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "This version incorporates lab results and rules-based recommendations and screening test into the Patient Report."
+      },
+      {
+        "id": "rec_38701338",
+        "condition": "TRIGGERED_BY_LAB_OR_HEALTH_FLAG",
+        "text": "This version will support User Order, Health Data Entry (via Zoom or tel with Company), lab order form, rules-based recommendation generation, and PDF Patient Report generation."
+      }
+    ]
+  }

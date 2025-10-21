@@ -1,0 +1,298 @@
+/* ====== Imports ====== */
+/* If you prefer <link> tags in index.html, remove these two lines */
+/* ====== Imports ====== */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=OpenSans:wght@400;600;700&display=swap');
+@import 'react-big-calendar/lib/css/react-big-calendar.css';
+
+/* ====== Interactions ====== */
+.rbc-month-view .rbc-row-bg > .rbc-day-bg,
+.rbc-month-view .rbc-row-content,
+.rbc-month-view .rbc-row-content .rbc-row,
+.rbc-month-view .rbc-row-content .rbc-row-segment,
+.rbc-event {
+  cursor: pointer !important;
+}
+
+/* ====== Global Design Tokens ====== */
+:root {
+  /* Brand Colors */
+  --teal: #176d81; /* teal */
+  --gold-amber: #f9a03f; /* orange */
+  --soft-white: #fafafa; /* Seasalt – background */
+  --soft-blue: #a3e8dc; /* Tiffany Blue – optional accent */
+  --charcoal: #2e3440; /* text tone */
+  --warm-coral: #F46B61; /* coral red -warning/danger */
+
+  /* Semantic Mapping (use these across the app) */
+  --color-bg: var(--soft-white);
+  --color-surface: #ffffff;
+  --color-text: var(--charcoal);
+  --color-heading: var(--teal);
+  --color-brand: var(--gold-amber);
+  --color-brand-strong: var(--teal);
+  --color-muted: #5a6b7a; /* neutral for long text */
+
+  --color-info: var(--gold-amber);
+  --color-success: var(--teal);
+  --color-warning: var(--gold-amber);
+  --color-danger: var(--warm-coral);
+
+  /* States */
+  --color-link: var(--gold-amber);
+  --color-link-hover: #008db0; /* darker aqua */
+  --color-outline: var(--gold-amber);
+  --color-error: var(--warm-coral);
+  --color-success: var(--teal);
+  --focus-ring: 3px solid var(--gold-amber);
+  --focus-offset: 3px;
+
+  /* Typography */
+  --font-heading:
+    'Outfit', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --font-body:
+    'Open Sans', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+  /* Sizing & Rhythm */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 14px 28px rgba(0, 0, 0, 0.14);
+}
+
+/* ====== Global Resets ====== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  font-family: var(--font-body);
+  color: var(--charcoal);
+  background-color: var(--color-bg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ====== Typography ====== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  color: var(--color-heading);
+  font-weight: 700; /* Outfit Bold/SemiBold look */
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 48px;
+  letter-spacing: -0.02em;
+}
+h2 {
+  font-size: 36px;
+  letter-spacing: -0.01em;
+}
+h3 {
+  font-size: 24px;
+}
+p {
+  font-size: 16px;
+  font-weight: 400;
+  margin-bottom: 1rem;
+  color: var(--color-text);
+}
+
+a {
+  color: var(--color-link);
+  text-decoration: underline;
+  transition:
+    color 0.15s ease,
+    text-decoration-color 0.15s ease;
+  text-underline-offset: 2px;
+}
+a:hover {
+  color: var(--color-link-hover);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+/* Accessible focus ring using brand accent */
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  border-radius: 4px;
+}
+
+/* Inputs & interactive elements get a visible focus too */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* ====== Surfaces / Cards ====== */
+.card-wrapper {
+  max-width: 320px;
+  margin: 0 auto;
+}
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 20px;
+}
+
+/* ====== Utility ====== */
+.text-center {
+  text-align: center;
+}
+.mt-2 {
+  margin-top: 16px;
+}
+.mt-4 {
+  margin-top: 32px;
+}
+.mt-6 {
+  margin-top: 48px;
+}
+
+/* Page shell (matches your existing <main class="PageBody">) */
+.PageBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ====== Form elements (brand-aligned) ====== */
+input,
+select,
+textarea {
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--color-text);
+  background: #fff;
+  border: 1px solid #d9e3ec;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+input::placeholder,
+textarea::placeholder {
+  color: #8aa0b3;
+}
+
+/* ====== Status chips (optional utilities) ====== */
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge--info {
+  background: color-mix(in oklab, var(--gold-amber) 15%, white);
+  color: var(--gold-amber);
+}
+.badge--success {
+  background: color-mix(in oklab, var(--teal) 15%, white);
+  color: var(--teal);
+}
+.badge--warn {
+  background: color-mix(in oklab, var(--gold-amber) 25%, white);
+  color: #8a6a00;
+}
+.badge--danger {
+  background: color-mix(in oklab, var(--gold-amber) 18%, white);
+  color: #7d1d19;
+}
+
+/* ====== Tables (minimal) ====== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  padding: 12px;
+  text-align: left;
+}
+thead th {
+  font-family: var(--font-heading);
+  color: var(--teal);
+  border-bottom: 2px solid var(--teal);
+}
+tbody tr + tr td {
+  border-top: 1px solid #e6edf4;
+}
+
+/* ====== Hero / Section helpers ====== */
+.section {
+  padding: 56px 0;
+  background: var(--color-bg);
+}
+.section--alt {
+  background: linear-gradient(180deg, var(--soft-white), #ffffff);
+}
+.hero-title {
+  font-size: 56px;
+  font-weight: 800;
+  color: var(--teal);
+}
+.hero-sub {
+  font-size: 18px;
+  color: var(--color-muted);
+  max-width: 64ch;
+}
+
+/* ====== Alerts (brand colors) ====== */
+.alert {
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  border: 1px solid transparent;
+  background: #fff;
+}
+.alert--info {
+  border-color: color-mix(in oklab, var(--gold-amber) 40%, white);
+}
+.alert--success {
+  border-color: color-mix(in oklab, var(--teal) 40%, white);
+}
+.alert--warn {
+  border-color: color-mix(in oklab, var(--gold-amber) 50%, white);
+}
+.alert--danger {
+  border-color: color-mix(in oklab, var(--gold-amber) 40%, white);
+}
+
+/* Screen-reader only helper */
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

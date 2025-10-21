@@ -1,0 +1,72 @@
+/* ===== Resources Page (brand-updated) ===== */
+.resources-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+  line-height: 1.7;
+  color: var(--charcoal);
+  font-family: var(--font-body, 'Open Sans', system-ui, sans-serif);
+}
+
+/* Title */
+.resources-page h1 {
+  font-size: clamp(2rem, 3vw, 2.5rem);
+  margin-bottom: 1.5rem;
+  font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
+  color: var(--teal);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* Sections */
+.resource-section {
+  margin-top: 2.5rem;
+  text-align: left;
+  background: var(--soft-white);
+  border: 1px solid color-mix(in oklab, var(--soft-blue) 40%, white);
+  border-radius: var(--radius-md, 16px);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.06));
+}
+
+.resource-section h2 {
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  margin-bottom: 1rem;
+  font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
+  color: var(--teal);
+  text-align: center;
+  font-weight: 700;
+}
+
+/* Lists */
+.resource-section ul {
+  list-style-type: disc;
+  padding-left: 2rem;
+  text-align: left;
+  margin-top: 1rem;
+}
+
+.resource-section li {
+  margin-bottom: 0.75rem;
+  font-family: var(--font-body, 'Open Sans', sans-serif);
+}
+
+/* Links */
+.resource-section a {
+  color: var(--gold-amber);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+}
+
+.resource-section a:hover {
+  color: var(--color-link-hover, #008db0);
+  text-decoration-thickness: 2px;
+}
+
+.resource-section a:focus-visible {
+  outline: 3px solid var(--gold-amber);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
