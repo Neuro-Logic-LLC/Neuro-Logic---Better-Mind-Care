@@ -1716,6 +1716,6 @@ router.post('/patient-order-combined-apoe-first', patientOrderCombinedApoeFirst)
 
 router.post('/lab-result', labResultHandler);
 
-router.post('/list-all-patients', listAllPatients);
+router.get('/list-all-patients', listAllPatients);
 
 module.exports = router;
