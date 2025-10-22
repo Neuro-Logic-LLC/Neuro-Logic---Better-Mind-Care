@@ -55,6 +55,9 @@ const pickAnalyteResultsPath = () =>
 const pickOrderDetailsPath = () =>
   pickEnv('EVEXIA_ORDER_DETAILS_URL') || '/api/EDIPlatform/OrderDetailsGet';
 
+const pickPatientListDetailsPath = () =>
+  pickEnv('EVEXIA_ORDER_DETAILS_URL') || '/api/EDIPlatform/PatientList';
+
 const pickClientId = (req, q) =>
   (req.get && req.get('x-evexia-client-id')) ||
   q.ExternalClientID ||
@@ -63,7 +66,7 @@ const pickClientId = (req, q) =>
   pickEnv(
     'EVEXIA_FORCE_CLIENT_ID',
     'EVEXIA_EXTERNAL_CLIENT_ID',
-    'EVEXIA_SANDBOX_EXTERNAL_CLIENT_ID',
+    'EVEXIA_SANDBOX_EXTERNAL_CLIENT_ID'
   ) ||
   HARD_DEFAULT_CLIENT_ID;
 
@@ -299,8 +302,7 @@ async function labResultHandler(req, res) {
     }
 
     const clientId = pickClientId(req, q);
-    
-            
+
     const AUTH = process.env.EVEXIA_AUTH_KEY || process.env.EVEXIA_BEARER_TOKEN;
     const BASE = pickBaseUrl();
     const PATH = pickLabResultsPath();
@@ -554,6 +556,80 @@ async function labResultHandler(req, res) {
     return res.status(500).json({ error: e?.message || String(e) });
   }
 }
+
+// GET /patients — proxy list, no DB writes here
+async function listAllPatients(req, res) {
+  try {
+    const q = { ...(req.query || {}), ...(req.body || {}) };
+
+    const ExternalClientID = process.env.EVEXIA_EXTERNAL_CLIENT_ID;
+    const AUTH = pickAuthKey();
+    const BASE = pickBaseUrl();
+    const PATH = pickPatientListDetailsPath();
+
+    if (!ExternalClientID) {
+      return res.status(400).json({ error: 'Missing ExternalClientID' });
+    }
+    if (!AUTH || (IS_PROD && AUTH === HARD_DEFAULT_AUTH_KEY)) {
+      return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
+    }
+    if (IS_PROD && ExternalClientID === HARD_DEFAULT_CLIENT_ID) {
+      return res.status(500).json({ error: 'Server missing EVEXIA client id env' });
+    }
+
+    const url = new URL(PATH, BASE);
+    url.searchParams.set('externalClientID', ExternalClientID);
+
+    const maskedClient = ExternalClientID ? ExternalClientID.slice(0, 6) + '…' : '(none)';
+    dlog('Upstream GET', url.toString().replace(ExternalClientID, maskedClient));
+
+    const controller = new AbortController();
+    const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
+    const to = setTimeout(() => controller.abort(), timeoutMs);
+
+    const r = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: AUTH,
+        Accept: 'application/json, application/pdf, */*',
+        'User-Agent': 'BetterMindCare-EvexiaProxy/1.0'
+      },
+      signal: controller.signal
+    }).finally(() => clearTimeout(to));
+
+    if (r.status === 204) return res.status(204).send();
+
+    if (r.status >= 400) {
+      const errText = await r.text();
+      return res.status(r.status).json({ error: 'Upstream error', status: r.status, body: errText });
+    }
+
+    const ct = (r.headers.get('content-type') || '').toLowerCase();
+
+    if (ct.startsWith('application/json')) {
+      // just proxy JSON list through
+      const data = await r.json();
+      return res.status(200).json(data);
+    }
+
+    if (ct.startsWith('application/pdf')) {
+      // stream PDF to client to avoid buffering whole file in memory
+      res.setHeader('Content-Type', 'application/pdf');
+      // @ts-ignore: readable web stream to node stream
+      r.body.pipe(res);
+      return;
+    }
+
+    // fallback: passthrough as text
+    const text = await r.text();
+    return res.status(200).send(text);
+  } catch (e) {
+    const code = e.name === 'AbortError' ? 504 : 500;
+    dlog('listAllPatients failed:', e);
+    return res.status(code).json({ error: 'Proxy failure', detail: String(e) });
+  }
+}
+
 
 async function analyteResultHandler(req, res) {
   try {
@@ -1127,7 +1203,7 @@ async function patientOrderCombinedApoeFirst(req, res) {
     const CollectionDate = String(q.CollectionDate ?? q.collectionDate ?? '').trim();
     const clientId = pickClientId(req, q);
     const AUTH_RAW = pickAuthKey();
-    
+
     const AUTH = process.env.EVEXIA_BEARER_TOKEN; // match other routes but ensure Bearer
     const BASE = pickBaseUrl();
 
@@ -1639,5 +1715,7 @@ router.post('/patient-order-combined-ptau-first', patientOrderCombinedPtauFirst)
 router.post('/patient-order-combined-apoe-first', patientOrderCombinedApoeFirst);
 
 router.post('/lab-result', labResultHandler);
+
+router.post('/list-all-patients', listAllPatients);
 
 module.exports = router;

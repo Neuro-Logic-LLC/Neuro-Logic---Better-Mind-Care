@@ -41,6 +41,7 @@ import AutomatedLabResults from './pages/automatedlabresults/AutomatedLabResults
 import EmailStep from './pages/NewCheckoutPages/EmailStep';
 import CheckoutStep from './pages/NewCheckoutPages/CheckoutStep';
 import SignupProvider from './pages/NewCheckoutPages/SignupContext';
+import PatientOrders from './pages/evexiapatientorderspg/EvexiaPatientOrders';
 
 function App() {
   return (
@@ -132,7 +133,7 @@ function App() {
                 {/* ✅ Your 2-step flow */}
                 <Route path="/join" element={<EmailStep />} />
                 <Route path="/join/checkout" element={<CheckoutStep />} />
-
+                <Route path="/patient-orders" element={<PatientOrders /> } />
                 {/* optional 404 */}
                 {/* <Route path="*" element={<NotFound />} /> */}
               </Routes>
