@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { PrimaryButton } from '../../components/button/Buttons';
+import  Card  from '../../components/cards/Card';
+import  TextInput  from '../../components/inputs/InputText';
+import EvexiaPatientList from './EvexiaPatientList';
+
 import {
   ChevronDown,
   ChevronUp,
@@ -29,7 +30,7 @@ import {
  * pageSize number  -> rows per page (default: 25)
  */
 export default function PatientOrders({
-  apiPath = '/api/patients',
+  apiPath = '/api/evexia/list-all-patients',
   pageSize = 25
 }) {
   const [data, setData] = useState([]); // array of patient/order objects
@@ -227,9 +228,12 @@ export default function PatientOrders({
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <EvexiaPatientList />
+        </div>
         <div className="text-xl font-semibold">Patient Orders</div>
         <div className="flex items-center gap-2">
-          <Button
+          <PrimaryButton
             variant="outline"
             onClick={fetchData}
             disabled={loading}
@@ -237,17 +241,17 @@ export default function PatientOrders({
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />{' '}
             Refresh
-          </Button>
-          <Button variant="outline" onClick={exportCsv} className="gap-2">
+          </PrimaryButton>
+          <PrimaryButton variant="outline" onClick={exportCsv} className="gap-2">
             <Download className="h-4 w-4" /> Export CSV
-          </Button>
+          </PrimaryButton>
         </div>
       </div>
 
       <div className="flex items-center gap-2">
         <div className="relative w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60" />
-          <Input
+          <TextInput
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search name, email, PatientID, OrderID, city, state"
@@ -257,11 +261,11 @@ export default function PatientOrders({
       </div>
 
       <Card className="rounded-2xl shadow-sm">
-        <CardContent className="p-0">
+
           {error ? (
             <div className="p-4 text-sm text-red-600">{error}</div>
           ) : (
-            <ScrollArea className="w-full">
+            <div className="w-full overflow-x-auto max-h-[70vh]">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-white/80 backdrop-blur z-10">
                   <tr className="text-left border-b">
@@ -281,7 +285,7 @@ export default function PatientOrders({
                         className="px-3 py-2 font-medium select-none"
                       >
                         {c.key !== '_exp' ? (
-                          <button
+                          <PrimaryButton
                             onClick={() => setSortKey(c.key)}
                             className="inline-flex items-center gap-1"
                           >
@@ -293,7 +297,7 @@ export default function PatientOrders({
                                 <ChevronDown className="h-3 w-3" />
                               )
                             ) : null}
-                          </button>
+                          </PrimaryButton>
                         ) : (
                           <span className="sr-only">Expand</span>
                         )}
@@ -333,7 +337,7 @@ export default function PatientOrders({
                   )}
                 </tbody>
               </table>
-            </ScrollArea>
+            </div>
           )}
 
           {/* Pagination */}
@@ -342,41 +346,41 @@ export default function PatientOrders({
               Page {page + 1} / {totalPages} · {sorted.length} total
             </div>
             <div className="flex items-center gap-1">
-              <Button
+              <PrimaryButton
                 variant="outline"
                 size="sm"
                 onClick={() => setPage(0)}
                 disabled={page === 0}
               >
                 First
-              </Button>
-              <Button
+              </PrimaryButton>
+              <PrimaryButton
                 variant="outline"
                 size="sm"
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
               >
                 Prev
-              </Button>
-              <Button
+              </PrimaryButton>
+              <PrimaryButton
                 variant="outline"
                 size="sm"
                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
               >
                 Next
-              </Button>
-              <Button
+              </PrimaryButton>
+              <PrimaryButton
                 variant="outline"
                 size="sm"
                 onClick={() => setPage(totalPages - 1)}
                 disabled={page >= totalPages - 1}
               >
                 Last
-              </Button>
+              </PrimaryButton>
             </div>
           </div>
-        </CardContent>
+
       </Card>
     </div>
   );
@@ -398,7 +402,7 @@ function Row({ row }) {
           {row.updatedAt ? new Date(row.updatedAt).toLocaleString() : ''}
         </td>
         <td className="px-3 py-2 text-right">
-          <Button
+          <PrimaryButton
             variant="outline"
             size="sm"
             onClick={() => setOpen((v) => !v)}
@@ -408,7 +412,7 @@ function Row({ row }) {
             ) : (
               <ChevronDown className="h-4 w-4" />
             )}
-          </Button>
+          </PrimaryButton>
         </td>
       </tr>
       {open && (
