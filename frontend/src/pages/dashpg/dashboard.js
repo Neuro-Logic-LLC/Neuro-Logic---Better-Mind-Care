@@ -32,12 +32,14 @@ function Dashboard() {
           <button className="btn" onClick={() => navigate('/intake-form')}>
             Start Patient Intake
           </button>
-
           <button className="btn" onClick={() => navigate('/admin/users')}>
             Manage Users
           </button>
           <button className="btn" onClick={() => navigate('/admin/logs')}>
             View Audit Logs
+          </button>
+          <button className="btn" onClick={() => navigate('/patient-orders')}>
+            Patient Orders (In progress)
           </button>
         </div>
       )}
@@ -45,6 +47,9 @@ function Dashboard() {
         <div className="mt-4">
           <button className="btn" onClick={() => navigate('/intake-form')}>
             Start Patient Intake
+          </button>
+          <button className="btn" onClick={() => navigate('/patient-orders')}>
+            Patient Orders (In progress)
           </button>
         </div>
       )}

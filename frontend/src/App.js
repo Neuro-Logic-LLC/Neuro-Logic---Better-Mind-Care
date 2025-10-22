@@ -60,7 +60,10 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/evexia-lab-results" element={<EvexiaLabReport />} />
+                <Route
+                  path="/evexia-lab-results"
+                  element={<EvexiaLabReport />}
+                />
                 <Route path="/google-calendar" element={<GoogleCalendar />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/success" element={<SuccessPage />} />
@@ -126,14 +129,40 @@ function App() {
                   }
                 />
 
-                <Route path="/screening-order" element={<ScreeningOrder />} />
+                <Route
+                  path="/screening-order"
+                  element={
+                    <ProtectedRoute>
+                      <ScreeningOrder />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/patient-orders"
+                  element={
+                    <ProtectedRoute>
+                      <PatientOrders />
+                    </ProtectedRoute>
+                  }
+                />
+
+                                <Route
+                  path="/automated-lab-results"
+                  element={
+                    <ProtectedRoute>
+                      <AutomatedLabResults />
+                    </ProtectedRoute>
+                  }
+                />
+
                 <Route path="/sign-up" element={<SignUp />} />
                 <Route path="/confirm-email" element={<ConfirmEmail />} />
-                <Route path="/automated-lab-results" element={<AutomatedLabResults />} />
+
                 {/* ✅ Your 2-step flow */}
                 <Route path="/join" element={<EmailStep />} />
                 <Route path="/join/checkout" element={<CheckoutStep />} />
-                <Route path="/patient-orders" element={<PatientOrders /> } />
+
                 {/* optional 404 */}
                 {/* <Route path="*" element={<NotFound />} /> */}
               </Routes>
