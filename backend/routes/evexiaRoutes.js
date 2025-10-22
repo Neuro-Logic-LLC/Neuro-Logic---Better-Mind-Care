@@ -10,8 +10,8 @@ const initKnex = require('../db/initKnex');
 /**
  * Hardcoded fallbacks only if env is empty (blocked in production below).
  */
-const HARD_DEFAULT_AUTH_KEY = process.env.HARD_DEFAULT_AUTH_KEY;
-const HARD_DEFAULT_CLIENT_ID = process.env.HARD_DEFAULT_CLIENT_ID;
+const HARD_DEFAULT_AUTH_KEY = process.env.EVEXIA_BEARER_TOKEN;
+const HARD_DEFAULT_CLIENT_ID = process.env.EVEXIA_EXTERNAL_CLIENT_ID;
 
 const LOG_SLICE = Number(process.env.EVEXIA_LOG_SLICE || 1200);
 const DEBUG = /^(1|true)$/i.test(process.env.EVEXIA_DEBUG || '');
@@ -63,7 +63,7 @@ const pickClientId = (req, q) =>
   pickEnv(
     'EVEXIA_FORCE_CLIENT_ID',
     'EVEXIA_EXTERNAL_CLIENT_ID',
-    'EVEXIA_SANDBOX_EXTERNAL_CLIENT_ID'
+    'EVEXIA_SANDBOX_EXTERNAL_CLIENT_ID',
   ) ||
   HARD_DEFAULT_CLIENT_ID;
 
@@ -301,7 +301,7 @@ async function labResultHandler(req, res) {
     const clientId = pickClientId(req, q);
     
             
-    const AUTH = process.env.EVEXIA_AUTH_KEY || 'BEC78AED-64A1-42A1-AFA1-39BA65F50835';
+    const AUTH = process.env.EVEXIA_AUTH_KEY || process.env.EVEXIA_BEARER_TOKEN;
     const BASE = pickBaseUrl();
     const PATH = pickLabResultsPath();
 
@@ -900,7 +900,7 @@ async function patientOrderCombinedPtauFirst(req, res) {
 
     const clientId = pickClientId(req, q);
     const AUTH_RAW = pickAuthKey();
-    const AUTH = "BEC78AED-64A1-42A1-AFA1-39BA65F50835"; // match other routes but ensure Bearer
+    const AUTH = process.env.EVEXIA_BEARER_TOKEN; // match other routes but ensure Bearer
     const BASE = pickBaseUrl();
 
     if (!AUTH) return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
@@ -1128,7 +1128,7 @@ async function patientOrderCombinedApoeFirst(req, res) {
     const clientId = pickClientId(req, q);
     const AUTH_RAW = pickAuthKey();
     
-    const AUTH = "BEC78AED-64A1-42A1-AFA1-39BA65F50835"; // match other routes but ensure Bearer
+    const AUTH = process.env.EVEXIA_BEARER_TOKEN; // match other routes but ensure Bearer
     const BASE = pickBaseUrl();
 
     // What to place

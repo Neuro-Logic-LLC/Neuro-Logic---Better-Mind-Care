@@ -6,8 +6,8 @@ const initKnex = require('../db/initKnex');
 
 router.post('/import-lab-result', async (req, res) => {
   const { patientID, patientOrderID } = req.body;
-  const externalClientID = '1B2FA0C0-3CBB-402A-9800-F3965A2D3DF5';
-  const BearerToken = process.env.EVEXIA_AUTH_KEY || 'BEC78AED-64A1-42A1-AFA1-39BA65F50835';
+  const externalClientID = process.env.EVEXIA_EXTERNAL_CLIENT_ID 
+  const BearerToken = process.env.EVEXIA_BEARER_TOKEN
   if (!patientID || !patientOrderID) {
     return res.status(400).json({ error: 'Missing PatientID or PatientOrderID' });
   }
@@ -18,9 +18,9 @@ router.post('/import-lab-result', async (req, res) => {
     // ---- Evexia credentials ----
     const body = {
       PartnerAuthorizationKey:
-        process.env.EVEXIA_AUTH_KEY || 'BEC78AED-64A1-42A1-AFA1-39BA65F50835',
+        process.env.EVEXIA_BEARER_TOKEN,
       ExternalClientID:
-        process.env.EVEXIA_EXTERNAL_CLIENT_ID || '1B2FA0C0-3CBB-402A-9800-F3965A2D3DF5',
+        process.env.EVEXIA_EXTERNAL_CLIENT_ID,
       patientID,
       patientOrderID
     };
