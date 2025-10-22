@@ -76,7 +76,7 @@ router.post('/import-lab-result', async (req, res) => {
 
     res.json({ ok: true, inserted: true });
   } catch (err) {
-    console.error('[evexia import error]', err);  
+    console.error('[evexia import error]', err);
     res.status(500).json({ error: err.message });
   }
 });
