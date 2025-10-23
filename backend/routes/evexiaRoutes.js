@@ -1827,7 +1827,7 @@ async function patientListHandler(req, res) {
 }
 
 const getClientId = (req, res) => {
-  res.json({ clientId: process.env.EVEXIA_EXTERNAL_CLIENT_ID });
+  res.json({ externalClientID: process.env.EVEXIA_EXTERNAL_CLIENT_ID });
 };
 
 // patient routes
