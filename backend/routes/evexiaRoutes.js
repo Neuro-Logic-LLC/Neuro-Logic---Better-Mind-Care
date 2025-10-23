@@ -1708,12 +1708,48 @@ function asString(value) {
   if (value === undefined || value === null) return '';
   return String(value);
 }
+async function callEvexia(url, options) {
+  let resp, text;
+  try {
+    resp = await fetch(url, options);
+    text = await resp.text(); // read once
+
+    // try to JSON-parse but don't die if it's not JSON
+    let data;
+    try { data = JSON.parse(text); } catch { data = null; }
+
+    if (!resp.ok) {
+      const msg = data?.error || data?.message || text || resp.statusText;
+      const err = new Error(`Upstream ${resp.status} ${resp.statusText} – ${msg.slice(0,500)}`);
+      err.status = resp.status;
+      err.body = text;
+      err.url = url;
+      throw err;
+    }
+
+    return data ?? text; // return JSON or raw text
+  } catch (e) {
+    // LOG EVERYTHING server-side
+    console.error('Upstream call failed', {
+      url: e.url || url,
+      status: e.status || resp?.status,
+      body: e.body || text,
+      message: e.message,
+    });
+
+    // return useful info to client (trim/avoid PII if needed)
+    throw e;
+  }
+}
 
 async function patientAddV2Handler(req, res) {
+  const BASE = process.env.EVEXIA_BASE_URL;
+  const PATHS = { PATIENT_ADD_V2: '/patient/add' }; // use your real path if different
+
   try {
     const q = { ...(req.query || {}), ...(req.body || {}) };
 
-    // Minimum required fields per your doc
+    // Required fields
     const required = [
       'EmailAddress', 'FirstName', 'LastName',
       'StreetAddress', 'City', 'State', 'PostalCode',
@@ -1725,81 +1761,68 @@ async function patientAddV2Handler(req, res) {
       }
     }
 
-    // Build payload with ALL fields unchanged in name
-    const payload = {
-      EmailAddress:        asString(q.EmailAddress),
-      FirstName:           asString(q.FirstName),
-      LastName:            asString(q.LastName),
-      StreetAddress:       asString(q.StreetAddress),
-      StreetAddress2:      trimOrNull(q.StreetAddress2),
-      City:                asString(q.City),
-      State:               asString(q.State),
-      PostalCode:          asString(q.PostalCode),
-      Phone:               asString(q.Phone),
-      DOB:                 asString(q.DOB),     // pass through as given: "3/31/1977 12:00:00 AM"
-      Gender:              asString(q.Gender),  // "M" or "F" per doc
-
-      Guardian:            trimOrNull(q.Guardian),
-      GuardianRelationship:trimOrNull(q.GuardianRelationship),
-      GuardianAddress:     trimOrNull(q.GuardianAddress),
-      GuardianAddress2:    trimOrNull(q.GuardianAddress2),
-      GuardianCity:        trimOrNull(q.GuardianCity),
-      GuardianPostalCode:  trimOrNull(q.GuardianPostalCode),
-      GuardianState:       trimOrNull(q.GuardianState),
-      GuardianPhone:       trimOrNull(q.GuardianPhone),
-
-      ExternalClientID:    pickClientId(req, q)
-    };
-
-    const BASE = pickBaseUrl();
-    const AUTH = normalizeAuth(pickAuthKey());
-    if (!BASE) return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
-    if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
-
+    // Build URL once and actually use it
     const url = new URL(PATHS.PATIENT_ADD_V2, BASE);
 
-    // Minimal logging — PHI safe: only keys
-    console.info('[Evexia] PatientAddV2 ->', url.toString(), 'keys:', Object.keys(payload));
+    // Minimal logging. Keys only.
+    console.info('[Evexia] PatientAddV2 ->', url.toString(), 'keys:', Object.keys(q));
 
+    // AbortController wired to the request
     const controller = new AbortController();
     const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
-    const to = setTimeout(() => controller.abort(), timeoutMs);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
-    let upstream;
-    try {
-      const r = await fetch(url, {
-        method: 'POST',
-        headers: {
-          Authorization: AUTH,
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal
-      });
-      const text = await r.text();
-      try { upstream = JSON.parse(text); } catch { upstream = text; }
+    // Map to upstream schema
+    const upstreamPayload = {
+      EmailAddress: q.EmailAddress,
+      FirstName: q.FirstName,
+      LastName: q.LastName,
+      StreetAddress: q.StreetAddress,
+      City: q.City,
+      State: q.State,
+      PostalCode: q.PostalCode,
+      Phone: q.Phone,
+      DOB: q.DOB,
+      Gender: q.Gender,
+      ExternalClientID: q.ExternalClientID,
+    };
 
-      if (!r.ok) {
-        // Example bad response: ["Invalid:Detailed message here."]
-        res.setHeader('Cache-Control', 'no-store');
-        return res.status(r.status).json({ error: 'Upstream error', upstream });
-      }
-    } catch (e) {
-      if (e.name === 'AbortError') {
-        return res.status(504).json({ error: 'Upstream request timed out' });
-      }
-      throw e;
-    } finally {
-      clearTimeout(to);
-    }
+    // Call upstream
+    const result = await callEvexia(url.toString(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${process.env.EVEXIA_API_KEY}`,
+      },
+      body: JSON.stringify(upstreamPayload),
+      signal: controller.signal, // important
+    });
 
-    // Pass upstream result through — includes { PatientID, ExternalClientID } on success
+    // Success
     res.setHeader('Cache-Control', 'no-store');
-    return res.status(200).json({ success: true, upstream });
+    return res.status(200).json(result);
   } catch (err) {
-    console.error('[Evexia] patientAddV2 error:', err);
-    return res.status(500).json({ error: err.message || 'Server error' });
+    // If callEvexia threw with extra fields, surface them
+    console.error('[Evexia] patientAddV2 error:', {
+      msg: err.message,
+      status: err.status,
+      url: err.url,
+      body: err.body?.slice ? err.body.slice(0, 500) : err.body,
+      name: err.name,
+    });
+
+    const status = err.name === 'AbortError' ? 504 : (err.status || 502);
+    return res.status(status).json({
+      error: status === 504 ? 'Upstream timeout' : 'Upstream error',
+      upstream: err.message || null,
+      status: err.status || null,
+      url: err.url || null,
+    });
+  } finally {
+    // Clear timeout even on error
+    // Note: put the variable in outer scope if needed
+    if (typeof timeout !== 'undefined') clearTimeout(timeout);
   }
 }
 
