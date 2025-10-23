@@ -1744,7 +1744,7 @@ async function callEvexia(url, options) {
 
 async function patientAddV2Handler(req, res) {
   const BASE = process.env.EVEXIA_BASE_URL;
-  const PATHS = { PATIENT_ADD_V2: '/patient/add' }; // use your real path if different
+  const PATHS = { PATIENT_ADD_V2: '/api/EDIPlatform/PatientAddV2' }; // use your real path if different
 
   try {
     const q = { ...(req.query || {}), ...(req.body || {}) };
