@@ -60,6 +60,9 @@ const pickOrderDetailsPath = () =>
 const pickPatientListDetailsPath = () =>
   pickEnv('EVEXIA_ORDER_DETAILS_URL') || '/api/EDIPlatform/PatientList';
 
+const pickPatientAddV2Path = () =>
+  pickEnv('EVEXIA_ADD_PATIENT_V2_URL' || '/api/EDIPlatform/PatientAddV2')
+
 function trimOrNull(value) {
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
