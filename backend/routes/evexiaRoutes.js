@@ -1704,6 +1704,11 @@ function trimOrNull(value) {
   return trimmed === '' ? null : trimmed;
 }
 
+function asString(value) {
+  if (value === undefined || value === null) return '';
+  return String(value);
+}
+
 async function patientAddV2Handler(req, res) {
   try {
     const q = { ...(req.query || {}), ...(req.body || {}) };
