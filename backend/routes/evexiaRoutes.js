@@ -37,7 +37,8 @@ const PATHS = {
   ORDER_ADD: '/api/EDIPlatform/OrderAdd',
   ORDER_ITEM_ADD: '/api/EDIPlatform/OrderItemAdd',
   ORDER_COMPLETE: '/api/EDIPlatform/PatientOrderComplete',
-  ORDER_CANCEL: '/api/EDIPlatform/OrderCancel'
+  ORDER_CANCEL: '/api/EDIPlatform/OrderCancel',
+  PATIENT_ADD: '/api/EDIPlatform/PatientAddV2'
 };
 
 const pickAuthKey = () =>
@@ -1690,23 +1691,161 @@ async function patientOrderCompleteHandler(req, res) {
   }
 }
 
-// routes/labWebhook.js
+async function patientAddV2Handler(req, res) {
+  try {
+    const q = { ...(req.query || {}), ...(req.body || {}) };
 
-//patient routes
+    // Minimum required fields per your doc
+    const required = [
+      'EmailAddress', 'FirstName', 'LastName',
+      'StreetAddress', 'City', 'State', 'PostalCode',
+      'Phone', 'DOB', 'Gender', 'ExternalClientID'
+    ];
+    for (const k of required) {
+      if (!trimOrNull(q[k])) {
+        return res.status(400).json({ error: `Missing required field: ${k}` });
+      }
+    }
+
+    // Build payload with ALL fields unchanged in name
+    const payload = {
+      EmailAddress:        asString(q.EmailAddress),
+      FirstName:           asString(q.FirstName),
+      LastName:            asString(q.LastName),
+      StreetAddress:       asString(q.StreetAddress),
+      StreetAddress2:      trimOrNull(q.StreetAddress2),
+      City:                asString(q.City),
+      State:               asString(q.State),
+      PostalCode:          asString(q.PostalCode),
+      Phone:               asString(q.Phone),
+      DOB:                 asString(q.DOB),     // pass through as given: "3/31/1977 12:00:00 AM"
+      Gender:              asString(q.Gender),  // "M" or "F" per doc
+
+      Guardian:            trimOrNull(q.Guardian),
+      GuardianRelationship:trimOrNull(q.GuardianRelationship),
+      GuardianAddress:     trimOrNull(q.GuardianAddress),
+      GuardianAddress2:    trimOrNull(q.GuardianAddress2),
+      GuardianCity:        trimOrNull(q.GuardianCity),
+      GuardianPostalCode:  trimOrNull(q.GuardianPostalCode),
+      GuardianState:       trimOrNull(q.GuardianState),
+      GuardianPhone:       trimOrNull(q.GuardianPhone),
+
+      ExternalClientID:    pickClientId(req, q)
+    };
+
+    const BASE = pickBaseUrl();
+    const AUTH = normalizeAuth(pickAuthKey());
+    if (!BASE) return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
+    if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
+
+    const url = new URL(PATHS.PATIENT_ADD_V2, BASE);
+
+    // Minimal logging — PHI safe: only keys
+    console.info('[Evexia] PatientAddV2 ->', url.toString(), 'keys:', Object.keys(payload));
+
+    const controller = new AbortController();
+    const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
+    const to = setTimeout(() => controller.abort(), timeoutMs);
+
+    let upstream;
+    try {
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: AUTH,
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      const text = await r.text();
+      try { upstream = JSON.parse(text); } catch { upstream = text; }
+
+      if (!r.ok) {
+        // Example bad response: ["Invalid:Detailed message here."]
+        res.setHeader('Cache-Control', 'no-store');
+        return res.status(r.status).json({ error: 'Upstream error', upstream });
+      }
+    } catch (e) {
+      if (e.name === 'AbortError') {
+        return res.status(504).json({ error: 'Upstream request timed out' });
+      }
+      throw e;
+    } finally {
+      clearTimeout(to);
+    }
+
+    // Pass upstream result through — includes { PatientID, ExternalClientID } on success
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).json({ success: true, upstream });
+  } catch (err) {
+    console.error('[Evexia] patientAddV2 error:', err);
+    return res.status(500).json({ error: err.message || 'Server error' });
+  }
+}
+
+// GET /api/evexia/patient-list -> forwards to PatientList
+// Required params: externalClientID (string), patientID (int)
+async function patientListHandler(req, res) {
+  try {
+    const externalClientID = trimOrNull(req.query.externalClientID || req.body?.externalClientID);
+    const patientID = trimOrNull(req.query.patientID || req.body?.patientID);
+    if (!externalClientID || !patientID) {
+      return res.status(400).json({ error: 'externalClientID and patientID are required' });
+    }
+
+    const BASE = pickBaseUrl();
+    const AUTH = normalizeAuth(pickAuthKey());
+    if (!BASE) return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
+    if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
+
+    const url = new URL(PATHS.PATIENT_LIST, BASE);
+    url.searchParams.set('externalClientID', externalClientID);
+    url.searchParams.set('patientID', patientID);
+
+    const r = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: AUTH,
+        Accept: 'application/json'
+      }
+    });
+    const text = await r.text();
+    let data; try { data = JSON.parse(text); } catch { data = text; }
+
+    if (!r.ok) {
+      return res.status(r.status).json({ error: 'Upstream error', upstream: data });
+    }
+
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).json({ success: true, data });
+  } catch (err) {
+    console.error('patientListHandler error:', err);
+    return res.status(500).json({ error: err.message || 'Server error' });
+  }
+}
+
+const getClientId = (req, res) => {
+  res.json({ clientId: process.env.EVEXIA_EXTERNAL_CLIENT_ID });
+};
+
+// patient routes
+router.get('/client-id', getClientId);
 
 router.post('/order-item-add', OrderItemAdd);
 router.post('/order-items-add', OrderItemsAdd);
 router.post('/order-complete', patientOrderCompleteHandler);
 router.get('/order-list', OrderListHandler);
 
-//order routes
+//patient order routes
 
 router.get('/order-summary', orderSummaryHandler);
 router.post('/order-summary', orderSummaryHandler);
 router.get('/order-details', orderDetailsHandler);
 router.post('/order-details', orderDetailsHandler);
 
-//lab result(pdf)/analyte routes
+//lab result(pdf)/patient analyte routes
 
 router.post('/analyte-result', analyteResultHandler);
 
@@ -1717,5 +1856,7 @@ router.post('/patient-order-combined-apoe-first', patientOrderCombinedApoeFirst)
 router.post('/lab-result', labResultHandler);
 
 router.get('/list-all-patients', listAllPatients);
+
+router.post('/patient-add', patientAddV2Handler);
 
 module.exports = router;
