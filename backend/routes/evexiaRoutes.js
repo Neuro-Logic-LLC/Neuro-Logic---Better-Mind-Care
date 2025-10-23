@@ -1708,6 +1708,7 @@ function asString(value) {
   if (value === undefined || value === null) return '';
   return String(value);
 }
+
 async function callEvexia(url, options) {
   let resp, text;
   try {
@@ -1742,87 +1743,111 @@ async function callEvexia(url, options) {
   }
 }
 
-async function patientAddV2Handler(req, res) {
-  const BASE = pickBaseUrl();
-  const PATHS = { PATIENT_ADD_V2: '/api/EDIPlatform/PatientAddV2', BASE }; // use your real path if different
-
+async function patientAddV2(req, res) {
   try {
     const q = { ...(req.query || {}), ...(req.body || {}) };
 
-    // Required fields
+    const ExternalClientID = process.env.EVEXIA_EXTERNAL_CLIENT_ID;
+    const AUTH = pickAuthKey();
+    const BASE = pickBaseUrl();
+    const PATH = pickPatientAddV2Path(); // implement like pickPatientListDetailsPath()
+
+    if (!ExternalClientID) {
+      return res.status(400).json({ error: 'Missing ExternalClientID' });
+    }
+    if (!AUTH || (IS_PROD && AUTH === HARD_DEFAULT_AUTH_KEY)) {
+      return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
+    }
+    if (IS_PROD && ExternalClientID === HARD_DEFAULT_CLIENT_ID) {
+      return res.status(500).json({ error: 'Server missing EVEXIA client id env' });
+    }
+
+    // Build URL with the same pattern as listAllPatients
+    const url = new URL(PATH, BASE);
+
+    // Minimal log without PHI
+    const maskedClient = ExternalClientID ? ExternalClientID.slice(0, 6) + '…' : '(none)';
+    dlog('Upstream POST', url.toString().replace(ExternalClientID, maskedClient), 'keys:', Object.keys(q));
+
+    const controller = new AbortController();
+    const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
+    const to = setTimeout(() => controller.abort(), timeoutMs);
+
+    // Map to upstream schema exactly as they expect
+    const payload = {
+      EmailAddress: String(q.EmailAddress || '').trim(),
+      FirstName: String(q.FirstName || '').trim(),
+      LastName: String(q.LastName || '').trim(),
+      StreetAddress: String(q.StreetAddress || '').trim(),
+      StreetAddress2: String(q.StreetAddress2 || '').trim(),
+      City: String(q.City || '').trim(),
+      State: String(q.State || '').trim(),
+      PostalCode: String(q.PostalCode || '').trim(),
+      Phone: String(q.Phone || '').trim(),
+      DOB: String(q.DOB || '').trim(),     // convert to vendor-required format if needed
+      Gender: String(q.Gender || '').trim(),
+      Guardian: String(q.Guardian || '').trim(),
+      GuardianRelationship: String(q.GuardianRelationship || '').trim(),
+      GuardianAddress: String(q.GuardianAddress || '').trim(),
+      GuardianAddress2: String(q.GuardianAddress2 || '').trim(),
+      GuardianCity: String(q.GuardianCity || '').trim(),
+      GuardianPostalCode: String(q.GuardianPostalCode || '').trim(),
+      GuardianState: String(q.GuardianState || '').trim(),
+      GuardianPhone: String(q.GuardianPhone || '').trim(),
+      ExternalClientID, // always from server env, like your GET route
+    };
+
+    // Required field check to match your earlier validator
     const required = [
-      'EmailAddress', 'FirstName', 'LastName',
-      'StreetAddress', 'City', 'State', 'PostalCode',
-      'Phone', 'DOB', 'Gender', 'ExternalClientID'
+      'EmailAddress','FirstName','LastName','StreetAddress','City','State',
+      'PostalCode','Phone','DOB','Gender','ExternalClientID'
     ];
     for (const k of required) {
-      if (!trimOrNull(q[k])) {
+      const v = payload[k];
+      if (!v || String(v).trim() === '') {
+        clearTimeout(to);
         return res.status(400).json({ error: `Missing required field: ${k}` });
       }
     }
 
-    // Build URL once and actually use it
-    const url = new URL(PATHS.PATIENT_ADD_V2, BASE);
-
-    // Minimal logging. Keys only.
-    console.info('[Evexia] PatientAddV2 ->', url.toString(), 'keys:', Object.keys(q));
-
-    // AbortController wired to the request
-    const controller = new AbortController();
-    const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
-    // Map to upstream schema
-    const upstreamPayload = {
-      EmailAddress: q.EmailAddress,
-      FirstName: q.FirstName,
-      LastName: q.LastName,
-      StreetAddress: q.StreetAddress,
-      City: q.City,
-      State: q.State,
-      PostalCode: q.PostalCode,
-      Phone: q.Phone,
-      DOB: q.DOB,
-      Gender: q.Gender,
-      ExternalClientID: q.ExternalClientID,
-    };
-
-    // Call upstream
-    const result = await callEvexia(url.toString(), {
+    const r = await fetch(url, {
       method: 'POST',
       headers: {
+        Authorization: AUTH, // use the same AUTH you already have working
+        Accept: 'application/json, */*',
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${process.env.EVEXIA_API_KEY}`,
+        'User-Agent': 'BetterMindCare-EvexiaProxy/1.0',
       },
-      body: JSON.stringify(upstreamPayload),
-      signal: controller.signal, // important
-    });
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    }).finally(() => clearTimeout(to));
 
-    // Success
-    res.setHeader('Cache-Control', 'no-store');
-    return res.status(200).json(result);
-  } catch (err) {
-    // If callEvexia threw with extra fields, surface them
-    console.error('[Evexia] patientAddV2 error:', {
-      msg: err.message,
-      status: err.status,
-      url: err.url,
-      body: err.body?.slice ? err.body.slice(0, 500) : err.body,
-      name: err.name,
-    });
+    if (r.status === 204) return res.status(204).send();
 
-    const status = err.name === 'AbortError' ? 504 : (err.status || 502);
-    return res.status(status).json({
-      error: status === 504 ? 'Upstream timeout' : 'Upstream error',
-      upstream: err.message || null,
-      status: err.status || null,
-      url: err.url || null,
-    });
-  } finally {
-    // Clear timeout even on error
-    // Note: put the variable in outer scope if needed
-    if (typeof timeout !== 'undefined') clearTimeout(timeout);
+    const text = await r.text();
+    if (r.status >= 400) {
+      // surface upstream for debugging
+      return res.status(r.status).json({
+        error: 'Upstream error',
+        status: r.status,
+        body: text.slice(0, 1000),
+        url: url.toString(),
+      });
+    }
+
+    // try JSON parse, else return raw
+    try {
+      const data = JSON.parse(text);
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).json(data);
+    } catch {
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).send(text);
+    }
+  } catch (e) {
+    const code = e.name === 'AbortError' ? 504 : 500;
+    dlog('patientAddV2 failed:', e);
+    return res.status(code).json({ error: 'Proxy failure', detail: String(e) });
   }
 }
 
@@ -1898,6 +1923,6 @@ router.post('/lab-result', labResultHandler);
 
 router.get('/list-all-patients', listAllPatients);
 
-router.post('/patient-add', patientAddV2Handler);
+router.post('/patient-add', patientAddV2);
 
 module.exports = router;
