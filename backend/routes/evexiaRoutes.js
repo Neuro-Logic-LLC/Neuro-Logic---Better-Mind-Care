@@ -20,6 +20,7 @@ const IS_PROD = process.env.NODE_ENV === 'production';
 const dlog = (...a) => DEBUG && console.log('[Evexia]', ...a);
 const makeFilename = (pid, poid) => `lab-${pid}-${poid}.pdf`;
 
+
 const pickEnv = (...names) => {
   for (const n of names) {
     const v = (process.env[n] || '').trim();
@@ -58,6 +59,12 @@ const pickOrderDetailsPath = () =>
 
 const pickPatientListDetailsPath = () =>
   pickEnv('EVEXIA_ORDER_DETAILS_URL') || '/api/EDIPlatform/PatientList';
+
+function trimOrNull(value) {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed === '' ? null : trimmed;
+}
 
 const pickClientId = (req, q) =>
   (req.get && req.get('x-evexia-client-id')) ||
@@ -1689,6 +1696,12 @@ async function patientOrderCompleteHandler(req, res) {
       return res.status(504).json({ error: 'Upstream request timed out' });
     return res.status(500).json({ error: err.message });
   }
+}
+
+function trimOrNull(value) {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed === '' ? null : trimmed;
 }
 
 async function patientAddV2Handler(req, res) {
