@@ -39,7 +39,8 @@ const PATHS = {
   ORDER_ITEM_ADD: '/api/EDIPlatform/OrderItemAdd',
   ORDER_COMPLETE: '/api/EDIPlatform/PatientOrderComplete',
   ORDER_CANCEL: '/api/EDIPlatform/OrderCancel',
-  EVEXIA_ADD_PATIENT_V2_URL: '/api/EDIPlatform/PatientAddV2'
+  EVEXIA_ADD_PATIENT_V2_URL: '/api/EDIPlatform/PatientAddV2',
+  EVEXIA_PATIENT_DELETE_URL: 'api/EDIPlatform/PatientDelete '
 };
 
 const pickAuthKey = () =>
@@ -62,6 +63,11 @@ const pickPatientListDetailsPath = () =>
 
 const pickPatientAddV2Path = () =>
   pickEnv('EVEXIA_ADD_PATIENT_V2_URL') || '/api/EDIPlatform/PatientAddV2';
+
+const pickPatientDeletePath = () =>
+  pickEnv('EVEXIA_PATIENT_DELETE_URL') || '/api/EDIPlatform/PatientDelete';
+
+
 
 function trimOrNull(value) {
   if (typeof value !== 'string') return null;
