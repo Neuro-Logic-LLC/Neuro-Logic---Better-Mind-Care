@@ -39,8 +39,10 @@ const PATHS = {
   ORDER_ITEM_ADD: '/api/EDIPlatform/OrderItemAdd',
   ORDER_COMPLETE: '/api/EDIPlatform/PatientOrderComplete',
   ORDER_CANCEL: '/api/EDIPlatform/OrderCancel',
-  EVEXIA_ADD_PATIENT_V2_URL: '/api/EDIPlatform/PatientAddV2',
-  EVEXIA_PATIENT_DELETE_URL: 'api/EDIPlatform/PatientDelete '
+  ORDER_LIST: '/api/EDIPlatform/OrderList',
+  EVEXIA_ADD_PATIENT_V2: '/api/EDIPlatform/PatientAddV2',
+  EVEXIA_PATIENT_DELETE: '/api/EDIPlatform/PatientDelete',
+  EVEXIA_PATIENT_LIST: '/api/EDIPlatform/PatientList'
 };
 
 const pickAuthKey = () =>
@@ -60,6 +62,9 @@ const pickOrderDetailsPath = () =>
 
 const pickPatientListDetailsPath = () =>
   pickEnv('EVEXIA_ORDER_DETAILS_URL') || '/api/EDIPlatform/PatientList';
+
+const pickOrderListDetailsPath = () =>
+  pickEnv('ORDER_LIST') || '/api/EDIPlatform/OrderList';
 
 const pickPatientAddV2Path = () =>
   pickEnv('EVEXIA_ADD_PATIENT_V2_URL') || '/api/EDIPlatform/PatientAddV2';
@@ -1570,9 +1575,8 @@ async function OrderListHandler(req, res) {
     const q = { ...(req.query || {}), ...(req.body || {}) };
 
     const PatientID = String(q.PatientID ?? q.patientID ?? '').trim();
-    const OrderID = String(q.OrderID ?? q.orderID ?? '0').trim();
-    const Limit = String(q.Limit ?? q.limit ?? '0').trim();
-    const StartAfter = String(q.StartAfter ?? q.startAfter ?? '0').trim();
+    // const Limit = String(q.Limit ?? q.limit ?? '0').trim();
+    // const StartAfter = String(q.StartAfter ?? q.startAfter ?? '0').trim();
 
     if (!PatientID) {
       return res.status(400).json({ error: 'Missing PatientID' });
@@ -1581,7 +1585,7 @@ async function OrderListHandler(req, res) {
     const clientId = pickClientId(req, q);
     const AUTH = pickAuthKey();
     const BASE = pickBaseUrl();
-    const PATH = '/api/EDIPlatform/OrderListV2';
+    const PATH = '/api/EDIPlatform/OrderList';
 
     if (!AUTH) return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
     if (!BASE) return res.status(500).json({ error: 'Server missing EVEXIA_BASE_URL' });
@@ -1589,9 +1593,9 @@ async function OrderListHandler(req, res) {
     const url = new URL(PATH, BASE);
     url.searchParams.set('externalClientID', clientId);
     url.searchParams.set('patientID', PatientID);
-    url.searchParams.set('orderID', OrderID);
-    url.searchParams.set('limit', Limit);
-    url.searchParams.set('startAfter', StartAfter);
+
+    // url.searchParams.set('limit', Limit);
+    // url.searchParams.set('startAfter', StartAfter);
 
     const maskedClient = clientId ? clientId.slice(0, 6) + '…' : '(none)';
     dlog('Upstream GET', url.toString().replace(clientId, maskedClient));
@@ -1904,6 +1908,51 @@ async function patientListHandler(req, res) {
 const getClientId = (req, res) => {
   res.json({ externalClientID: process.env.EVEXIA_EXTERNAL_CLIENT_ID });
 };
+
+
+const patientDelete = async (req, res) => {
+
+   try {
+    const externalClientID = trimOrNull(req.query.externalClientID || req.body?.externalClientID);
+    const patientID = trimOrNull(req.query.patientID || req.body?.patientID);
+    if (!externalClientID || !patientID) {
+      return res.status(400).json({ error: 'externalClientID and patientID are required' });
+    }
+
+    const BASE = pickBaseUrl();
+    const AUTH = normalizeAuth(pickAuthKey());
+    if (!BASE) return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
+    if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
+
+
+    const DELETE_PATH = pickPatientDeletePath();
+
+    const url = new URL(DELETE_PATH, BASE);
+    url.searchParams.set('externalClientID', externalClientID);
+    url.searchParams.set('patientID', patientID);
+
+    const r = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: AUTH,
+        Accept: 'application/json'
+      }
+    });
+    const text = await r.text();
+    let data; try { data = JSON.parse(text); } catch { data = text; }
+
+    if (!r.ok) {
+      return res.status(r.status).json({ error: 'Upstream error', upstream: data });
+    }
+
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).json({ success: true, data });
+  } catch (err) {
+    console.error('patientListHandler error:', err);
+    return res.status(500).json({ error: err.message || 'Server error' });
+  }
+
+}
 
 // patient routes
 router.get('/client-id', getClientId);
