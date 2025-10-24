@@ -39,7 +39,7 @@ const PATHS = {
   ORDER_ITEM_ADD: '/api/EDIPlatform/OrderItemAdd',
   ORDER_COMPLETE: '/api/EDIPlatform/PatientOrderComplete',
   ORDER_CANCEL: '/api/EDIPlatform/OrderCancel',
-  PATIENT_ADD: '/api/EDIPlatform/PatientAddV2'
+  EVEXIA_ADD_PATIENT_V2_URL: '/api/EDIPlatform/PatientAddV2'
 };
 
 const pickAuthKey = () =>
