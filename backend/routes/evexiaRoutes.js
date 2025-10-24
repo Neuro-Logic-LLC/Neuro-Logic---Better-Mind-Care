@@ -41,7 +41,7 @@ const PATHS = {
   ORDER_CANCEL: '/api/EDIPlatform/OrderCancel',
   ORDER_LIST: '/api/EDIPlatform/OrderList',
   EVEXIA_ADD_PATIENT_V2: '/api/EDIPlatform/PatientAddV2',
-  EVEXIA_PATIENT_DELETE: '/api/EDIPlatform/PatientDelete',
+  EVEXIA_ORDER_ITEM_DELETE: '/api/EDIPlatform/OrderItemDelete', 
   EVEXIA_PATIENT_LIST: '/api/EDIPlatform/PatientList'
 };
 
@@ -69,9 +69,11 @@ const pickOrderListDetailsPath = () =>
 const pickPatientAddV2Path = () =>
   pickEnv('EVEXIA_ADD_PATIENT_V2_URL') || '/api/EDIPlatform/PatientAddV2';
 
-const pickPatientDeletePath = () =>
-  pickEnv('EVEXIA_PATIENT_DELETE_URL') || '/api/EDIPlatform/PatientDelete';
+// const pickPatientDeletePath = () =>
+//   pickEnv('EVEXIA_PATIENT_DELETE_URL') || '/api/EDIPlatform/PatientDelete';
 
+const pickOrderItemAddPath = () =>
+    pickEnv('EVEXIA_ORDER_ITEM_ADD') || '/API/EDIPlatform/OrderItemAdd';
 
 
 function trimOrNull(value) {
@@ -1409,7 +1411,7 @@ async function OrderItemAdd(req, res) {
 
     const patientOrderID = Number(rawPatientOrderID);
     const ProductID = Number(rawProductID);
-
+    const clientId = pickClientId(req, q);
     // Only allow these two
     const pTauProductID = 200018; // Labcorp
     const apoeProductID = 6724; // Kashi
@@ -1431,7 +1433,7 @@ async function OrderItemAdd(req, res) {
       return res.status(400).json({ error: 'Invalid or unsupported ProductID' });
     }
 
-    const clientId = pickClientId(req, q);
+
     const AUTH = pickAuthKey(); // should return e.g. "Bearer <token>"
     const BASE = pickBaseUrl();
     const PATH = '/api/EDIPlatform/OrderItemAdd';

@@ -56,36 +56,6 @@ export default function PatientOrders({
       {/* header / actions */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="text-xl font-semibold">Patients & Orders</div>
-
-        <div className="flex items-center gap-2">
-          {/* Refresh both is fine - patient list has its own refresh button too */}
-          <PrimaryButton
-            variant="outline"
-            onClick={() => {
-              // bump ordersKey so orders list refetches if open
-              setOrdersKey((k) => k + 1);
-              // we don't call EvexiaPatientList.fetchPatients here since it manages itself
-            }}
-            className="gap-2"
-          >
-            <RefreshCw className="h-4 w-4" /> Refresh
-          </PrimaryButton>
-
-          <PrimaryButton
-            variant="outline"
-            onClick={() => {
-              // export visible orders if open, else no-op
-              const el = document.querySelector('button[download="evexia_orders.csv"]');
-              if (el) el.click();
-              else {
-                // fallback - nothing to export
-              }
-            }}
-            className="gap-2"
-          >
-            <Download className="h-4 w-4" /> Export
-          </PrimaryButton>
-        </div>
       </div>
 
       {/* two-column layout - left patient list, right orders */}

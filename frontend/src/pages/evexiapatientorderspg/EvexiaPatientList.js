@@ -155,7 +155,6 @@ export default function EvexiaPatientList({
                 <th style={th}>Select</th>
                 <th style={th}>Name</th>
                 <th style={th}>Patient ID</th>
-                <th style={th}>Order ID</th>
                 <th style={th}>Email</th>
               </tr>
             </thead>
@@ -191,7 +190,6 @@ export default function EvexiaPatientList({
                       </td>
                       <td style={td}>{name}</td>
                       <td style={td}>{p.id || ''}</td>
-                      <td style={td}>{p.orderId || ''}</td>
                       <td style={td}>{p.email || ''}</td>
                     </tr>
                   );

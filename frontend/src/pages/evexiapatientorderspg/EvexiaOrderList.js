@@ -1,28 +1,34 @@
-// EvexiaOrderList.js (drop-in)
+// EvexiaOrderList.js (drop-in, fixed)
+// See header comments in your original file for behavior.
+
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { PrimaryButton } from '../../components/button/Buttons';
 import Card from '../../components/cards/Card';
 import TextInput from '../../components/inputs/InputText';
-import { ChevronDown, ChevronUp, RefreshCw, Search, Download } from 'lucide-react';
+import { ChevronDown, ChevronUp, RefreshCw, Search, Download, Plus } from 'lucide-react';
 
 /**
  * EvexiaOrderList
  * Props:
- *  - apiPath (default '/api/evexia/order-list')
+ *  - apiPath (GET) default '/api/evexia/order-list'
  *  - pageSize
- *  - patientId (optional) -> will be sent as PatientID
- *  - externalOrderId (optional) -> will be sent as ExternalOrderID (and externalOrderId)
- *  - externalClientID (optional) -> will be sent as ExternalClientID
- *  - patientList (optional) -> array or csv string -> will be sent as PatientList (CSV)
+ *  - patientId (optional) -> sent as PatientID
+ *  - externalOrderId (optional) -> sent as ExternalOrderID
+ *  - externalClientID (optional) -> sent as ExternalClientID (preferred if provided)
+ *  - patientList (optional) -> array or csv string -> sent as PatientList
+ *  - orderAddPath (POST) default '/api/evexia/order-add'
+ *  - orderDeletePath (POST) default '/api/evexia/order-delete'
  */
 export default function EvexiaOrderList({
   apiPath = '/api/evexia/order-list',
   pageSize = 25,
   patientId = null,
   externalOrderId = null,
-  externalClientID = null,
-  patientList = null
+  externalClientID = null, // prop
+  patientList = null,
+  orderAddPath = '/api/evexia/order-add',
+  orderDeletePath = '/api/evexia/order-delete'
 }) {
   const [data, setData] = useState([]);
   const [total, setTotal] = useState(0);
@@ -33,10 +39,41 @@ export default function EvexiaOrderList({
   const [page, setPage] = useState(0);
   const [sort, setSort] = useState({ key: 'CreateDate', dir: 'desc' });
 
+  // local fallback state only used when externalClientID prop is NOT provided
+  const [clientIDState, setClientIDState] = useState(null);
+
+  // UI state for add/delete
+  const [showAddOrder, setShowAddOrder] = useState(false);
+  const [addBusy, setAddBusy] = useState(false);
+  const [showDeleteOrder, setShowDeleteOrder] = useState({ open: false, row: null });
+  const [actionError, setActionError] = useState('');
+
   const abortRef = useRef(null);
   const searchDebounceRef = useRef(null);
 
-  // small helper to read multiple possible keys
+  // If parent didn't pass externalClientID, fetch it once and store locally.
+  useEffect(() => {
+    if (externalClientID) {
+      setClientIDState(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch('/api/evexia/client-id');
+        const j = await r.json();
+        if (!cancelled) setClientIDState(j.externalClientID || j.ExternalClientID || null);
+      } catch {
+        if (!cancelled) setClientIDState(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [externalClientID]);
+
+  // effective client id used everywhere
+  const clientID = externalClientID ?? clientIDState;
+
+  // ----- helpers to read API shapes ---------------------------------------
   const get = useCallback((obj, ...keys) => {
     for (const k of keys) {
       if (obj && Object.prototype.hasOwnProperty.call(obj, k) && obj[k] != null) return obj[k];
@@ -73,7 +110,7 @@ export default function EvexiaOrderList({
     if (!v) return undefined;
     const d = new Date(v);
     if (!isNaN(d.getTime())) return d;
-    try { return new Date(Date.parse(v.replace(/(\d)\/(\d)\/(\d{4})/, (m) => m))); } catch { return undefined; }
+    try { return new Date(Date.parse(v)); } catch { return undefined; }
   };
 
   const normalize = useCallback((rows) =>
@@ -98,31 +135,29 @@ export default function EvexiaOrderList({
     })), [fields, fullName]
   );
 
-  // Build URL params including Evexia-specific ones
+  // ----- build params & fetch --------------------------------------------
   const buildParams = useCallback(() => {
     const params = new URLSearchParams();
+    // require PatientID for Evexia OrderList — prevent 400
+    if (patientId == null || patientId === '') return null;
+    params.set('PatientID', String(patientId));
     if (debouncedQuery) params.set('q', debouncedQuery);
     params.set('page', String(page));
     params.set('pageSize', String(pageSize));
     if (sort?.key) params.set('sortKey', sort.key);
     if (sort?.dir) params.set('sortDir', sort.dir);
 
-    // Evexia-specific parameters:
-    if (patientId != null && patientId !== '') params.set('PatientID', String(patientId));
     if (Array.isArray(patientList) && patientList.length) params.set('PatientList', patientList.join(','));
     else if (typeof patientList === 'string' && patientList.trim()) params.set('PatientList', patientList.trim());
 
     if (externalOrderId != null && externalOrderId !== '') {
       params.set('ExternalOrderID', String(externalOrderId));
-      // some backends expect camelCase — send both
       params.set('externalOrderId', String(externalOrderId));
     }
-    if (externalClientID != null && externalClientID !== '') params.set('ExternalClientID', String(externalClientID));
-
+    if (clientID != null && clientID !== '') params.set('ExternalClientID', String(clientID));
     return params;
-  }, [debouncedQuery, page, pageSize, sort, patientId, externalOrderId, externalClientID, patientList]);
+  }, [patientId, debouncedQuery, page, pageSize, sort, patientList, externalOrderId, clientID]);
 
-  // Fetch data — re-runs when the identifying props change (patientId, externalOrderId, etc)
   const fetchData = useCallback(async () => {
     try {
       setError('');
@@ -132,6 +167,13 @@ export default function EvexiaOrderList({
       abortRef.current = ctrl;
 
       const params = buildParams();
+      if (!params) {
+        // no patient selected — clear list
+        setData([]);
+        setTotal(0);
+        setLoading(false);
+        return;
+      }
       const url = `${apiPath}${params.toString() ? `?${params.toString()}` : ''}`;
 
       const res = await fetch(url, {
@@ -141,7 +183,6 @@ export default function EvexiaOrderList({
       });
       if (!res.ok) {
         const body = await res.text().catch(() => '');
-        // surface server body to help debugging (like "Missing PatientID")
         throw new Error(`Request failed ${res.status}: ${body.slice(0, 500)}`);
       }
       const contentType = (res.headers.get('content-type') || '').toLowerCase();
@@ -164,7 +205,6 @@ export default function EvexiaOrderList({
         list = json.data;
         setTotal(Number.isFinite(json.total) ? json.total : json.data.length);
       } else if (json && typeof json === 'object' && !Array.isArray(json)) {
-        // single-object responses sometimes happen
         list = [json];
         setTotal(1);
       } else {
@@ -182,13 +222,12 @@ export default function EvexiaOrderList({
     }
   }, [apiPath, buildParams, normalize, page]);
 
-  // initial and reactive fetch: when patient/external ids change, reset page and fetch
   useEffect(() => {
+    // refetch when identifying props change
     setPage(0);
     fetchData();
     return () => abortRef.current && abortRef.current.abort();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchData, patientId, externalOrderId, externalClientID, patientList]);
+  }, [fetchData, patientId, externalOrderId, clientID, patientList]);
 
   // debounce search
   useEffect(() => {
@@ -197,7 +236,7 @@ export default function EvexiaOrderList({
     return () => clearTimeout(searchDebounceRef.current);
   }, [query]);
 
-  // client-side fallback filtering/sorting/paging
+  // ----- client-side filtering/sorting/paging fallback --------------------
   const filtered = useMemo(() => {
     const q = (debouncedQuery || '').toLowerCase();
     if (!q) return data;
@@ -291,6 +330,55 @@ export default function EvexiaOrderList({
     URL.revokeObjectURL(url);
   }, [sorted]);
 
+  // ----- order add/delete handlers ---------------------------------------
+  const handleAddOrder = async (payload) => {
+    setActionError('');
+    setAddBusy(true);
+    try {
+      if (patientId && !payload.PatientID) payload.PatientID = patientId;
+      if (clientID && !payload.ExternalClientID) payload.ExternalClientID = clientID;
+
+      const res = await fetch(orderAddPath, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const bodyText = await res.text().catch(() => '');
+      if (!res.ok) throw new Error(bodyText || `Add order failed ${res.status}`);
+      await fetchData();
+      setShowAddOrder(false);
+    } catch (e) {
+      setActionError(e?.message || 'Failed to add order');
+    } finally {
+      setAddBusy(false);
+    }
+  };
+
+  const handleDeleteOrder = async (row) => {
+    setActionError('');
+    try {
+      const payload = {
+        PatientOrderID: row.orderId || undefined,
+        PatientOrderId: row.orderId || undefined,
+        ExternalOrderID: row.externalOrderId || undefined,
+        PatientID: row.patientId || undefined,
+        ExternalClientID: row.externalClientID || clientID || undefined
+      };
+      const res = await fetch(orderDeletePath, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const bodyText = await res.text().catch(() => '');
+      if (!res.ok) throw new Error(bodyText || `Delete failed ${res.status}`);
+      setShowDeleteOrder({ open: false, row: null });
+      await fetchData();
+    } catch (e) {
+      setActionError(e?.message || 'Failed to delete order');
+    }
+  };
+
+  // ----- render -----------------------------------------------------------
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -299,6 +387,11 @@ export default function EvexiaOrderList({
           <PrimaryButton variant="outline" onClick={fetchData} disabled={loading} className="gap-2">
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
           </PrimaryButton>
+
+          <PrimaryButton variant="outline" onClick={() => setShowAddOrder(true)} disabled={!patientId} title={!patientId ? 'Select a patient to add an order' : 'Add order'} className="gap-2">
+            <Plus className="h-4 w-4" /> Add Order
+          </PrimaryButton>
+
           <PrimaryButton variant="outline" onClick={exportCsv} className="gap-2">
             <Download className="h-4 w-4" /> Export CSV
           </PrimaryButton>
@@ -318,6 +411,8 @@ export default function EvexiaOrderList({
         </div>
       </div>
 
+      {actionError && <div className="text-sm text-red-600">{actionError}</div>}
+
       <Card className="rounded-2xl shadow-sm">
         {error ? (
           <div className="p-4 text-sm text-red-600" role="alert" aria-live="assertive">{error}</div>
@@ -335,7 +430,8 @@ export default function EvexiaOrderList({
                     { key: 'city', label: 'City' },
                     { key: 'state', label: 'State' },
                     { key: 'statusDescr', label: 'Status' },
-                    { key: 'createDate', label: 'Created' }
+                    { key: 'createDate', label: 'Created' },
+                    { key: '_actions', label: '' }
                   ].map((c) => (
                     <th key={c.key} className="px-3 py-2 font-medium select-none" {...(sort.key === c.key ? { 'aria-sort': sort.dir === 'asc' ? 'ascending' : 'descending' } : {})}>
                       <PrimaryButton onClick={() => setSortKey(c.key)} className="inline-flex items-center gap-1" aria-label={`Sort by ${c.label}`}>
@@ -351,17 +447,25 @@ export default function EvexiaOrderList({
                 {loading ? (
                   Array.from({ length: 8 }).map((_, i) => (
                     <tr key={`s-${i}`} className="border-b">
-                      <td colSpan={9} className="px-3 py-3">
+                      <td colSpan={10} className="px-3 py-3">
                         <motion.div initial={{ opacity: 0.2 }} animate={{ opacity: 1 }} transition={{ repeat: Infinity, duration: 1.2, repeatType: 'reverse' }} className="h-4 w-1/2 bg-gray-200 rounded" />
                       </td>
                     </tr>
                   ))
                 ) : pageData.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-3 py-6 text-center text-sm opacity-70">No results</td>
+                    <td colSpan={10} className="px-3 py-6 text-center text-sm opacity-70">No results</td>
                   </tr>
                 ) : (
-                  pageData.map((row, idx) => <OrderRow key={`${row.orderId || row.patientId || `r-${page}-${idx}`}`} row={row} />)
+                  pageData.map((row, idx) => (
+                    <OrderRowWithItems
+                      key={`${row.orderId || row.patientId || `r-${page}-${idx}`}`}
+                      row={row}
+                      onRefresh={fetchData}
+                      externalClientID={clientID}
+                      onRequestDeleteOrder={(r) => setShowDeleteOrder({ open: true, row: r })}
+                    />
+                  ))
                 )}
               </tbody>
             </table>
@@ -379,12 +483,207 @@ export default function EvexiaOrderList({
           </div>
         </div>
       </Card>
+
+      {/* Add Order Dialog */}
+      {showAddOrder && (
+        <AddOrderDialog
+          onClose={() => { setShowAddOrder(false); setActionError(''); }}
+          onCreate={(payload) => handleAddOrder(payload)}
+          defaultPatientId={patientId}
+          defaultExternalClientID={clientID}
+          busy={addBusy}
+          error={actionError}
+        />
+      )}
+
+      {/* Delete Order Confirm */}
+      {showDeleteOrder.open && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-xl border p-4">
+            <div className="font-semibold mb-2">Delete Order</div>
+            <div className="text-sm mb-4">Are you sure you want to delete order <strong>{showDeleteOrder.row.orderId || showDeleteOrder.row.externalOrderId || '—'}</strong> for patient <strong>{showDeleteOrder.row.patientId || '—'}</strong>? This action cannot be undone.</div>
+            <div className="flex items-center justify-end gap-2">
+              <PrimaryButton variant="outline" onClick={() => setShowDeleteOrder({ open: false, row: null })}>Cancel</PrimaryButton>
+              <PrimaryButton onClick={() => handleDeleteOrder(showDeleteOrder.row)}>Delete</PrimaryButton>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function OrderRow({ row }) {
+/* ----------------- AddOrderDialog ----------------- */
+function AddOrderDialog({ onClose, onCreate, defaultPatientId = '', defaultExternalClientID = '', busy = false, error = '' }) {
+  const [form, setForm] = useState({
+    PatientID: defaultPatientId || '',
+    ExternalOrderID: '',
+    OrderType: '',
+    PhlebotomyOption: '',
+    ExternalClientID: defaultExternalClientID || ''
+  });
+
+  useEffect(() => {
+    setForm((f) => ({ ...f, PatientID: defaultPatientId || '', ExternalClientID: defaultExternalClientID || '' }));
+  }, [defaultPatientId, defaultExternalClientID]);
+
+  const onChange = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.PatientID) return alert('PatientID required to create order');
+    onCreate(form);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
+      <form onSubmit={handleSubmit} className="w-full max-w-md rounded-2xl bg-white shadow-xl border p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="font-semibold">Add Order</div>
+          <button type="button" onClick={onClose} className="text-sm px-2 py-1 border rounded">Close</button>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3">
+          <label className="text-sm">PatientID (required)
+            <input value={form.PatientID} onChange={onChange('PatientID')} className="block w-full mt-1 p-2 border rounded" />
+          </label>
+          <label className="text-sm">OrderType
+            <input value={form.OrderType} onChange={onChange('OrderType')} className="block w-full mt-1 p-2 border rounded" />
+          </label>
+          <label className="text-sm">PhlebotomyOption
+            <input value={form.PhlebotomyOption} onChange={onChange('PhlebotomyOption')} className="block w-full mt-1 p-2 border rounded" />
+          </label>
+
+          {error && <div className="text-sm text-red-600">{error}</div>}
+
+          <div className="flex justify-end gap-2 mt-2">
+            <button type="button" className="px-3 py-1 border rounded" onClick={onClose} disabled={busy}>Cancel</button>
+            <button type="submit" className="px-3 py-1 rounded bg-blue-600 text-white" disabled={busy}>{busy ? 'Saving…' : 'Save Order'}</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+/* ----------------- AddItemDialog & helpers ----------------- */
+function AddItemDialog({ onClose, onDone, patientOrderID, externalClientID }) {
+  const [productInput, setProductInput] = useState('');
+  const [isPanel, setIsPanel] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+
+  const handleSubmit = async (e) => {
+    e && e.preventDefault();
+    setErr('');
+    if (!patientOrderID) return setErr('Missing patientOrderID');
+    const trimmed = String(productInput || '').trim();
+    if (!trimmed) return setErr('Enter productID or comma-separated productIDList');
+
+    setBusy(true);
+    try {
+      const multiple = trimmed.includes(',');
+      const endpoint = multiple ? '/api/evexia/OrderItemsAdd' : '/api/evexia/order-item-add';
+      const body = multiple
+        ? { patientOrderID: Number(patientOrderID), externalClientID: externalClientID || '', productIDList: trimmed, isPanel: isPanel ? 'true' : 'false' }
+        : { patientOrderID: Number(patientOrderID), externalClientID: externalClientID || '', productID: Number(trimmed), isPanel: isPanel ? 'true' : 'false' };
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const text = await res.text().catch(() => '');
+      if (!res.ok) throw new Error(text || `Error ${res.status}`);
+      onDone && onDone();
+      onClose && onClose();
+    } catch (e) {
+      setErr(e?.message || 'Failed to add item(s)');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/40 p-4">
+      <form onSubmit={handleSubmit} className="w-full max-w-md bg-white rounded-lg p-4 shadow">
+        <div className="flex items-center justify-between mb-3">
+          <div className="font-semibold">Add Item(s) to Order</div>
+          <button type="button" onClick={onClose} className="text-sm px-2 py-1">Close</button>
+        </div>
+
+        <div className="mb-2 text-xs text-gray-600">Order ID: <strong>{patientOrderID}</strong></div>
+
+        <label className="block mb-2 text-sm">
+          Product ID or CSV (e.g. 200018 or 200018,6724)
+          <input className="block w-full mt-1 p-2 border rounded" value={productInput} onChange={(e) => setProductInput(e.target.value)} />
+        </label>
+
+        <label className="flex items-center gap-2 text-sm mb-3">
+          <input type="checkbox" checked={isPanel} onChange={(e) => setIsPanel(e.target.checked)} />
+          <span>Is panel?</span>
+        </label>
+
+        {err && <div className="text-sm text-red-600 mb-2">{err}</div>}
+
+        <div className="flex justify-end gap-2">
+          <button type="button" className="px-3 py-1 border rounded" onClick={onClose} disabled={busy}>Cancel</button>
+          <button type="submit" className="px-3 py-1 rounded bg-blue-600 text-white" disabled={busy}>{busy ? 'Adding…' : 'Add Item(s)'}</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+async function deleteSingleItem({ patientOrderID, externalClientID, productID, isPanel = false }) {
+  if (!patientOrderID || !productID) throw new Error('Missing patientOrderID or productID');
+  const params = new URLSearchParams();
+  params.set('patientOrderID', String(patientOrderID));
+  if (externalClientID) params.set('externalClientID', String(externalClientID));
+  params.set('productID', String(productID));
+  params.set('isPanel', isPanel ? '1' : '0');
+
+  const url = `/api/evexia/OrderItemDelete?${params.toString()}`;
+  const res = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } });
+  const text = await res.text().catch(() => '');
+  if (!res.ok) throw new Error(text || `Delete failed ${res.status}`);
+  return text;
+}
+
+/* ----------------- OrderRowWithItems ----------------- */
+function OrderRowWithItems({ row, onRefresh, externalClientID, onRequestDeleteOrder }) {
   const [open, setOpen] = useState(false);
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [actionErr, setActionErr] = useState('');
+  const patientOrderID = row.orderId || row.PatientOrderID || row._raw?.PatientOrderID;
+
+  const resolveItems = () => {
+    const raw = row._raw || {};
+    if (Array.isArray(raw.OrderItems) && raw.OrderItems.length) return raw.OrderItems;
+    if (Array.isArray(raw.Items) && raw.Items.length) return raw.Items;
+    if (Array.isArray(raw.Products) && raw.Products.length) return raw.Products;
+    if (Array.isArray(raw.Tests) && raw.Tests.length) return raw.Tests;
+    if (typeof raw.ProductList === 'string' && raw.ProductList.trim()) {
+      return raw.ProductList.split(',').map((p) => ({ productID: p.trim() }));
+    }
+    if (raw.productID) return [{ productID: raw.productID }];
+    return [];
+  };
+
+  const items = resolveItems();
+
+  const handleDeleteItem = async (productID, isPanelFlag = false) => {
+    setActionErr('');
+    if (!patientOrderID) return setActionErr('Missing patientOrderID for this order');
+    if (!productID) return setActionErr('Missing productID to delete');
+    try {
+      await deleteSingleItem({ patientOrderID, externalClientID: externalClientID || row.externalClientID, productID, isPanel: !!isPanelFlag });
+      await onRefresh?.();
+    } catch (e) {
+      setActionErr(e?.message || 'Delete item failed');
+    }
+  };
+
   return (
     <>
       <tr className="border-b hover:bg-gray-50">
@@ -397,21 +696,59 @@ function OrderRow({ row }) {
         <td className="px-3 py-2">{row.state || ''}</td>
         <td className="px-3 py-2">{row.statusDescr || row.status || ''}</td>
         <td className="px-3 py-2">{row.createDate ? row.createDate.toLocaleString() : ''}</td>
-        <td className="px-3 py-2 text-right">
+        <td className="px-3 py-2 text-right flex items-center gap-2">
+          <PrimaryButton variant="outline" size="sm" onClick={() => setShowAddItem(true)}>Add Item</PrimaryButton>
+          <PrimaryButton variant="outline" size="sm" onClick={() => onRequestDeleteOrder?.(row)}>Delete</PrimaryButton>
           <PrimaryButton variant="outline" size="sm" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-label={open ? 'Collapse details' : 'Expand details'}>
             {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </PrimaryButton>
         </td>
       </tr>
+
       {open && (
         <tr className="border-b bg-gray-50/60">
           <td className="px-3 py-3" colSpan={10}>
-            <div className="mb-2 text-xs">
-              <strong>DOB:</strong> {row.dob ? row.dob.toLocaleString() : ''} · <strong>Gender:</strong> {row.gender || ''} · <strong>Submit:</strong> {row.submitDate ? row.submitDate.toLocaleString() : ''} · <strong>Type:</strong> {row.orderType || ''} · <strong>Phleb:</strong> {row.phlebotomyOption || ''} · <strong>ExternalOrderID:</strong> {row.externalOrderId || ''} · <strong>ExternalClientID:</strong> {row.externalClientID || ''}
+            {actionErr && <div className="text-sm text-red-600 mb-2">{actionErr}</div>}
+
+            <div className="mb-3 text-xs">
+              <strong>Order ID:</strong> {patientOrderID || '—'} · <strong>ExternalClientID:</strong> {externalClientID || (row.externalClientID || '—')}
             </div>
+
+            <div className="mb-3">
+              <div className="font-medium text-sm mb-2">Items</div>
+              {items.length === 0 ? (
+                <div className="text-sm text-gray-600">No item list found in order JSON. Inspect order._raw for details.</div>
+              ) : (
+                <ul className="text-sm space-y-1">
+                  {items.map((it, idx) => {
+                    const productID = (typeof it === 'string' ? it : (it.productID || it.ProductID || it.ProductId || it.id || it.ID));
+                    const name = (it.name || it.Description || it.description || productID);
+                    const isPanelFlag = (it.isPanel === true || it.isPanel === 'true' || it.isPanel === '1' || it.isPanel === 1);
+                    return (
+                      <li key={idx} className="flex items-center justify-between gap-2">
+                        <div className="text-sm">{name} <span className="text-xs opacity-60">({productID})</span></div>
+                        <div className="flex gap-2">
+                          <button className="px-2 py-1 text-xs border rounded" onClick={() => handleDeleteItem(productID, isPanelFlag)}>Delete</button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
             <pre className="text-xs overflow-auto max-h-72 rounded bg-white p-3 border">{JSON.stringify(row._raw, null, 2)}</pre>
           </td>
         </tr>
+      )}
+
+      {showAddItem && (
+        <AddItemDialog
+          patientOrderID={patientOrderID}
+          externalClientID={externalClientID || row.externalClientID}
+          onClose={() => setShowAddItem(false)}
+          onDone={() => { setShowAddItem(false); onRefresh && onRefresh(); }}
+        />
       )}
     </>
   );
