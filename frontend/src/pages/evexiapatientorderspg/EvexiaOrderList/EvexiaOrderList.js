@@ -459,31 +459,30 @@ export default function EvexiaOrderList({
       setAddBusy(false);
     }
   };
-
-  const handleDeleteOrder = async (row) => {
-    setActionError('');
+  const handleDeleteOrderItem = async (row, externalClientID) => {
     try {
-      const payload = {
-        PatientOrderID: row.orderId || undefined,
-        PatientOrderId: row.orderId || undefined,
-        ExternalOrderID: row.externalOrderId || undefined,
-        PatientID: row.patientId || undefined,
-        ExternalClientID: row.externalClientID || clientID || undefined
-      };
-      const res = await fetch(orderDeletePath, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        },
-        body: JSON.stringify(payload)
+      const params = new URLSearchParams({
+        patientOrderID: row.orderId || row.PatientOrderID || '',
+        externalClientID: row.externalClientID || externalClientID || '',
+        productID: row.productID || row.ProductID || '',
+        isPanel: row.isPanel ? '1' : '0'
       });
-      const bodyText = await res.text().catch(() => '');
-      if (!res.ok) throw new Error(bodyText || `Delete failed ${res.status}`);
-      setShowDeleteOrder({ open: false, row: null });
+
+      const res = await fetch(
+        `/api/evexia/order-item-delete?${params.toString()}`,
+        {
+          method: 'GET',
+          headers: { Accept: 'application/json' }
+        }
+      );
+
+      const text = await res.text();
+      if (!res.ok) throw new Error(text || `Delete failed (${res.status})`);
       await fetchData();
-    } catch (e) {
-      setActionError(e?.message || 'Failed to delete order');
+      setShowDeleteOrder({ open: false, row: null });
+    } catch (err) {
+      console.error(err);
+      setActionError(err.message || 'Failed to delete order item');
     }
   };
 
@@ -614,6 +613,7 @@ export default function EvexiaOrderList({
                       onRequestDeleteOrder={(r) =>
                         setShowDeleteOrder({ open: true, row: r })
                       }
+                      onDeleteOrderItem={handleDeleteOrderItem}
                     />
                   ))
                 )}
@@ -678,20 +678,45 @@ export default function EvexiaOrderList({
         />
       )}
       {/* Delete Order Confirm */}
+      {/* Delete Order Item Confirm */}
       {showDeleteOrder.open && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white shadow-xl border p-4">
-            <div className="font-semibold mb-2">Delete Order</div>
+            <div className="font-semibold mb-2">Delete Order Item</div>
             <div className="text-sm mb-4">
-              Are you sure you want to delete order{' '}
+              Are you sure you want to remove this <strong>order item</strong> (
               <strong>
-                {showDeleteOrder.row.orderId ||
-                  showDeleteOrder.row.externalOrderId ||
+                {showDeleteOrder.row?.productID ||
+                  showDeleteOrder.row?.ProductID ||
+                  showDeleteOrder.row?.ProductId ||
+                  '—'}
+              </strong>
+              ) from order{' '}
+              <strong>
+                {showDeleteOrder.row?.orderId ||
+                  showDeleteOrder.row?.externalOrderId ||
                   '—'}
               </strong>{' '}
               for patient{' '}
-              <strong>{showDeleteOrder.row.patientId || '—'}</strong>? This
-              action cannot be undone.
+              <strong>{showDeleteOrder.row?.patientId || '—'}</strong>? This
+              will permanently remove the item from the order and cannot be
+              undone.
+            </div>
+
+            <div className="flex items-center justify-end gap-3 mt-4">
+              <PrimaryButton
+                variant="outline"
+                onClick={() => setShowDeleteOrder({ open: false, row: null })}
+              >
+                Cancel
+              </PrimaryButton>
+              <PrimaryButton
+                onClick={() =>
+                  handleDeleteOrderItem(showDeleteOrder.row, externalClientID)
+                }
+              >
+                Delete Item
+              </PrimaryButton>
             </div>
           </div>
         </div>
@@ -915,37 +940,15 @@ function AddItemDialog({ onClose, onDone, patientOrderID, externalClientID }) {
   );
 }
 
-async function deleteSingleItem({
-  patientOrderID,
-  externalClientID,
-  productID,
-  isPanel = false
-}) {
-  if (!patientOrderID || !productID)
-    throw new Error('Missing patientOrderID or productID');
-  const params = new URLSearchParams();
-  params.set('patientOrderID', String(patientOrderID));
-  if (externalClientID)
-    params.set('externalClientID', String(externalClientID));
-  params.set('productID', String(productID));
-  params.set('isPanel', isPanel ? '1' : '0');
 
-  const url = `/api/evexia/OrderItemDelete?${params.toString()}`;
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: { Accept: 'application/json' }
-  });
-  const text = await res.text().catch(() => '');
-  if (!res.ok) throw new Error(text || `Delete failed ${res.status}`);
-  return text;
-}
 
 /* ----------------- OrderRowWithItems ----------------- */
 function OrderRowWithItems({
   row,
   onRefresh,
   externalClientID,
-  onRequestDeleteOrder
+  onRequestDeleteOrder,
+  onDeleteOrderItem
 }) {
   const [open, setOpen] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
@@ -968,24 +971,6 @@ function OrderRowWithItems({
   };
 
   const items = resolveItems();
-
-  const handleDeleteItem = async (productID, isPanelFlag = false) => {
-    setActionErr('');
-    if (!patientOrderID)
-      return setActionErr('Missing patientOrderID for this order');
-    if (!productID) return setActionErr('Missing productID to delete');
-    try {
-      await deleteSingleItem({
-        patientOrderID,
-        externalClientID: externalClientID || row.externalClientID,
-        productID,
-        isPanel: !!isPanelFlag
-      });
-      await onRefresh?.();
-    } catch (e) {
-      setActionErr(e?.message || 'Delete item failed');
-    }
-  };
 
   return (
     <>
@@ -1014,7 +999,7 @@ function OrderRowWithItems({
               className="row-actions"
               style={{
                 display: 'flex',
-                gap:14  ,
+                gap: 14,
                 alignItems: 'center',
                 flex: '0 0 auto'
               }}
@@ -1027,7 +1012,7 @@ function OrderRowWithItems({
                   width: 'auto',
                   height: 36,
                   width: 36,
-                  marginRight: 45,
+                  marginRight: 45
                 }}
                 onClick={() => setOpen((v) => !v)}
                 aria-expanded={open}
@@ -1051,8 +1036,8 @@ function OrderRowWithItems({
               <PrimaryButton
                 variant="outline"
                 className="inline-flex w-auto"
-                style={{ display: 'inline-flex', width: 'auto'}}
-                onClick={() => onRequestDeleteOrder?.(row)}
+                style={{ display: 'inline-flex', width: 'auto' }}
+                onClick={() => onDeleteOrderItem(row, externalClientID)}
               >
                 Delete Order Item (Like Remove Ptau)
               </PrimaryButton>
@@ -1128,14 +1113,16 @@ function OrderRowWithItems({
                           </span>
                         </div>
                         <div className="flex gap-2">
-                          <button
-                            className="px-2 py-1 text-xs border rounded"
+                          <PrimaryButton
+                            variant="outline"
+                            className="inline-flex w-auto"
+                            style={{ display: 'inline-flex', width: 'auto' }}
                             onClick={() =>
-                              handleDeleteItem(productID, isPanelFlag)
+                              onDeleteOrderItem(row, externalClientID)
                             }
                           >
-                            Delete
-                          </button>
+                            Delete Order Item (Like Remove Ptau)
+                          </PrimaryButton>
                         </div>
                       </li>
                     );
