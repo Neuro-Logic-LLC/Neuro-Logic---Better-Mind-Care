@@ -20,6 +20,8 @@ import { ChevronDown, ChevronUp, RefreshCw, Search, Download, Plus } from 'lucid
  *  - orderAddPath (POST) default '/api/evexia/order-add'
  *  - orderDeletePath (POST) default '/api/evexia/order-delete'
  */
+
+
 export default function EvexiaOrderList({
   apiPath = '/api/evexia/order-list',
   pageSize = 25,
@@ -583,7 +585,7 @@ function AddItemDialog({ onClose, onDone, patientOrderID, externalClientID }) {
     setBusy(true);
     try {
       const multiple = trimmed.includes(',');
-      const endpoint = multiple ? '/api/evexia/OrderItemsAdd' : '/api/evexia/order-item-add';
+      const endpoint = multiple ? '/api/evexia/order-items-add' : '/api/evexia/order-item-add';
       const body = multiple
         ? { patientOrderID: Number(patientOrderID), externalClientID: externalClientID || '', productIDList: trimmed, isPanel: isPanel ? 'true' : 'false' }
         : { patientOrderID: Number(patientOrderID), externalClientID: externalClientID || '', productID: Number(trimmed), isPanel: isPanel ? 'true' : 'false' };

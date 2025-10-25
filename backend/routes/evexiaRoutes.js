@@ -1533,7 +1533,7 @@ async function OrderItemsAdd(req, res) {
     const to = setTimeout(() => controller.abort(), timeoutMs);
 
     const payload = {
-      externalClientID: pickClientId(req, q), // same logic as elsewhere
+      externalClientID: clientId, // same logic as elsewhere
       patientOrderID,
       clientID,
       productIDList: rawProductIDList, // string, e.g. "200018,6724"
