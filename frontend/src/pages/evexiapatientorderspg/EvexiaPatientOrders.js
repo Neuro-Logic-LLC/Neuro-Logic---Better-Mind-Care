@@ -18,6 +18,8 @@ import {
   Plus
 } from 'lucide-react';
 
+import { useAuth } from '../../auth/AuthContext';
+
 /**
  * One-page Patient + Orders view
  * - Left: EvexiaPatientList (handles its own fetch and Add Patient flow)
@@ -32,6 +34,8 @@ export default function PatientOrders({
   const [selectedPatientName, setSelectedPatientName] = useState('');
   const [ordersPaneOpen, setOrdersPaneOpen] = useState(false);
   const [ordersKey, setOrdersKey] = useState(0); // bump to force refetch UI if needed
+  const { user } = useAuth();
+  console.log(user.first_name);
 
   // callback passed to EvexiaPatientList
   // p can be id or object; be defensive
@@ -42,9 +46,9 @@ export default function PatientOrders({
     if (p == null) {
       id = null;
     } else if (typeof p === 'object') {
-      id = p.id ?? p.PatientID ?? p.patientId ?? null;
-      const first = p.FirstName ?? p.firstName ?? p.first ?? '';
-      const last = p.LastName ?? p.lastName ?? p.last ?? '';
+      id =  p.id ?? p.PatientID ?? p.patientId ?? null;
+      const first = user.first_name?? p.FirstName ?? p.firstName ?? p.first ??  '';
+      const last = user.last_name ?? p.LastName ?? p.lastName ?? p.last ?? '';
       name = `${first} ${last}`.trim();
     } else {
       id = p;
@@ -86,17 +90,10 @@ export default function PatientOrders({
           <Card className="rounded-2xl shadow-sm p-4">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <div className="text-sm text-gray-600">Orders</div>
-                <div className="text-lg font-medium">
-                  {ordersPaneOpen
-                    ? `Patient ${selectedPatientId}${selectedPatientName ? ` — ${selectedPatientName}` : ''}`
-                    : 'No patient selected'}
-                </div>
+
               </div>
               <div className="flex items-center gap-2"></div>
-            </div>
 
-            <div>
               {ordersPaneOpen && selectedPatientId ? (
                 // EvexiaOrderList will fetch orders for the chosen patient
                 <EvexiaOrderList

@@ -21,6 +21,9 @@ import {
   Plus,
   RefreshCcw
 } from 'lucide-react';
+
+import { useAuth } from '../../../auth/AuthContext';
+
 import './EvexiaOrderList.css';
 
 /**
@@ -54,6 +57,7 @@ export default function EvexiaOrderList({
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [page, setPage] = useState(0);
   const [sort, setSort] = useState({ key: 'CreateDate', dir: 'desc' });
+  const { user } = useAuth();
 
   // local fallback state only used when externalClientID prop is NOT provided
   const [clientIDState, setClientIDState] = useState(null);
@@ -487,28 +491,15 @@ export default function EvexiaOrderList({
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="text-xl font-semibold">Orders</div>
+        <div className="w-full space-y-4">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <Card className="orders-header">
+              Orders for {user.first_name} {user.last_name}
+            </Card>
+          </div>
+        </div>
 
         {/* buttons: space-x works even if children are components */}
-        <div className="flex items-center order-actions">
-          <PrimaryButton
-            style={{ marginLeft: '60px' }}
-            variant="outline"
-            onClick={fetchData}
-            disabled={loading}
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </PrimaryButton>
-
-          <PrimaryButton
-            style={{ marginLeft: '25px', margin: '50x' }}
-            variant="outline"
-            onClick={exportCsv}
-          >
-            <Download /> Export CSV
-          </PrimaryButton>
-        </div>
       </div>
       <div className="search-container">
         <div className="search-icon">
@@ -555,8 +546,7 @@ export default function EvexiaOrderList({
                     { key: 'city', label: 'City' },
                     { key: 'state', label: 'State' },
                     { key: 'statusDescr', label: 'Status' },
-                    { key: 'createDate', label: 'Created' },
-                    { key: '_actions', label: '' }
+                    { key: 'createDate', label: 'Created' }
                   ].map((c) => (
                     <th
                       key={c.key}
@@ -702,19 +692,6 @@ export default function EvexiaOrderList({
               for patient{' '}
               <strong>{showDeleteOrder.row.patientId || '—'}</strong>? This
               action cannot be undone.
-            </div>
-            <div className="flex items-center justify-end gap-2">
-              <PrimaryButton
-                variant="outline"
-                onClick={() => setShowDeleteOrder({ open: false, row: null })}
-              >
-                Cancel
-              </PrimaryButton>
-              <PrimaryButton
-                onClick={() => handleDeleteOrder(showDeleteOrder.row)}
-              >
-                Delete
-              </PrimaryButton>
             </div>
           </div>
         </div>
@@ -1013,51 +990,97 @@ function OrderRowWithItems({
   return (
     <>
       <tr className="border-b hover:bg-gray-50">
-        <td className="px-3 py-2 whitespace-nowrap">{row.name || '—'}</td>
-        <td className="px-3 py-2">{row.patientId || ''}</td>
-        <td className="px-3 py-2">{row.orderId || ''}</td>
-        <td className="px-3 py-2">{row.clientId || ''}</td>
-        <td className="px-3 py-2">{row.email || ''}</td>
-        <td className="px-3 py-2">{row.city || ''}</td>
-        <td className="px-3 py-2">{row.state || ''}</td>
-        <td className="px-3 py-2">{row.statusDescr || row.status || ''}</td>
-        <td className="px-3 py-2">
+        {/* NAME cell: name + inline (hidden-by-default) actions */}
+        <td className="px-3 py-3 align-middle">
+          <div
+            className="name-actions-container"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {/* name (won't shrink) */}
+            <div
+              className="name-text"
+              style={{ flex: '0 0 auto', marginRight: 8 }}
+            >
+              {row.name || '—'}
+            </div>
+
+            {/* actions: do not allow them to shrink or wrap; buttons forced inline */}
+            <div
+              className="row-actions"
+              style={{
+                display: 'flex',
+                gap:14  ,
+                alignItems: 'center',
+                flex: '0 0 auto'
+              }}
+            >
+              <PrimaryButton
+                variant="outline"
+                className="row-icon-btn inline-flex w-auto"
+                style={{
+                  display: 'inline-flex',
+                  width: 'auto',
+                  height: 36,
+                  width: 36,
+                  marginRight: 45,
+                }}
+                onClick={() => setOpen((v) => !v)}
+                aria-expanded={open}
+                aria-label={open ? 'Collapse details' : 'Expand details'}
+              >
+                {open ? (
+                  <ChevronUp className="h-6 w-6" />
+                ) : (
+                  <ChevronDown className="h-6 w-6" />
+                )}
+              </PrimaryButton>
+              <PrimaryButton
+                variant="outline"
+                className="inline-flex w-auto"
+                style={{ display: 'inline-flex', width: 'auto' }}
+                onClick={() => setShowAddItem(true)}
+              >
+                Add Order Item (Think Amazon Shopping Cart)
+              </PrimaryButton>
+
+              <PrimaryButton
+                variant="outline"
+                className="inline-flex w-auto"
+                style={{ display: 'inline-flex', width: 'auto'}}
+                onClick={() => onRequestDeleteOrder?.(row)}
+              >
+                Delete Order Item (Like Remove Ptau)
+              </PrimaryButton>
+            </div>
+          </div>
+        </td>
+
+        {/* other columns (keep count equal to headers) */}
+        <td className="px-3 py-3">{row.patientId || ''}</td>
+        <td className="px-3 py-3">{row.orderId || ''}</td>
+        <td className="px-3 py-3">{row.clientId || ''}</td>
+        <td className="px-3 py-3">{row.email || ''}</td>
+        <td className="px-3 py-3">{row.city || ''}</td>
+        <td className="px-3 py-3">{row.state || ''}</td>
+        <td className="px-3 py-3">{row.statusDescr || row.status || ''}</td>
+
+        {/* Created column */}
+        <td className="px-3 py-3">
           {row.createDate ? row.createDate.toLocaleString() : ''}
         </td>
-        <td className="px-3 py-2 text-right flex items-center gap-2">
-          <PrimaryButton
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAddItem(true)}
-          >
-            Add Item
-          </PrimaryButton>
-          <PrimaryButton
-            variant="outline"
-            size="sm"
-            onClick={() => onRequestDeleteOrder?.(row)}
-          >
-            Delete
-          </PrimaryButton>
-          <PrimaryButton
-            variant="outline"
-            size="sm"
-            onClick={() => setOpen((v) => !v)}
-            aria-expanded={open}
-            aria-label={open ? 'Collapse details' : 'Expand details'}
-          >
-            {open ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </PrimaryButton>
-        </td>
+
+        {/* keep a final empty TD if your header expects an actions column — this preserves column count */}
+        <td className="px-3 py-3" />
       </tr>
 
       {open && (
         <tr className="border-b bg-gray-50/60">
-          <td className="px-3 py-3" colSpan={10}>
+          <td className="px-3 py-3" colSpan={11}>
             {actionErr && (
               <div className="text-sm text-red-600 mb-2">{actionErr}</div>
             )}
