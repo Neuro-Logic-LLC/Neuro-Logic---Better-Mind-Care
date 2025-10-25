@@ -1,9 +1,7 @@
-/** @format */
-
-import React from 'react';
+import React, { forwardRef } from 'react';
 import './inputtext.css';
 
-function TextInput({
+const TextInput = forwardRef(function TextInput({
   label,
   id,
   type = 'text',
@@ -13,43 +11,32 @@ function TextInput({
   required = false,
   helpText,
   helpTextId,
-  error
-}) {
-  const errorId = error ? `${id}-error` : undefined;
-  const hintId = helpTextId || (helpText ? `${id}-help` : undefined);
-  const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
+  error,
+  customCssInput = ''
+}, ref) {
+  const describedBy = [helpTextId, error ? `${id}-error` : null].filter(Boolean).join(' ') || undefined;
+  const inputClass = ['input-field', customCssInput, error ? 'input-field-error' : ''].filter(Boolean).join(' ');
 
   return (
     <div className="input-group">
-      {label && (
-        <label htmlFor={id} className="input-label">
-          {label} {required && <span className="required">*</span>}
-        </label>
-      )}
+      {label && <label htmlFor={id} className="input-label">{label}{required ? ' *' : ''}</label>}
       <input
-        type={type}
+        ref={ref}
         id={id}
         name={id}
+        type={type}
         placeholder={placeholder}
         value={value}
         onChange={onChange}
         required={required}
-        className="input-field"
+        className={inputClass}
         aria-describedby={describedBy}
         aria-invalid={Boolean(error)}
       />
-      {helpText && (
-        <p className="help-message" id={hintId}>
-          {helpText}
-        </p>
-      )}
-      {error && (
-        <p className="error-message" id={errorId} role="alert">
-          {error}
-        </p>
-      )}
+      {helpText && <p id={helpTextId} className="help-message">{helpText}</p>}
+      {error && <p id={`${id}-error`} className="error-message" role="alert">{error}</p>}
     </div>
   );
-}
+});
 
 export default TextInput;

@@ -1,0 +1,45 @@
+/* search wrapper must be relative */
+.search-container {
+  position: relative;
+  width: 100%;
+}
+
+/* icon container - fixed size, vertically centered */
+.search-container .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.6;
+}
+
+/* force SVG inside lucide to a sane size */
+.search-container .search-icon svg {
+  width: 20px !important;
+  height: 20px !important;
+  display: block;
+}
+
+/* input gets padding to avoid overlap - left + icon width + gap */
+.search-container .search-input {
+  width: 100%;
+  padding-left: calc(12px + 40px + 8px); /* left + icon + gap */
+  height: 44px;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  border-radius: 12px;
+  border: 3px solid #f39c3f;
+}
+
+/* optional error styling already in your css */
+.input-field-error {
+  border: 1px solid #e53e3e;
+}

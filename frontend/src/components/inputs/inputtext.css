@@ -1,54 +1,62 @@
-/* ====== Input Group ====== */
-.input-group {
+/* Left-aligned, fixed-width search bar (matches your screenshot) */
+.search-container {
+  position: relative;
+  width: auto;
+  max-width: 200px;        /* change this number to make it wider/narrower */
+  margin: 28px 0;          /* vertical spacing */
+  margin-left: 24px;       /* left aligned with a small offset from edge */
+}
+
+/* icon container */
+.search-container .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
   display: flex;
-  flex-direction: column;
-  margin-bottom: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0.6;
+  margin-top:6px;
 }
 
-/* Label */
-.input-label {
-  font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--teal);
-  margin-bottom: 0.5rem;
+/* force lucide SVG size */
+.search-container .search-icon svg {
+  width: 18px !important;
+  height: 18px !important;
+  display: block;
 }
 
-.required {
-  color: var(--warm-coral); /* subtle accent for required */
-  margin-left: 2px;
-}
-
-/* Input Field */
-.input-field {
+/* input fills the smaller container and keeps space for the icon */
+.search-container .search-input {
   width: 100%;
-  padding: 12px 14px;
-  font-size: 1rem;
-  font-family: var(--font-body, 'Open Sans', system-ui, sans-serif);
-  color: var(--charcoal);
-  background-color: var(--soft-white);
-  border: 1px solid color-mix(in oklab, var(--charcoal) 30%, white);
-  border-radius: 8px;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  padding-left: calc(12px + 36px + 8px); /* left + icon + gap */
+  height: 40px;
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 3px solid #f39c3f;
+  font-size: 15px;
+  cursor:pointer;
 }
 
-.input-field::placeholder {
-  color: color-mix(in oklab, var(--charcoal) 50%, white);
-  font-style: italic;
-}
-
-/* Focused state — WCAG accessible */
-.input-field:focus {
-  border-color: var(--gold-amber);
+/* subtle focus state */
+.search-container .search-input:focus {
   outline: none;
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold-amber) 40%, white);
+  box-shadow: 0 0 0 4px rgba(243,156,63,0.10);
+  border-color: #f39c3f;
 }
 
-/* Disabled */
-.input-field:disabled {
-  background-color: #e5e7eb;
-  color: #9ca3af;
-  cursor: not-allowed;
+/* responsive: center on small screens so it doesn't hug the edge */
+@media (max-width: 520px) {
+  .search-container {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 92%;
+  }
+  .search-container .search-icon { left: 10px; width: 30px; height: 30px; }
+  .search-container .search-icon svg { width: 16px !important; height: 16px !important; }
+  .search-container .search-input { height: 36px; padding-left: calc(10px + 30px + 8px); font-size: 14px; }
 }

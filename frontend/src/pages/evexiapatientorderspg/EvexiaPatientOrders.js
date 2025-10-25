@@ -1,9 +1,22 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react';
 import { PrimaryButton } from '../../components/button/Buttons';
 import Card from '../../components/cards/Card';
 import EvexiaPatientList from './EvexiaPatientList';
-import EvexiaOrderList from './EvexiaOrderList';
-import { ChevronDown, ChevronUp, RefreshCw, Search, Download, Plus } from 'lucide-react';
+import EvexiaOrderList from './EvexiaOrderList/EvexiaOrderList';
+import {
+  ChevronDown,
+  ChevronUp,
+  RefreshCw,
+  Search,
+  Download,
+  Plus
+} from 'lucide-react';
 
 /**
  * One-page Patient + Orders view
@@ -63,7 +76,9 @@ export default function PatientOrders({
         {/* left: patient list component - it manages its own fetch/add */}
         <div className="min-h-[320px]">
           {/* pass callback so patient list selection opens the orders panel */}
-          <EvexiaPatientList onSelectPatient={(idOrRow) => handleSelectPatient(idOrRow)} />
+          <EvexiaPatientList
+            onSelectPatient={(idOrRow) => handleSelectPatient(idOrRow)}
+          />
         </div>
 
         {/* right: order list or placeholder */}
@@ -73,17 +88,12 @@ export default function PatientOrders({
               <div>
                 <div className="text-sm text-gray-600">Orders</div>
                 <div className="text-lg font-medium">
-                  {ordersPaneOpen ? `Patient ${selectedPatientId}${selectedPatientName ? ` — ${selectedPatientName}` : ''}` : 'No patient selected'}
+                  {ordersPaneOpen
+                    ? `Patient ${selectedPatientId}${selectedPatientName ? ` — ${selectedPatientName}` : ''}`
+                    : 'No patient selected'}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {ordersPaneOpen && (
-                  <>
-                    <PrimaryButton variant="outline" size="sm" onClick={() => setOrdersKey((k) => k + 1)}>Reload</PrimaryButton>
-                    <PrimaryButton variant="outline" size="sm" onClick={clearSelection}>Close</PrimaryButton>
-                  </>
-                )}
-              </div>
+              <div className="flex items-center gap-2"></div>
             </div>
 
             <div>
@@ -96,7 +106,8 @@ export default function PatientOrders({
                 />
               ) : (
                 <div className="text-sm text-gray-500 p-6">
-                  Select a patient on the left to view orders. You can add patients from the left panel.
+                  Select a patient on the left to view orders. You can add
+                  patients from the left panel.
                 </div>
               )}
             </div>
