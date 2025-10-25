@@ -1500,50 +1500,63 @@ async function OrderItemsAdd(req, res) {
     const q = { ...(req.query || {}), ...(req.body || {}) };
 
     const rawPatientOrderID = (q.patientOrderID ?? q.PatientOrderID ?? '').toString().trim();
-    const rawClientID = (q.clientID ?? q.ClientID ?? '').toString().trim();
     const rawProductIDList = (q.productIDList ?? q.ProductIDList ?? '').toString().trim();
-    const rawIsPanel = (q.isPanel ?? q.IsPanel ?? 'false').toString().trim();
+    const rawIsPanel = q.IsPanel ?? q.isPanel ?? 'false';
 
     const patientOrderID = Number(rawPatientOrderID);
 
+    // pick client id (may be string or number depending on implementation)
     const clientId = pickClientId(req, q);
-    const AUTH_RAW = pickAuthKey();
-    const AUTH = normalizeAuth(AUTH_RAW); // match other routes but ensure Bearer
-    const BASE = pickBaseUrl();
 
+    // parse boolean-ish values and stringify for payload
+    const isPanelBool = (() => {
+      if (typeof rawIsPanel === 'boolean') return rawIsPanel;
+      const s = String(rawIsPanel).trim().toLowerCase();
+      return s === 'true' || s === '1' || s === 'yes' || s === 'on';
+    })();
+    const isPanel = String(isPanelBool); // "true" or "false"
+
+    // validation
     if (!Number.isFinite(patientOrderID) || patientOrderID <= 0) {
       return res.status(400).json({ error: 'Missing or invalid patientOrderID' });
-    }
-    if (!Number.isFinite(clientID) || clientID <= 0) {
-      return res.status(400).json({ error: 'Missing or invalid clientID' });
     }
     if (!rawProductIDList) {
       return res.status(400).json({ error: 'Missing productIDList' });
     }
+    if (!clientId && clientId !== 0) {
+      // treat 0 as a valid id if your system uses it; adjust if not needed
+      return res.status(400).json({ error: 'Missing or invalid clientId' });
+    }
 
-    const PATH = '/api/EDIPlatform/OrderItemsAdd'; // <-- bulk endpoint (note plural)
+    const AUTH = pickAuthKey(); // should return e.g. "Bearer <token>"
+    const BASE = pickBaseUrl();
+    const PATH = '/api/EDIPlatform/OrderItemsAdd';
 
     if (!AUTH) return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
     if (!BASE) return res.status(500).json({ error: 'Server missing EVEXIA_BASE_URL' });
 
-    const url = new URL(PATH, BASE);
+    let url;
+    try {
+      url = new URL(PATH, BASE);
+    } catch {
+      return res.status(500).json({ error: 'Invalid EVEXIA_BASE_URL' });
+    }
 
     const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
     const controller = new AbortController();
     const to = setTimeout(() => controller.abort(), timeoutMs);
 
     const payload = {
-      externalClientID: clientId, // same logic as elsewhere
+      externalClientID: clientId,
       patientOrderID,
-      clientID,
-      productIDList: rawProductIDList, // string, e.g. "200018,6724"
-      isPanel: rawIsPanel // string "true"/"false"
+      productIDList: rawProductIDList, // e.g. "200018,6724"
+      isPanel // "true" or "false"
     };
 
     const r = await fetch(url, {
       method: 'POST',
       headers: {
-        Authorization: AUTH,
+        Authorization: AUTH, // must be "Bearer <token>"
         'Content-Type': 'application/json',
         Accept: 'application/json, text/plain, */*'
       },
@@ -1566,9 +1579,10 @@ async function OrderItemsAdd(req, res) {
     return res.status(200).json({ success: true, upstream: data });
   } catch (err) {
     console.error('[Evexia] patientOrderItemsAdd error:', err);
-    if (err.name === 'AbortError')
+    if (err && err.name === 'AbortError') {
       return res.status(504).json({ error: 'Upstream request timed out' });
-    return res.status(500).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err && err.message ? err.message : String(err) });
   }
 }
 
