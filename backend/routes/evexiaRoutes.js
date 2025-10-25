@@ -69,6 +69,9 @@ const pickOrderListDetailsPath = () =>
 const pickPatientAddV2Path = () =>
   pickEnv('EVEXIA_ADD_PATIENT_V2_URL') || '/api/EDIPlatform/PatientAddV2';
 
+const pickOrderItemDeletePath = () =>
+  pickEnv('EVEXIA_ORDER_ITEM_DELETE') || '/api/EDIPlatform/OrderItemDelete'
+
 // const pickPatientDeletePath = () =>
 //   pickEnv('EVEXIA_PATIENT_DELETE_URL') || '/api/EDIPlatform/PatientDelete';
 
@@ -1926,13 +1929,15 @@ const getClientId = (req, res) => {
 };
 
 
-const patientDelete = async (req, res) => {
+const OrderItemDelete = async (req, res) => {
 
    try {
     const externalClientID = trimOrNull(req.query.externalClientID || req.body?.externalClientID);
     const patientID = trimOrNull(req.query.patientID || req.body?.patientID);
-    if (!externalClientID || !patientID) {
-      return res.status(400).json({ error: 'externalClientID and patientID are required' });
+    const orderID = trimOrNull(req.query.orderID || req.body?.orderID);
+
+    if (!externalClientID || !patientID || orderID) {
+      return res.status(400).json({ error: 'externalClientID, orderID, and patientID are required' });
     }
 
     const BASE = pickBaseUrl();
@@ -1940,12 +1945,12 @@ const patientDelete = async (req, res) => {
     if (!BASE) return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
     if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
 
-
-    const DELETE_PATH = pickPatientDeletePath();
+    const DELETE_PATH = pickOrderItemDeletePath();
 
     const url = new URL(DELETE_PATH, BASE);
     url.searchParams.set('externalClientID', externalClientID);
     url.searchParams.set('patientID', patientID);
+    url.searchParams.set('orderID', orderID)
 
     const r = await fetch(url, {
       method: 'GET',
@@ -1973,8 +1978,10 @@ const patientDelete = async (req, res) => {
 // patient routes
 router.get('/client-id', getClientId);
 
+
 router.post('/order-item-add', OrderItemAdd);
 router.post('/order-items-add', OrderItemsAdd);
+router.post('/order-item-delete', OrderItemDelete);
 router.post('/order-complete', patientOrderCompleteHandler);
 router.get('/order-list', OrderListHandler);
 
