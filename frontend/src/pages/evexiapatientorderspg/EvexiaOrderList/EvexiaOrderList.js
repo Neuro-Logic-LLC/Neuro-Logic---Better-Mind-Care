@@ -57,6 +57,9 @@ export default function EvexiaOrderList({
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [page, setPage] = useState(0);
   const [sort, setSort] = useState({ key: 'CreateDate', dir: 'desc' });
+  const APOE_PRODUCT_ID = 6724;
+  const PTAU_PRODUCT_ID = 200018;
+
   const { user } = useAuth();
 
   // local fallback state only used when externalClientID prop is NOT provided
@@ -459,30 +462,68 @@ export default function EvexiaOrderList({
       setAddBusy(false);
     }
   };
+
+  const fetchOrderItems = async (patientID, patientOrderID) => {
+    const res = await fetch(
+      `/api/evexia/order-details?PatientID=${patientID}&PatientOrderID=${patientOrderID}`
+    );
+    const data = await res.json();
+    if (data.upstream?.ProductID) {
+      // Single item
+      return [
+        {
+          productID: data.upstream.ProductID,
+          productName: data.upstream.ProductName
+        }
+      ];
+    } else if (Array.isArray(data.upstream)) {
+      // Some responses return multiple items
+      return data.upstream.map((item) => ({
+        productID: item.ProductID,
+        productName: item.ProductName
+      }));
+    } else {
+      return [];
+    }
+  };
+
   const handleDeleteOrderItem = async (row, externalClientID) => {
     try {
+      // Fetch order detail to get productID
+      const detailRes = await fetch(
+        `/api/evexia/order-details?PatientID=${row.patientID}&PatientOrderID=${row.orderID}`
+      );
+      const detailData = await detailRes.json();
+      console.log(detailData)
+      const productID =
+        detailData.upstream?.ProductID ||
+        (Array.isArray(detailData.upstream?.ProductList) &&
+          detailData.upstream.ProductList[0]?.ProductID);
+
+      if (!productID) {
+        alert('No productID found for this order.');
+        return;
+      }
+
       const params = new URLSearchParams({
-        patientOrderID: row.orderId || row.PatientOrderID || '',
-        externalClientID: row.externalClientID || externalClientID || '',
-        productID: row.productID || row.ProductID || '',
+        patientID: row.patientID,
+        orderID: row.orderID,
+        externalClientID: row.externalClientID || externalClientID,
+        productID,
         isPanel: row.isPanel ? '1' : '0'
       });
 
-      const res = await fetch(
-        `/api/evexia/order-item-delete?${params.toString()}`,
-        {
-          method: 'GET',
-          headers: { Accept: 'application/json' }
-        }
-      );
+      const res = await fetch(`/api/evexia/order-item-delete?${params}`, {
+        method: 'GET',
+        headers: { Accept: 'application/json' }
+      });
 
-      const text = await res.text();
-      if (!res.ok) throw new Error(text || `Delete failed (${res.status})`);
-      await fetchData();
-      setShowDeleteOrder({ open: false, row: null });
+      const data = await res.json();
+      console.log('Delete result:', data);
+      alert('Order item deleted successfully');
     } catch (err) {
-      console.error(err);
-      setActionError(err.message || 'Failed to delete order item');
+      console.error('Delete failed:', err);
+      alert('Error deleting order item');
     }
   };
 
@@ -939,8 +980,6 @@ function AddItemDialog({ onClose, onDone, patientOrderID, externalClientID }) {
     </div>
   );
 }
-
-
 
 /* ----------------- OrderRowWithItems ----------------- */
 function OrderRowWithItems({

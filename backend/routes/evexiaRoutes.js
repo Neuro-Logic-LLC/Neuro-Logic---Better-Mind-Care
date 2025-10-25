@@ -20,7 +20,6 @@ const IS_PROD = process.env.NODE_ENV === 'production';
 const dlog = (...a) => DEBUG && console.log('[Evexia]', ...a);
 const makeFilename = (pid, poid) => `lab-${pid}-${poid}.pdf`;
 
-
 const pickEnv = (...names) => {
   for (const n of names) {
     const v = (process.env[n] || '').trim();
@@ -41,7 +40,7 @@ const PATHS = {
   ORDER_CANCEL: '/api/EDIPlatform/OrderCancel',
   ORDER_LIST: '/api/EDIPlatform/OrderList',
   EVEXIA_ADD_PATIENT_V2: '/api/EDIPlatform/PatientAddV2',
-  EVEXIA_ORDER_ITEM_DELETE: '/api/EDIPlatform/OrderItemDelete', 
+  EVEXIA_ORDER_ITEM_DELETE: '/api/EDIPlatform/OrderItemDelete',
   EVEXIA_PATIENT_LIST: '/api/EDIPlatform/PatientList'
 };
 
@@ -63,21 +62,19 @@ const pickOrderDetailsPath = () =>
 const pickPatientListDetailsPath = () =>
   pickEnv('EVEXIA_ORDER_DETAILS_URL') || '/api/EDIPlatform/PatientList';
 
-const pickOrderListDetailsPath = () =>
-  pickEnv('ORDER_LIST') || '/api/EDIPlatform/OrderList';
+const pickOrderListDetailsPath = () => pickEnv('ORDER_LIST') || '/api/EDIPlatform/OrderList';
 
 const pickPatientAddV2Path = () =>
   pickEnv('EVEXIA_ADD_PATIENT_V2_URL') || '/api/EDIPlatform/PatientAddV2';
 
 const pickOrderItemDeletePath = () =>
-  pickEnv('EVEXIA_ORDER_ITEM_DELETE') || '/api/EDIPlatform/OrderItemDelete'
+  pickEnv('EVEXIA_ORDER_ITEM_DELETE') || '/api/EDIPlatform/OrderItemDelete';
 
 // const pickPatientDeletePath = () =>
 //   pickEnv('EVEXIA_PATIENT_DELETE_URL') || '/api/EDIPlatform/PatientDelete';
 
 const pickOrderItemAddPath = () =>
-    pickEnv('EVEXIA_ORDER_ITEM_ADD') || '/API/EDIPlatform/OrderItemAdd';
-
+  pickEnv('EVEXIA_ORDER_ITEM_ADD') || '/API/EDIPlatform/OrderItemAdd';
 
 function trimOrNull(value) {
   if (typeof value !== 'string') return null;
@@ -628,7 +625,9 @@ async function listAllPatients(req, res) {
 
     if (r.status >= 400) {
       const errText = await r.text();
-      return res.status(r.status).json({ error: 'Upstream error', status: r.status, body: errText });
+      return res
+        .status(r.status)
+        .json({ error: 'Upstream error', status: r.status, body: errText });
     }
 
     const ct = (r.headers.get('content-type') || '').toLowerCase();
@@ -656,7 +655,6 @@ async function listAllPatients(req, res) {
     return res.status(code).json({ error: 'Proxy failure', detail: String(e) });
   }
 }
-
 
 async function analyteResultHandler(req, res) {
   try {
@@ -1436,7 +1434,6 @@ async function OrderItemAdd(req, res) {
       return res.status(400).json({ error: 'Invalid or unsupported ProductID' });
     }
 
-
     const AUTH = pickAuthKey(); // should return e.g. "Bearer <token>"
     const BASE = pickBaseUrl();
     const PATH = '/api/EDIPlatform/OrderItemAdd';
@@ -1749,11 +1746,15 @@ async function callEvexia(url, options) {
 
     // try to JSON-parse but don't die if it's not JSON
     let data;
-    try { data = JSON.parse(text); } catch { data = null; }
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = null;
+    }
 
     if (!resp.ok) {
       const msg = data?.error || data?.message || text || resp.statusText;
-      const err = new Error(`Upstream ${resp.status} ${resp.statusText} – ${msg.slice(0,500)}`);
+      const err = new Error(`Upstream ${resp.status} ${resp.statusText} – ${msg.slice(0, 500)}`);
       err.status = resp.status;
       err.body = text;
       err.url = url;
@@ -1767,7 +1768,7 @@ async function callEvexia(url, options) {
       url: e.url || url,
       status: e.status || resp?.status,
       body: e.body || text,
-      message: e.message,
+      message: e.message
     });
 
     // return useful info to client (trim/avoid PII if needed)
@@ -1799,7 +1800,12 @@ async function patientAddV2(req, res) {
 
     // Minimal log without PHI
     const maskedClient = ExternalClientID ? ExternalClientID.slice(0, 6) + '…' : '(none)';
-    dlog('Upstream POST', url.toString().replace(ExternalClientID, maskedClient), 'keys:', Object.keys(q));
+    dlog(
+      'Upstream POST',
+      url.toString().replace(ExternalClientID, maskedClient),
+      'keys:',
+      Object.keys(q)
+    );
 
     const controller = new AbortController();
     const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
@@ -1816,7 +1822,7 @@ async function patientAddV2(req, res) {
       State: String(q.State || '').trim(),
       PostalCode: String(q.PostalCode || '').trim(),
       Phone: String(q.Phone || '').trim(),
-      DOB: String(q.DOB || '').trim(),     // convert to vendor-required format if needed
+      DOB: String(q.DOB || '').trim(), // convert to vendor-required format if needed
       Gender: String(q.Gender || '').trim(),
       Guardian: String(q.Guardian || '').trim(),
       GuardianRelationship: String(q.GuardianRelationship || '').trim(),
@@ -1826,13 +1832,22 @@ async function patientAddV2(req, res) {
       GuardianPostalCode: String(q.GuardianPostalCode || '').trim(),
       GuardianState: String(q.GuardianState || '').trim(),
       GuardianPhone: String(q.GuardianPhone || '').trim(),
-      ExternalClientID, // always from server env, like your GET route
+      ExternalClientID // always from server env, like your GET route
     };
 
     // Required field check to match your earlier validator
     const required = [
-      'EmailAddress','FirstName','LastName','StreetAddress','City','State',
-      'PostalCode','Phone','DOB','Gender','ExternalClientID'
+      'EmailAddress',
+      'FirstName',
+      'LastName',
+      'StreetAddress',
+      'City',
+      'State',
+      'PostalCode',
+      'Phone',
+      'DOB',
+      'Gender',
+      'ExternalClientID'
     ];
     for (const k of required) {
       const v = payload[k];
@@ -1848,10 +1863,10 @@ async function patientAddV2(req, res) {
         Authorization: AUTH, // use the same AUTH you already have working
         Accept: 'application/json, */*',
         'Content-Type': 'application/json',
-        'User-Agent': 'BetterMindCare-EvexiaProxy/1.0',
+        'User-Agent': 'BetterMindCare-EvexiaProxy/1.0'
       },
       body: JSON.stringify(payload),
-      signal: controller.signal,
+      signal: controller.signal
     }).finally(() => clearTimeout(to));
 
     if (r.status === 204) return res.status(204).send();
@@ -1863,7 +1878,7 @@ async function patientAddV2(req, res) {
         error: 'Upstream error',
         status: r.status,
         body: text.slice(0, 1000),
-        url: url.toString(),
+        url: url.toString()
       });
     }
 
@@ -1910,7 +1925,12 @@ async function patientListHandler(req, res) {
       }
     });
     const text = await r.text();
-    let data; try { data = JSON.parse(text); } catch { data = text; }
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = text;
+    }
 
     if (!r.ok) {
       return res.status(r.status).json({ error: 'Upstream error', upstream: data });
@@ -1928,16 +1948,17 @@ const getClientId = (req, res) => {
   res.json({ externalClientID: process.env.EVEXIA_EXTERNAL_CLIENT_ID });
 };
 
-
 const OrderItemDelete = async (req, res) => {
-
-   try {
+  try {
     const externalClientID = trimOrNull(req.query.externalClientID || req.body?.externalClientID);
     const patientID = trimOrNull(req.query.patientID || req.body?.patientID);
     const orderID = trimOrNull(req.query.orderID || req.body?.orderID);
+    const productID = trimOrNull(req.query.productID || req.body?.productID);
 
-    if (!externalClientID || !patientID || orderID) {
-      return res.status(400).json({ error: 'externalClientID, orderID, and patientID are required' });
+    if (!externalClientID || !patientID || !productID) {
+      return res
+        .status(400)
+        .json({ error: 'externalClientID, patientID, and productID are required' });
     }
 
     const BASE = pickBaseUrl();
@@ -1950,7 +1971,8 @@ const OrderItemDelete = async (req, res) => {
     const url = new URL(DELETE_PATH, BASE);
     url.searchParams.set('externalClientID', externalClientID);
     url.searchParams.set('patientID', patientID);
-    url.searchParams.set('orderID', orderID)
+    if (orderID) url.searchParams.set('orderID', orderID);
+    url.searchParams.set('productID', productID);
 
     const r = await fetch(url, {
       method: 'GET',
@@ -1960,7 +1982,12 @@ const OrderItemDelete = async (req, res) => {
       }
     });
     const text = await r.text();
-    let data; try { data = JSON.parse(text); } catch { data = text; }
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = text;
+    }
 
     if (!r.ok) {
       return res.status(r.status).json({ error: 'Upstream error', upstream: data });
@@ -1972,16 +1999,14 @@ const OrderItemDelete = async (req, res) => {
     console.error('patientListHandler error:', err);
     return res.status(500).json({ error: err.message || 'Server error' });
   }
-
-}
+};
 
 // patient routes
 router.get('/client-id', getClientId);
 
-
 router.post('/order-item-add', OrderItemAdd);
 router.post('/order-items-add', OrderItemsAdd);
-router.post('/order-item-delete', OrderItemDelete);
+router.get('/order-item-delete', OrderItemDelete);
 router.post('/order-complete', patientOrderCompleteHandler);
 router.get('/order-list', OrderListHandler);
 
@@ -1990,7 +2015,7 @@ router.get('/order-list', OrderListHandler);
 router.get('/order-summary', orderSummaryHandler);
 router.post('/order-summary', orderSummaryHandler);
 router.get('/order-details', orderDetailsHandler);
-router.post('/order-details', orderDetailsHandler);
+
 
 //lab result(pdf)/patient analyte routes
 
