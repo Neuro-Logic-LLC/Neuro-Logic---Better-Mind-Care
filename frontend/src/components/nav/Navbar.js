@@ -154,7 +154,8 @@ function Navbar() {
           {/* CTA pills as LINKS using your button classes */}
 
           <div >
-            <PillOne   to="/join">Order</PillOne>
+            <PillOne   to="/">Order</PillOne> 
+            {/* Was /join */}
           </div>
 
           <div >

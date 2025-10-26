@@ -279,7 +279,36 @@ export default function EvexiaOrderList({
         setTotal(0);
       }
 
-      setData(normalize(list));
+      const listWithProducts = await Promise.all(
+        list.map(async (order) => {
+          try {
+            const res = await fetch(
+              `/api/evexia/order-details?PatientID=${order.PatientID}&PatientOrderID=${order.PatientOrderID}`
+            );
+            const detail = await res.json();
+            const productID =
+              detail.upstream?.ProductID ||
+              (Array.isArray(detail.upstream?.OrderItems) &&
+                detail.upstream.OrderItems[0]?.ProductID);
+            const productName =
+              detail.upstream?.ProductName ||
+              (Array.isArray(detail.upstream?.OrderItems) &&
+                detail.upstream.OrderItems[0]?.ProductName);
+
+            return { ...order, productID, productName };
+          } catch (err) {
+            console.warn(
+              'Failed to fetch order detail for',
+              order.PatientOrderID,
+              err
+            );
+            return order;
+          }
+        })
+      );
+
+      // now push that enriched list into state
+      setData(normalize(listWithProducts));
       setPage(json && Number.isFinite(json.page) ? json.page : page);
     } catch (err) {
       if (err && err.name === 'AbortError') return;
@@ -293,6 +322,7 @@ export default function EvexiaOrderList({
     // refetch when identifying props change
     setPage(0);
     fetchData();
+
     return () => abortRef.current && abortRef.current.abort();
   }, [fetchData, patientId, externalOrderId, clientID, patientList]);
 
@@ -309,6 +339,7 @@ export default function EvexiaOrderList({
   // ----- client-side filtering/sorting/paging fallback --------------------
   const filtered = useMemo(() => {
     const q = (debouncedQuery || '').toLowerCase();
+    console.log(q);
     if (!q) return data;
     return data.filter((r) =>
       [
@@ -490,11 +521,12 @@ export default function EvexiaOrderList({
   const handleDeleteOrderItem = async (row, externalClientID) => {
     try {
       // Fetch order detail to get productID
+
       const detailRes = await fetch(
-        `/api/evexia/order-details?PatientID=${row.patientID}&PatientOrderID=${row.orderID}`
+        `/api/evexia/order-details?PatientID=${row.patientId}&PatientOrderID=${row.patientOrderID}&`
       );
       const detailData = await detailRes.json();
-      console.log(detailData)
+      console.log(detailData);
       const productID =
         detailData.upstream?.ProductID ||
         (Array.isArray(detailData.upstream?.ProductList) &&

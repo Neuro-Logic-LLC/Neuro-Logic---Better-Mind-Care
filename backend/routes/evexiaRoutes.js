@@ -852,13 +852,15 @@ async function orderDetailsHandler(req, res) {
       data?.ProductName ??
       data?.productName ??
       data?.Order?.ProductName ??
+      data?.ProductID ??
+      data?.Order?.ProductID ?? 
       data?.Order?.TestName ??
       data?.Test?.Name ??
       null;
 
     return res.status(200).json({
       patient: { id: PatientID },
-      order: { id: PatientOrderID, statusDescr, productName },
+      order: { id: PatientOrderID, statusDescr, productName, ProductID },
       upstream: data
     });
   } catch (err) {
@@ -898,6 +900,7 @@ async function orderSummaryHandler(req, res) {
     const odUrl = new URL(`${localBase}/order-details`);
     odUrl.searchParams.set('PatientID', PatientID);
     odUrl.searchParams.set('PatientOrderID', PatientOrderID);
+
     const odResp = await fetch(odUrl, { headers: fwdHeaders });
     if (!odResp.ok) {
       const preview = await odResp.text().catch(() => '');
