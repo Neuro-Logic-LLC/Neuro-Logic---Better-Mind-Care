@@ -1060,21 +1060,56 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
     if (open) fetchItems();
   }, [open, fetchItems]);
 
-  const handleDeleteItem = async (productID) => {
-    setBusy(true);
+  // ---- Evexia API Actions (GET endpoints) ----
+  const handleEvexiaGet = async (endpoint, params) => {
+    const url = `/api/EDIPlatform/${endpoint}?${new URLSearchParams(params).toString()}`;
     try {
-      const res = await fetch(
-        `/api/evexia/order-item-delete?patientOrderID=${patientOrderID}&productID=${productID}&externalClientID=${externalClientID}`,
-        { method: 'GET', headers: { Accept: 'application/json' } }
-      );
-      if (!res.ok) throw new Error(`Error ${res.status}`);
+      setBusy(true);
+      const res = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } });
+      const text = await res.text();
+      if (!res.ok) throw new Error(text || `Error ${res.status}`);
       await fetchItems();
+      alert(`${endpoint} successful`);
     } catch (err) {
-      alert(err.message || 'Failed to delete item');
+      alert(err.message || `${endpoint} failed`);
     } finally {
       setBusy(false);
     }
   };
+
+  // --- Delete Item ---
+  const handleDeleteItem = (productID) =>
+    handleEvexiaGet('OrderItemDelete', {
+      patientOrderID,
+      externalClientID,
+      productID,
+      isPanel: 0,
+    });
+
+  // --- Empty Order ---
+  const handleEmptyOrder = () =>
+    handleEvexiaGet('OrderEmpty', {
+      patientID,
+      patientOrderID,
+      externalClientID,
+    });
+
+  // --- Submit Order ---
+  const handleSubmitOrder = (patientPay = false, includeFHR = false) =>
+    handleEvexiaGet('PatientOrderComplete', {
+      patientOrderID,
+      externalClientID,
+      patientPay,
+      includeFHR,
+      clientPhysicianID: 0,
+    });
+
+  // --- Cancel Order ---
+  const handleCancelOrder = () =>
+    handleEvexiaGet('OrderCancel', {
+      patientOrderID,
+      externalClientID,
+    });
 
   return (
     <>
@@ -1103,7 +1138,6 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
         </td>
       </tr>
 
-      {/* Expanded Cart */}
       {open && (
         <tr>
           <td colSpan={9} className="bg-gray-50 p-4">
@@ -1119,7 +1153,7 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
               </PrimaryButton>
             </div>
 
-            {/* Items List */}
+            {/* Item List */}
             {loading ? (
               <div className="text-sm text-gray-600">Loading...</div>
             ) : items.length === 0 ? (
@@ -1171,11 +1205,39 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
                   clientID={externalClientID}
                   patientOrderID={patientOrderID}
                   fetchItems={fetchItems}
-                />    
+                />
               </div>
             </div>
 
-            {/* Delete Modal */}
+            {/* Order Actions */}
+            <div className="mt-6 border-t pt-3 space-y-3">
+              <div className="font-semibold mb-2">⚙️ Order Actions</div>
+              <div className="flex flex-wrap gap-2">
+                <PrimaryButton
+                  variant="outline"
+                  disabled={busy}
+                  onClick={handleEmptyOrder}
+                >
+                  🧹 Empty Order
+                </PrimaryButton>
+                <PrimaryButton
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => handleSubmitOrder(false, false)}
+                >
+                  ✅ Submit Order
+                </PrimaryButton>
+                <PrimaryButton
+                  variant="outline"
+                  disabled={busy}
+                  onClick={handleCancelOrder}
+                >
+                  ❌ Cancel Order
+                </PrimaryButton>
+              </div>
+            </div>
+
+            {/* Delete Confirm Modal */}
             {pendingDelete && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
                 <div className="bg-white rounded-lg p-4 w-full max-w-sm shadow">
@@ -1208,6 +1270,8 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
     </>
   );
 }
+
+
 
 /* ----------------- ProductButton ----------------- */
 function ProductButton({ name, productID, clientID, patientOrderID, fetchItems }) {

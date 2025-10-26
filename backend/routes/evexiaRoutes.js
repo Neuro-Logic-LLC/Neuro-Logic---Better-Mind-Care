@@ -2019,7 +2019,7 @@ router.get('/client-id', getClientId);
 
 router.post('/order-item-add', OrderItemAdd);
 router.post('/order-items-add', OrderItemsAdd);
-router.get('/order-item-delete', OrderItemDelete);
+router.post('/order-item-delete', OrderItemDelete);
 router.post('/order-complete', patientOrderCompleteHandler);
 router.get('/order-list', OrderListHandler);
 
