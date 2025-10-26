@@ -283,7 +283,7 @@ export default function EvexiaOrderList({
         list.map(async (order) => {
           try {
             const res = await fetch(
-              `/api/evexia/order-details?PatientID=${order.PatientID}&PatientOrderID=${order.PatientOrderID}`
+              `/api/evexia/order-detail?PatientID=${order.PatientID}&PatientOrderID=${order.PatientOrderID}`
             );
             const detail = await res.json();
             const productID =
@@ -496,7 +496,7 @@ export default function EvexiaOrderList({
 
   const fetchOrderItems = async (patientID, patientOrderID) => {
     const res = await fetch(
-      `/api/evexia/order-details?PatientID=${patientID}&PatientOrderID=${patientOrderID}`
+      `/api/evexia/order-detail?PatientID=${patientID}&PatientOrderID=${patientOrderID}`
     );
     const data = await res.json();
     if (data.upstream?.ProductID) {
@@ -518,53 +518,49 @@ export default function EvexiaOrderList({
     }
   };
 
-const handleDeleteOrderItem = async (row, externalClientID) => {
-  try {
-    const patientID = row.patientID || row.PatientID || row.patientId;
-    const patientOrderID =
-      row.patientOrderID || row.PatientOrderID || row.orderID || row.OrderID;
+  const handleDeleteOrderItem = async (row, externalClientID) => {
+    try {
+      const patientID = row.patientID || row.PatientID || row.patientId;
+      const patientOrderID =
+        row.patientOrderID || row.PatientOrderID || row.orderID || row.OrderID;
+      const externalClientID = row.externalClientID || row.ExternalClientID;
 
-    if (!patientOrderID || !patientID) {
-      alert('Missing patient or order ID.');
-      return;
+      // Fetch order details
+      const detailRes = await fetch(
+        `/api/evexia/order-detail?PatientID=${patientID}&PatientOrderID=${patientOrderID}`
+      );
+      const detailData = await detailRes.json();
+      console.log('Order details:', detailData);
+
+      const productID =
+        detailData.upstream?.ProductID ||
+        (Array.isArray(detailData.upstream?.ProductList) &&
+          detailData.upstream.ProductList[0]?.ProductID);
+
+      if (!productID) {
+        alert('No productID found for this order.');
+        return;
+      }
+
+      const params = new URLSearchParams({
+        patientOrderID,
+        productID,
+        externalClientID: row.externalClientID || externalClientID
+      });
+
+      const res = await fetch(`/api/evexia/order-item-delete?${params}`, {
+        method: 'GET',
+        headers: { Accept: 'application/json' }
+      });
+
+      const data = await res.json();
+      console.log('Delete result:', data);
+      alert('Order item deleted successfully');
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert('Error deleting order item');
     }
-
-    // Fetch order details
-    const detailRes = await fetch(
-      `/api/evexia/order-details?PatientID=${patientID}&PatientOrderID=${patientOrderID}`
-    );
-    const detailData = await detailRes.json();
-    console.log('Order details:', detailData);
-
-    const productID =
-      detailData.upstream?.ProductID ||
-      (Array.isArray(detailData.upstream?.ProductList) &&
-        detailData.upstream.ProductList[0]?.ProductID);
-
-    if (!productID) {
-      alert('No productID found for this order.');
-      return;
-    }
-
-    const params = new URLSearchParams({
-      patientOrderID,
-      productID,
-      externalClientID: row.externalClientID || externalClientID
-    });
-
-    const res = await fetch(`/api/evexia/order-item-delete?${params}`, {
-      method: 'GET',
-      headers: { Accept: 'application/json' }
-    });
-
-    const data = await res.json();
-    console.log('Delete result:', data);
-    alert('Order item deleted successfully');
-  } catch (err) {
-    console.error('Delete failed:', err);
-    alert('Error deleting order item');
-  }
-};
+  };
   // ----- render -----------------------------------------------------------
   return (
     <div className="w-full space-y-4">
@@ -1030,16 +1026,16 @@ function OrderRowWithItems({
   const [open, setOpen] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
   const [actionErr, setActionErr] = useState('');
-const patientOrderID =
-  row.patientOrderID ||
-  row.PatientOrderID ||
-  row.orderID ||
-  row.OrderID ||
-  row.orderId ||
-  row._raw?.PatientOrderID ||
-  row._raw?.orderID ||
-  row._raw?.orderId ||
-  null;
+  const patientOrderID =
+    row.patientOrderID ||
+    row.PatientOrderID ||
+    row.orderID ||
+    row.OrderID ||
+    row.orderId ||
+    row._raw?.PatientOrderID ||
+    row._raw?.orderID ||
+    row._raw?.orderId ||
+    null;
 
   const resolveItems = () => {
     const raw = row._raw || {};

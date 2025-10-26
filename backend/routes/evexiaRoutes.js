@@ -773,7 +773,7 @@ async function analyteResultHandler(req, res) {
   }
 }
 
-async function orderDetailsHandler(req, res) {
+async function orderDetailHandler(req, res) {
   try {
     const q = { ...(req.query || {}), ...(req.body || {}) };
 
@@ -786,7 +786,7 @@ async function orderDetailsHandler(req, res) {
       return res.status(400).json({ error: 'Missing PatientID or PatientOrderID' });
     }
 
-    const clientId = pickClientId(req, q);
+    const externalClientID = pickClientId(req, q);
     const AUTH = pickAuthKey();
     const BASE = pickBaseUrl();
     const PATH = pickOrderDetailsPath();
@@ -794,18 +794,17 @@ async function orderDetailsHandler(req, res) {
     if (!AUTH || (IS_PROD && AUTH === HARD_DEFAULT_AUTH_KEY)) {
       return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
     }
-    if (IS_PROD && clientId === HARD_DEFAULT_CLIENT_ID) {
+    if (IS_PROD && externalClientID === HARD_DEFAULT_CLIENT_ID) {
       return res.status(500).json({ error: 'Server missing EVEXIA client id env' });
     }
 
     // Build upstream URL
     const url = new URL(PATH, BASE);
-    url.searchParams.set('externalClientID', clientId);
+    url.searchParams.set('externalClientID', externalClientID);
     url.searchParams.set('patientID', PatientID);
-    url.searchParams.set('patientOrderID', PatientOrderID);
 
-    const maskedClient = clientId ? clientId.slice(0, 6) + '…' : '(none)';
-    dlog('Upstream GET', url.toString().replace(clientId, maskedClient));
+    const maskedClient = externalClientID ? externalClientID.slice(0, 6) + '…' : '(none)';
+    dlog('Upstream GET', url.toString().replace(externalClientID, maskedClient));
 
     const controller = new AbortController();
     const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
@@ -833,7 +832,7 @@ async function orderDetailsHandler(req, res) {
       });
     }
 
-    // Normalize a couple fields we care about
+    // Normalize fields
     const data =
       typeof raw === 'string'
         ? (() => {
@@ -845,22 +844,34 @@ async function orderDetailsHandler(req, res) {
           })()
         : raw;
 
-    const statusDescr = data?.StatusDescr ?? data?.statusDescr ?? data?.status_description ?? null;
+    const statusDescr =
+      data?.StatusDescr ?? data?.statusDescr ?? data?.status_description ?? null;
 
-    // Product/test name often lives under different shapes. Be forgiving.
     const productName =
       data?.ProductName ??
       data?.productName ??
       data?.Order?.ProductName ??
-      data?.ProductID ??
-      data?.Order?.ProductID ?? 
       data?.Order?.TestName ??
       data?.Test?.Name ??
       null;
 
+    const productID =
+      data?.ProductID ??
+      data?.productID ??
+      data?.Order?.ProductID ??
+      data?.Order?.TestID ??
+      data?.Test?.ID ??
+      null;
+
     return res.status(200).json({
       patient: { id: PatientID },
-      order: { id: PatientOrderID, statusDescr, productName, ProductID },
+      order: {
+        id: PatientOrderID,
+        statusDescr,
+        productName,
+        productID,
+        externalClientID
+      },
       upstream: data
     });
   } catch (err) {
@@ -868,7 +879,9 @@ async function orderDetailsHandler(req, res) {
     if (err.name === 'AbortError') {
       return res.status(504).json({ error: 'Upstream request timed out' });
     }
-    return res.status(500).json({ error: 'Internal server error', details: err.message });
+    return res
+      .status(500)
+      .json({ error: 'Internal server error', details: err.message });
   }
 }
 
@@ -2016,8 +2029,7 @@ router.get('/order-list', OrderListHandler);
 
 router.get('/order-summary', orderSummaryHandler);
 router.post('/order-summary', orderSummaryHandler);
-router.get('/order-details', orderDetailsHandler);
-
+router.get('/order-detail', orderDetailHandler);
 
 //lab result(pdf)/patient analyte routes
 
