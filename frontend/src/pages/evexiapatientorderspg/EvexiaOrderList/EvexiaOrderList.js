@@ -1024,211 +1024,69 @@ function OrderRowWithItems({
   onDeleteOrderItem
 }) {
   const [open, setOpen] = useState(false);
-  const [showAddItem, setShowAddItem] = useState(false);
-  const [actionErr, setActionErr] = useState('');
+  const [details, setDetails] = useState(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [error, setError] = useState('');
+
   const patientOrderID =
     row.patientOrderID ||
     row.PatientOrderID ||
     row.orderID ||
     row.OrderID ||
     row.orderId ||
-    row._raw?.PatientOrderID ||
-    row._raw?.orderID ||
-    row._raw?.orderId ||
     null;
 
-  const resolveItems = () => {
-    const raw = row._raw || {};
-    if (Array.isArray(raw.OrderItems) && raw.OrderItems.length)
-      return raw.OrderItems;
-    if (Array.isArray(raw.Items) && raw.Items.length) return raw.Items;
-    if (Array.isArray(raw.Products) && raw.Products.length) return raw.Products;
-    if (Array.isArray(raw.Tests) && raw.Tests.length) return raw.Tests;
-    if (typeof raw.ProductList === 'string' && raw.ProductList.trim()) {
-      return raw.ProductList.split(',').map((p) => ({ productID: p.trim() }));
+  const handleToggle = async () => {
+    if (!open && !details) {
+      try {
+        setLoadingDetails(true);
+        setError('');
+        const res = await fetch(
+          `/api/evexia/order-detail?PatientID=${row.patientId}&PatientOrderID=${patientOrderID}`
+        );
+        if (!res.ok) throw new Error(`Failed to load order detail`);
+        const json = await res.json();
+        setDetails(json);
+      } catch (err) {
+        setError(err.message || 'Error loading order details');
+      } finally {
+        setLoadingDetails(false);
+      }
     }
-    if (raw.productID) return [{ productID: raw.productID }];
-    return [];
+    setOpen((v) => !v);
   };
-
-  const items = resolveItems();
 
   return (
     <>
       <tr className="border-b hover:bg-gray-50">
-        {/* NAME cell: name + inline (hidden-by-default) actions */}
         <td className="px-3 py-3 align-middle">
-          <div
-            className="name-actions-container"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              whiteSpace: 'nowrap'
-            }}
+          <PrimaryButton
+            variant="outline"
+            className="inline-flex items-center"
+            onClick={handleToggle}
+            aria-expanded={open}
           >
-            {/* name (won't shrink) */}
-            <div
-              className="name-text"
-              style={{ flex: '0 0 auto', marginRight: 8 }}
-            >
-              {row.name || '—'}
-            </div>
-
-            {/* actions: do not allow them to shrink or wrap; buttons forced inline */}
-            <div
-              className="row-actions"
-              style={{
-                display: 'flex',
-                gap: 14,
-                alignItems: 'center',
-                flex: '0 0 auto'
-              }}
-            >
-              <PrimaryButton
-                variant="outline"
-                className="row-icon-btn inline-flex w-auto"
-                style={{
-                  display: 'inline-flex',
-                  width: 'auto',
-                  height: 36,
-                  width: 36,
-                  marginRight: 45
-                }}
-                onClick={() => setOpen((v) => !v)}
-                aria-expanded={open}
-                aria-label={open ? 'Collapse details' : 'Expand details'}
-              >
-                {open ? (
-                  <ChevronUp className="h-6 w-6" />
-                ) : (
-                  <ChevronDown className="h-6 w-6" />
-                )}
-              </PrimaryButton>
-              <PrimaryButton
-                variant="outline"
-                className="inline-flex w-auto"
-                style={{ display: 'inline-flex', width: 'auto' }}
-                onClick={() => setShowAddItem(true)}
-              >
-                Add Order Item (Think Amazon Shopping Cart)
-              </PrimaryButton>
-
-              <PrimaryButton
-                variant="outline"
-                className="inline-flex w-auto"
-                style={{ display: 'inline-flex', width: 'auto' }}
-                onClick={() => onDeleteOrderItem(row, externalClientID)}
-              >
-                Delete Order Item (Like Remove Ptau)
-              </PrimaryButton>
-            </div>
-          </div>
+            {open ? <ChevronUp /> : <ChevronDown />}
+          </PrimaryButton>
+          &nbsp;{row.name}
         </td>
-
-        {/* other columns (keep count equal to headers) */}
-        <td className="px-3 py-3">{row.patientId || ''}</td>
-        <td className="px-3 py-3">{row.orderId || ''}</td>
-        <td className="px-3 py-3">{row.clientId || ''}</td>
-        <td className="px-3 py-3">{row.email || ''}</td>
-        <td className="px-3 py-3">{row.city || ''}</td>
-        <td className="px-3 py-3">{row.state || ''}</td>
-        <td className="px-3 py-3">{row.statusDescr || row.status || ''}</td>
-
-        {/* Created column */}
-        <td className="px-3 py-3">
-          {row.createDate ? row.createDate.toLocaleString() : ''}
-        </td>
-
-        {/* keep a final empty TD if your header expects an actions column — this preserves column count */}
-        <td className="px-3 py-3" />
+        {/* other columns... */}
       </tr>
 
       {open && (
-        <tr className="border-b bg-gray-50/60">
-          <td className="px-3 py-3" colSpan={11}>
-            {actionErr && (
-              <div className="text-sm text-red-600 mb-2">{actionErr}</div>
+        <tr>
+          <td colSpan={10} className="p-4 bg-gray-50">
+            {loadingDetails ? (
+              <div>Loading order details...</div>
+            ) : error ? (
+              <div className="text-red-600">{error}</div>
+            ) : (
+              <pre className="text-xs bg-white border rounded p-3 overflow-auto">
+                {JSON.stringify(details, null, 2)}
+              </pre>
             )}
-
-            <div className="mb-3 text-xs">
-              <strong>Order ID:</strong> {patientOrderID || '—'} ·{' '}
-              <strong>ExternalClientID:</strong>{' '}
-              {externalClientID || row.externalClientID || '—'}
-            </div>
-
-            <div className="mb-3">
-              <div className="font-medium text-sm mb-2">Items</div>
-              {items.length === 0 ? (
-                <div className="text-sm text-gray-600">
-                  No item list found in order JSON. Inspect order._raw for
-                  details.
-                </div>
-              ) : (
-                <ul className="text-sm space-y-1">
-                  {items.map((it, idx) => {
-                    const productID =
-                      typeof it === 'string'
-                        ? it
-                        : it.productID ||
-                          it.ProductID ||
-                          it.ProductId ||
-                          it.id ||
-                          it.ID;
-                    const name =
-                      it.name || it.Description || it.description || productID;
-                    const isPanelFlag =
-                      it.isPanel === true ||
-                      it.isPanel === 'true' ||
-                      it.isPanel === '1' ||
-                      it.isPanel === 1;
-                    return (
-                      <li
-                        key={idx}
-                        className="flex items-center justify-between gap-2"
-                      >
-                        <div className="text-sm">
-                          {name}{' '}
-                          <span className="text-xs opacity-60">
-                            ({productID})
-                          </span>
-                        </div>
-                        <div className="flex gap-2">
-                          <PrimaryButton
-                            variant="outline"
-                            className="inline-flex w-auto"
-                            style={{ display: 'inline-flex', width: 'auto' }}
-                            onClick={() =>
-                              onDeleteOrderItem(row, externalClientID)
-                            }
-                          >
-                            Delete Order Item (Like Remove Ptau)
-                          </PrimaryButton>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-
-            <pre className="text-xs overflow-auto max-h-72 rounded bg-white p-3 border">
-              {JSON.stringify(row._raw, null, 2)}
-            </pre>
           </td>
         </tr>
-      )}
-
-      {showAddItem && (
-        <AddItemDialog
-          patientOrderID={patientOrderID}
-          externalClientID={externalClientID || row.externalClientID}
-          onClose={() => setShowAddItem(false)}
-          onDone={() => {
-            setShowAddItem(false);
-            onRefresh && onRefresh();
-          }}
-        />
       )}
     </>
   );
