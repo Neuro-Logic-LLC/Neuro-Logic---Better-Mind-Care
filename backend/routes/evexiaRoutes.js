@@ -802,7 +802,8 @@ async function orderDetailHandler(req, res) {
     const url = new URL(PATH, BASE);
     url.searchParams.set('externalClientID', externalClientID);
     url.searchParams.set('patientID', PatientID);
-
+    url.searchParams.set('patientOrderID', PatientOrderID);
+    
     const maskedClient = externalClientID ? externalClientID.slice(0, 6) + '…' : '(none)';
     dlog('Upstream GET', url.toString().replace(externalClientID, maskedClient));
 
@@ -844,8 +845,7 @@ async function orderDetailHandler(req, res) {
           })()
         : raw;
 
-    const statusDescr =
-      data?.StatusDescr ?? data?.statusDescr ?? data?.status_description ?? null;
+    const statusDescr = data?.StatusDescr ?? data?.statusDescr ?? data?.status_description ?? null;
 
     const productName =
       data?.ProductName ??
@@ -879,9 +879,7 @@ async function orderDetailHandler(req, res) {
     if (err.name === 'AbortError') {
       return res.status(504).json({ error: 'Upstream request timed out' });
     }
-    return res
-      .status(500)
-      .json({ error: 'Internal server error', details: err.message });
+    return res.status(500).json({ error: 'Internal server error', details: err.message });
   }
 }
 
