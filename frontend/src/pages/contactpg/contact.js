@@ -15,7 +15,7 @@ function Contact() {
       <div className="contact-section">
         <h3>📧 Email</h3>
         <p>
-          <a href="mailto:support@BetterMindCare.com">jim@BetterMindCare.com</a>
+          <a href="mailto:support@BetterMindCare.com">support@bettermindcare.com</a>
         </p>
         {/* Need to link to Jim's Google Calendar */}
         <h3>📞 Phone</h3>
