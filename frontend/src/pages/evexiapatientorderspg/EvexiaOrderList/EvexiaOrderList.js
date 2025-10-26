@@ -518,47 +518,53 @@ export default function EvexiaOrderList({
     }
   };
 
-  const handleDeleteOrderItem = async (row, externalClientID) => {
-    try {
-      // Fetch order detail to get productID
+const handleDeleteOrderItem = async (row, externalClientID) => {
+  try {
+    const patientID = row.patientID || row.PatientID || row.patientId;
+    const patientOrderID =
+      row.patientOrderID || row.PatientOrderID || row.orderID || row.OrderID;
 
-      const detailRes = await fetch(
-        `/api/evexia/order-details?PatientID=${row.patientId}&PatientOrderID=${row.patientOrderID}&`
-      );
-      const detailData = await detailRes.json();
-      console.log(detailData);
-      const productID =
-        detailData.upstream?.ProductID ||
-        (Array.isArray(detailData.upstream?.ProductList) &&
-          detailData.upstream.ProductList[0]?.ProductID);
-
-      if (!productID) {
-        alert('No productID found for this order.');
-        return;
-      }
-
-      const params = new URLSearchParams({
-        patientID: row.patientID,
-        orderID: row.orderID,
-        externalClientID: row.externalClientID || externalClientID,
-        productID,
-        isPanel: row.isPanel ? '1' : '0'
-      });
-
-      const res = await fetch(`/api/evexia/order-item-delete?${params}`, {
-        method: 'GET',
-        headers: { Accept: 'application/json' }
-      });
-
-      const data = await res.json();
-      console.log('Delete result:', data);
-      alert('Order item deleted successfully');
-    } catch (err) {
-      console.error('Delete failed:', err);
-      alert('Error deleting order item');
+    if (!patientOrderID || !patientID) {
+      alert('Missing patient or order ID.');
+      return;
     }
-  };
 
+    // Fetch order details
+    const detailRes = await fetch(
+      `/api/evexia/order-details?PatientID=${patientID}&PatientOrderID=${patientOrderID}`
+    );
+    const detailData = await detailRes.json();
+    console.log('Order details:', detailData);
+
+    const productID =
+      detailData.upstream?.ProductID ||
+      (Array.isArray(detailData.upstream?.ProductList) &&
+        detailData.upstream.ProductList[0]?.ProductID);
+
+    if (!productID) {
+      alert('No productID found for this order.');
+      return;
+    }
+
+    const params = new URLSearchParams({
+      patientOrderID,
+      productID,
+      externalClientID: row.externalClientID || externalClientID
+    });
+
+    const res = await fetch(`/api/evexia/order-item-delete?${params}`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' }
+    });
+
+    const data = await res.json();
+    console.log('Delete result:', data);
+    alert('Order item deleted successfully');
+  } catch (err) {
+    console.error('Delete failed:', err);
+    alert('Error deleting order item');
+  }
+};
   // ----- render -----------------------------------------------------------
   return (
     <div className="w-full space-y-4">
@@ -1024,8 +1030,16 @@ function OrderRowWithItems({
   const [open, setOpen] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
   const [actionErr, setActionErr] = useState('');
-  const patientOrderID =
-    row.orderId || row.PatientOrderID || row._raw?.PatientOrderID;
+const patientOrderID =
+  row.patientOrderID ||
+  row.PatientOrderID ||
+  row.orderID ||
+  row.OrderID ||
+  row.orderId ||
+  row._raw?.PatientOrderID ||
+  row._raw?.orderID ||
+  row._raw?.orderId ||
+  null;
 
   const resolveItems = () => {
     const raw = row._raw || {};

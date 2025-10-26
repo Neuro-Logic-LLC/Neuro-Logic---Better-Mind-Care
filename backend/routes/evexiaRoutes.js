@@ -1954,14 +1954,14 @@ const getClientId = (req, res) => {
 const OrderItemDelete = async (req, res) => {
   try {
     const externalClientID = trimOrNull(req.query.externalClientID || req.body?.externalClientID);
-    const patientID = trimOrNull(req.query.patientID || req.body?.patientID);
-    const orderID = trimOrNull(req.query.orderID || req.body?.orderID);
+    const patientOrderID = trimOrNull(req.query.patientOrderID || req.body?.patientOrderID);
     const productID = trimOrNull(req.query.productID || req.body?.productID);
+    const isPanel = trimOrNull(req.query.isPanel || req.body?.isPanel || false);
 
-    if (!externalClientID || !patientID || !productID) {
+    if (!externalClientID || !patientOrderID || !productID) {
       return res
         .status(400)
-        .json({ error: 'externalClientID, patientID, and productID are required' });
+        .json({ error: 'externalClientID, patientOrderID, and productID are required' });
     }
 
     const BASE = pickBaseUrl();
@@ -1973,8 +1973,7 @@ const OrderItemDelete = async (req, res) => {
 
     const url = new URL(DELETE_PATH, BASE);
     url.searchParams.set('externalClientID', externalClientID);
-    url.searchParams.set('patientID', patientID);
-    if (orderID) url.searchParams.set('orderID', orderID);
+    url.searchParams.set('patientOrderID', patientOrderID);
     url.searchParams.set('productID', productID);
 
     const r = await fetch(url, {
