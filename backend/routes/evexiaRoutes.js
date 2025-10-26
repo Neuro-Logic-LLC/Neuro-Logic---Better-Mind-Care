@@ -57,7 +57,7 @@ const pickAnalyteResultsPath = () =>
   pickEnv('EVEXIA_ANALYTE_RESULTS_URL') || '/api/EDIPlatform/ResultAnalyteGet';
 
 const pickOrderDetailsPath = () =>
-  pickEnv('EVEXIA_ORDER_DETAILS_URL') || '/api/EDIPlatform/OrderDetailsGet';
+  pickEnv('EVEXIA_ORDER_DETAILS_URL') || '/api/EDIPlatform/OrderDetail';
 
 const pickPatientListDetailsPath = () =>
   pickEnv('EVEXIA_ORDER_DETAILS_URL') || '/api/EDIPlatform/PatientList';
@@ -897,7 +897,7 @@ async function orderSummaryHandler(req, res) {
     };
 
     // 1) Order details
-    const odUrl = new URL(`${localBase}/order-details`);
+    const odUrl = new URL(`${localBase}/order-detail`);
     odUrl.searchParams.set('PatientID', PatientID);
     odUrl.searchParams.set('PatientOrderID', PatientOrderID);
 
