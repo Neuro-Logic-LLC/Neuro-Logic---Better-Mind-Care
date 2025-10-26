@@ -1016,78 +1016,233 @@ function AddItemDialog({ onClose, onDone, patientOrderID, externalClientID }) {
 }
 
 /* ----------------- OrderRowWithItems ----------------- */
-function OrderRowWithItems({
-  row,
-  onRefresh,
-  externalClientID,
-  onRequestDeleteOrder,
-  onDeleteOrderItem
-}) {
+function OrderRowWithItems({ row, onRefresh, externalClientID }) {
   const [open, setOpen] = useState(false);
-  const [details, setDetails] = useState(null);
-  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(null);
 
+  const patientID = row.patientId || row.PatientID;
   const patientOrderID =
     row.patientOrderID ||
     row.PatientOrderID ||
     row.orderID ||
     row.OrderID ||
-    row.orderId ||
-    null;
+    row.orderId;
 
-  const handleToggle = async () => {
-    if (!open && !details) {
-      try {
-        setLoadingDetails(true);
-        setError('');
-        const res = await fetch(
-          `/api/evexia/order-detail?PatientID=${row.patientId}&PatientOrderID=${patientOrderID}`
-        );
-        if (!res.ok) throw new Error(`Failed to load order detail`);
-        const json = await res.json();
-        setDetails(json);
-      } catch (err) {
-        setError(err.message || 'Error loading order details');
-      } finally {
-        setLoadingDetails(false);
-      }
+  const fetchItems = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const res = await fetch(
+        `/api/evexia/order-detail?PatientID=${patientID}&PatientOrderID=${patientOrderID}`
+      );
+      if (!res.ok) throw new Error('Failed to load order details');
+      const data = await res.json();
+      const upstream = data.upstream;
+      const list =
+        upstream?.OrderItems ||
+        upstream?.Items ||
+        upstream?.ProductList ||
+        (Array.isArray(upstream) ? upstream : []) ||
+        [];
+      setItems(list);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch items');
+    } finally {
+      setLoading(false);
     }
-    setOpen((v) => !v);
+  }, [patientID, patientOrderID]);
+
+  useEffect(() => {
+    if (open) fetchItems();
+  }, [open, fetchItems]);
+
+  const handleDeleteItem = async (productID) => {
+    setBusy(true);
+    try {
+      const res = await fetch(
+        `/api/evexia/order-item-delete?patientOrderID=${patientOrderID}&productID=${productID}&externalClientID=${externalClientID}`,
+        { method: 'GET', headers: { Accept: 'application/json' } }
+      );
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      await fetchItems();
+    } catch (err) {
+      alert(err.message || 'Failed to delete item');
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
     <>
+      {/* Table Row */}
       <tr className="border-b hover:bg-gray-50">
-        <td className="px-3 py-3 align-middle">
+        <td className="px-3 py-3">
           <PrimaryButton
             variant="outline"
             className="inline-flex items-center"
-            onClick={handleToggle}
+            onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
           >
             {open ? <ChevronUp /> : <ChevronDown />}
           </PrimaryButton>
-          &nbsp;{row.name}
+          <span className="ml-3 font-medium">{row.name || '—'}</span>
         </td>
-        {/* other columns... */}
+        <td className="px-3 py-3">{row.patientId}</td>
+        <td className="px-3 py-3">{row.orderId}</td>
+        <td className="px-3 py-3">{row.clientId}</td>
+        <td className="px-3 py-3">{row.email}</td>
+        <td className="px-3 py-3">{row.city}</td>
+        <td className="px-3 py-3">{row.state}</td>
+        <td className="px-3 py-3">{row.statusDescr || row.status}</td>
+        <td className="px-3 py-3">
+          {row.createDate ? row.createDate.toLocaleString() : ''}
+        </td>
       </tr>
 
+      {/* Expanded Cart */}
       {open && (
         <tr>
-          <td colSpan={10} className="p-4 bg-gray-50">
-            {loadingDetails ? (
-              <div>Loading order details...</div>
-            ) : error ? (
-              <div className="text-red-600">{error}</div>
+          <td colSpan={9} className="bg-gray-50 p-4">
+            {error && <div className="text-red-600 mb-2">{error}</div>}
+
+            {/* Cart Header */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="font-semibold">
+                🛒 Order Cart — {items.length} item{items.length !== 1 && 's'}
+              </div>
+              <PrimaryButton variant="outline" onClick={fetchItems}>
+                <RefreshCcw className="h-4 w-4 mr-1" /> Refresh
+              </PrimaryButton>
+            </div>
+
+            {/* Items List */}
+            {loading ? (
+              <div className="text-sm text-gray-600">Loading...</div>
+            ) : items.length === 0 ? (
+              <div className="text-sm text-gray-600">No items yet.</div>
             ) : (
-              <pre className="text-xs bg-white border rounded p-3 overflow-auto">
-                {JSON.stringify(details, null, 2)}
-              </pre>
+              <ul className="divide-y border rounded bg-white mb-4">
+                {items.map((it, idx) => {
+                  const pid =
+                    it.ProductID || it.productID || it.id || it.ID || '—';
+                  const pname =
+                    it.ProductName || it.productName || it.Description || pid;
+                  return (
+                    <li
+                      key={idx}
+                      className="flex items-center justify-between p-2 hover:bg-gray-50"
+                    >
+                      <div>
+                        <span className="font-medium">{pname}</span>{' '}
+                        <span className="text-xs opacity-60">({pid})</span>
+                      </div>
+                      <PrimaryButton
+                        variant="outline"
+                        size="sm"
+                        disabled={busy}
+                        onClick={() => setPendingDelete(pid)}
+                      >
+                        Remove
+                      </PrimaryButton>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            {/* Add Section */}
+            <div className="space-y-4 mt-4 border-t pt-3">
+              <div className="font-semibold mb-2">🧪 Add Test to Order</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <ProductButton
+                  name="Phosphorylated Tau 217 (pTau-217) Plasma"
+                  productID={200018}
+                  clientID={externalClientID}
+                  patientOrderID={patientOrderID}
+                  fetchItems={fetchItems}
+                />
+                <ProductButton
+                  name="APOE Genotype"
+                  productID={6724}
+                  clientID={externalClientID}
+                  patientOrderID={patientOrderID}
+                  fetchItems={fetchItems}
+                />    
+              </div>
+            </div>
+
+            {/* Delete Modal */}
+            {pendingDelete && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                <div className="bg-white rounded-lg p-4 w-full max-w-sm shadow">
+                  <div className="font-semibold mb-2">Confirm Delete</div>
+                  <div className="text-sm mb-4">
+                    Remove item <strong>{pendingDelete}</strong> from this order?
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <PrimaryButton
+                      variant="outline"
+                      onClick={() => setPendingDelete(null)}
+                    >
+                      Cancel
+                    </PrimaryButton>
+                    <PrimaryButton
+                      onClick={() => {
+                        handleDeleteItem(pendingDelete);
+                        setPendingDelete(null);
+                      }}
+                    >
+                      Delete
+                    </PrimaryButton>
+                  </div>
+                </div>
+              </div>
             )}
           </td>
         </tr>
       )}
     </>
+  );
+}
+
+/* ----------------- ProductButton ----------------- */
+function ProductButton({ name, productID, clientID, patientOrderID, fetchItems }) {
+  const [busy, setBusy] = useState(false);
+
+  const handleAdd = async () => {
+    setBusy(true);
+    try {
+      const res = await fetch('/api/evexia/order-item-add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          patientOrderID: Number(patientOrderID),
+          externalClientID: clientID,
+          productID,
+          isPanel: false
+        })
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      await fetchItems();
+    } catch (err) {
+      alert(err.message || `Failed to add ${name}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <PrimaryButton
+      disabled={busy}
+      onClick={handleAdd}
+      className="flex flex-col items-start text-left h-full w-full rounded-xl border bg-white hover:bg-blue-50 transition-all duration-150 p-3 shadow-sm"
+    >
+      <div className="font-medium text-sm">{name}</div>
+      <div className="text-xs opacity-60">Product ID: {productID}</div>
+    </PrimaryButton>
   );
 }
