@@ -803,7 +803,7 @@ async function orderDetailHandler(req, res) {
     url.searchParams.set('externalClientID', externalClientID);
     url.searchParams.set('patientID', PatientID);
     url.searchParams.set('patientOrderID', PatientOrderID);
-    
+
     const maskedClient = externalClientID ? externalClientID.slice(0, 6) + '…' : '(none)';
     dlog('Upstream GET', url.toString().replace(externalClientID, maskedClient));
 
@@ -1682,43 +1682,41 @@ async function OrderListHandler(req, res) {
   }
 }
 
-async function patientOrderCompleteHandler(req, res) {
+const patientOrderCompleteHandler = async (req, res) => {
   try {
-    const q = { ...(req.query || {}), ...(req.body || {}) };
-    const PatientID = String(q.PatientID ?? q.patientID ?? '').trim();
-    const PatientOrderID = String(q.PatientOrderID ?? q.patientOrderID ?? '').trim();
+    const patientOrderID = req.query.patientOrderID || req.body?.patientOrderID;
+    const externalClientID = req.query.externalClientID || req.body?.externalClientID;
+    const patientPay = String(req.query.patientPay ?? req.body?.patientPay ?? 'false');
+    const includeFHR = String(req.query.includeFHR ?? req.body?.includeFHR ?? 'false');
+    const clientPhysicianID = req.query.clientPhysicianID || req.body?.clientPhysicianID || 0;
 
-    if (!PatientID || !PatientOrderID) {
-      return res.status(400).json({ error: 'Missing PatientID or PatientOrderID' });
+    if (!patientOrderID || !externalClientID) {
+      return res.status(400).json({ error: 'patientOrderID and externalClientID are required' });
     }
 
-    const clientId = pickClientId(req, q);
-    const AUTH = pickAuthKey();
     const BASE = pickBaseUrl();
-    const PATH = '/api/EDIPlatform/PatientOrderComplete';
+    const AUTH = normalizeAuth(pickAuthKey());
+    if (!BASE) return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
+    if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
 
-    if (!AUTH) return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
+    const COMPLETE_PATH = '/api/EDIPlatform/PatientOrderComplete';
+    const url = new URL(COMPLETE_PATH, BASE);
 
-    const url = new URL(PATH, BASE);
+    url.searchParams.set('patientOrderID', patientOrderID);
+    url.searchParams.set('externalClientID', externalClientID);
+    url.searchParams.set('patientPay', patientPay);
+    url.searchParams.set('includeFHR', includeFHR);
+    url.searchParams.set('clientPhysicianID', clientPhysicianID);
 
-    const controller = new AbortController();
-    const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
-    const to = setTimeout(() => controller.abort(), timeoutMs);
+    console.log('➡️ Forwarding to Evexia:', url.toString());
 
     const r = await fetch(url, {
-      method: 'POST',
+      method: 'GET',
       headers: {
         Authorization: AUTH,
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
+        Accept: 'application/json',
       },
-      body: JSON.stringify({
-        externalClientID: clientId,
-        patientID: PatientID,
-        patientOrderID: PatientOrderID
-      }),
-      signal: controller.signal
-    }).finally(() => clearTimeout(to));
+    });
 
     const text = await r.text();
     let data;
@@ -1729,17 +1727,16 @@ async function patientOrderCompleteHandler(req, res) {
     }
 
     if (!r.ok) {
-      return res.status(r.status).json({ error: 'Upstream error', body: data });
+      return res.status(r.status).json({ error: 'Upstream error', upstream: data });
     }
 
-    return res.status(200).json({ success: true, upstream: data });
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).json({ success: true, data });
   } catch (err) {
-    console.error('[Evexia] patientOrderComplete error:', err);
-    if (err.name === 'AbortError')
-      return res.status(504).json({ error: 'Upstream request timed out' });
-    return res.status(500).json({ error: err.message });
+    console.error('patientOrderCompleteHandler error:', err);
+    return res.status(500).json({ error: err.message || 'Server error' });
   }
-}
+};
 
 function trimOrNull(value) {
   if (typeof value !== 'string') return null;
@@ -1967,7 +1964,10 @@ const OrderItemDelete = async (req, res) => {
     const externalClientID = trimOrNull(req.query.externalClientID || req.body?.externalClientID);
     const patientOrderID = trimOrNull(req.query.patientOrderID || req.body?.patientOrderID);
     const productID = trimOrNull(req.query.productID || req.body?.productID);
-    const isPanel = trimOrNull(req.query.isPanel || req.body?.isPanel || false);
+
+    // ✅ force isPanel to "true"/"false" string
+    const rawIsPanel = req.query.isPanel ?? req.body?.isPanel;
+    const isPanel = String(rawIsPanel).toLowerCase() === 'true' ? 'true' : 'false';
 
     if (!externalClientID || !patientOrderID || !productID) {
       return res
@@ -1981,11 +1981,13 @@ const OrderItemDelete = async (req, res) => {
     if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
 
     const DELETE_PATH = pickOrderItemDeletePath();
-
     const url = new URL(DELETE_PATH, BASE);
     url.searchParams.set('externalClientID', externalClientID);
     url.searchParams.set('patientOrderID', patientOrderID);
     url.searchParams.set('productID', productID);
+    url.searchParams.set('isPanel', isPanel);
+
+    dlog('Forwarding OrderItemDelete:', url.toString()); // 👀 Log exactly what’s sent upstream
 
     const r = await fetch(url, {
       method: 'GET',
@@ -1994,6 +1996,7 @@ const OrderItemDelete = async (req, res) => {
         Accept: 'application/json'
       }
     });
+
     const text = await r.text();
     let data;
     try {
@@ -2009,18 +2012,86 @@ const OrderItemDelete = async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json({ success: true, data });
   } catch (err) {
-    console.error('patientListHandler error:', err);
+    console.error('OrderItemDelete error:', err);
     return res.status(500).json({ error: err.message || 'Server error' });
   }
 };
+
+async function OrderEmpty(req, res) {
+  try {
+    const q = { ...(req.query || {}), ...(req.body || {}) };
+
+    const rawPatientID = String(q.patientID ?? q.PatientID ?? '').trim();
+    const rawPatientOrderID = String(q.patientOrderID ?? q.PatientOrderID ?? '').trim();
+    const clientId = pickClientId(req, q);
+
+    if (!rawPatientID || !rawPatientOrderID) {
+      return res.status(400).json({ error: 'Missing patientID or patientOrderID' });
+    }
+
+    const AUTH = pickAuthKey();
+    const BASE = pickBaseUrl();
+    const PATH = '/api/EDIPlatform/OrderEmpty';
+
+    if (!AUTH) return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
+    if (!BASE) return res.status(500).json({ error: 'Server missing EVEXIA_BASE_URL' });
+
+    const url = new URL(PATH, BASE);
+    url.searchParams.set('patientID', rawPatientID);
+    url.searchParams.set('patientOrderID', rawPatientOrderID);
+    url.searchParams.set('externalClientID', clientId);
+
+    const maskedClient = clientId ? clientId.slice(0, 6) + '…' : '(none)';
+    dlog('Upstream GET', url.toString().replace(clientId, maskedClient));
+
+    const controller = new AbortController();
+    const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
+    const to = setTimeout(() => controller.abort(), timeoutMs);
+
+    const r = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: AUTH,
+        Accept: 'application/json, text/plain, */*',
+        'User-Agent': 'BetterMindCare-EvexiaProxy/1.0'
+      },
+      signal: controller.signal
+    }).finally(() => clearTimeout(to));
+
+    const text = await r.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = text;
+    }
+
+    if (!r.ok) {
+      return res.status(r.status).json({ error: 'Upstream error', body: data });
+    }
+
+    return res.status(200).json({ success: true, upstream: data });
+  } catch (err) {
+    console.error('[Evexia] OrderEmpty error:', err);
+    if (err.name === 'AbortError') {
+      return res.status(504).json({ error: 'Upstream request timed out' });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+router.get('/patient-order-complete', patientOrderCompleteHandler)
+
+router.get('/order-empty', OrderEmpty);
 
 // patient routes
 router.get('/client-id', getClientId);
 
 router.post('/order-item-add', OrderItemAdd);
 router.post('/order-items-add', OrderItemsAdd);
-router.post('/order-item-delete', OrderItemDelete);
-router.post('/order-complete', patientOrderCompleteHandler);
+router.get('/order-item-delete', OrderItemDelete);
 router.get('/order-list', OrderListHandler);
 
 //patient order routes

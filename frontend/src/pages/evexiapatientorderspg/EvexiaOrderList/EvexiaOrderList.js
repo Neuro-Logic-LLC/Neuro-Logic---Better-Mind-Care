@@ -47,7 +47,7 @@ export default function EvexiaOrderList({
   externalClientID = null, // prop
   patientList = null,
   orderAddPath = '/api/evexia/order-add',
-  orderDeletePath = '/api/evexia/order-delete'
+  orderItemDeletePath = '/api/evexia/order-item-delete'
 }) {
   const [data, setData] = useState([]);
   const [total, setTotal] = useState(0);
@@ -524,7 +524,7 @@ export default function EvexiaOrderList({
       const patientOrderID =
         row.patientOrderID || row.PatientOrderID || row.orderID || row.OrderID;
       const externalClientID = row.externalClientID || row.ExternalClientID;
-
+      const isPanel = 'false';
       // Fetch order details
       const detailRes = await fetch(
         `/api/evexia/order-detail?PatientID=${patientID}&PatientOrderID=${patientOrderID}`
@@ -545,10 +545,11 @@ export default function EvexiaOrderList({
       const params = new URLSearchParams({
         patientOrderID,
         productID,
-        externalClientID: row.externalClientID || externalClientID
+        externalClientID: row.externalClientID || externalClientID,
+        isPanel: isPanel
       });
 
-      const res = await fetch(`/api/evexia/order-item-delete?${params}`, {
+      const res = await fetch(`${orderItemDeletePath}?${params}`, {
         method: 'GET',
         headers: { Accept: 'application/json' }
       });
@@ -685,6 +686,7 @@ export default function EvexiaOrderList({
                       row={row}
                       onRefresh={fetchData}
                       externalClientID={clientID}
+                      orderItemDeletePath={orderItemDeletePath} // <-- add this
                       onRequestDeleteOrder={(r) =>
                         setShowDeleteOrder({ open: true, row: r })
                       }
@@ -1060,14 +1062,41 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
     if (open) fetchItems();
   }, [open, fetchItems]);
 
-  // ---- Evexia API Actions (GET endpoints) ----
+  // ---- Evexia API Actions (GET and POST endpoints) ----
   const handleEvexiaGet = async (endpoint, params) => {
-    const url = `/api/EDIPlatform/${endpoint}?${new URLSearchParams(params).toString()}`;
+    // Convert PascalCase → kebab-case (e.g. OrderEmpty → order-empty)
+    const path = endpoint.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+    const url = `/api/evexia/${path}`;
+
+    // Define which endpoints use GET
+    const isGet =
+      path.includes('delete') ||
+      path.includes('empty') ||
+      path.includes('cancel') ||
+      path.includes('complete'); // ✅ includes submit/complete endpoints
+
     try {
       setBusy(true);
-      const res = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } });
+
+      // Prepare fetch options
+      const finalUrl = isGet
+        ? `${url}?${new URLSearchParams(params).toString()}`
+        : url;
+
+      const res = await fetch(finalUrl, {
+        method: isGet ? 'GET' : 'POST',
+        headers: isGet
+          ? { Accept: 'application/json' }
+          : {
+              'Content-Type': 'application/json',
+              Accept: 'application/json'
+            },
+        ...(isGet ? {} : { body: JSON.stringify(params) })
+      });
+
       const text = await res.text();
       if (!res.ok) throw new Error(text || `Error ${res.status}`);
+
       await fetchItems();
       alert(`${endpoint} successful`);
     } catch (err) {
@@ -1083,7 +1112,7 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
       patientOrderID,
       externalClientID,
       productID,
-      isPanel: 0,
+      isPanel: 0
     });
 
   // --- Empty Order ---
@@ -1091,7 +1120,7 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
     handleEvexiaGet('OrderEmpty', {
       patientID,
       patientOrderID,
-      externalClientID,
+      externalClientID
     });
 
   // --- Submit Order ---
@@ -1101,14 +1130,14 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
       externalClientID,
       patientPay,
       includeFHR,
-      clientPhysicianID: 0,
+      clientPhysicianID: 0
     });
 
   // --- Cancel Order ---
   const handleCancelOrder = () =>
     handleEvexiaGet('OrderCancel', {
       patientOrderID,
-      externalClientID,
+      externalClientID
     });
 
   return (
@@ -1243,7 +1272,8 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
                 <div className="bg-white rounded-lg p-4 w-full max-w-sm shadow">
                   <div className="font-semibold mb-2">Confirm Delete</div>
                   <div className="text-sm mb-4">
-                    Remove item <strong>{pendingDelete}</strong> from this order?
+                    Remove item <strong>{pendingDelete}</strong> from this
+                    order?
                   </div>
                   <div className="flex justify-end gap-2">
                     <PrimaryButton
@@ -1271,10 +1301,14 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
   );
 }
 
-
-
 /* ----------------- ProductButton ----------------- */
-function ProductButton({ name, productID, clientID, patientOrderID, fetchItems }) {
+function ProductButton({
+  name,
+  productID,
+  clientID,
+  patientOrderID,
+  fetchItems
+}) {
   const [busy, setBusy] = useState(false);
 
   const handleAdd = async () => {
@@ -1282,7 +1316,10 @@ function ProductButton({ name, productID, clientID, patientOrderID, fetchItems }
     try {
       const res = await fetch('/api/evexia/order-item-add', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
         body: JSON.stringify({
           patientOrderID: Number(patientOrderID),
           externalClientID: clientID,
