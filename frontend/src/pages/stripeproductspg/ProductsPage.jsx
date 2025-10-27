@@ -69,18 +69,18 @@ const OPTIONAL_ADDONS = [
     key: 'APOE',
     flag: 'apoe',
     name: 'APOE Gene Test',
-    priceLabel: '$125',
+    priceLabel: '$0',
     description:
       'Understand your genetic risk for Alzheimer’s and tailor your prevention strategy accordingly.'
   },
-  {
-    key: 'PTAU',
-    flag: 'ptau',
-    name: 'p-Tau217 Alzheimer’s Risk Marker',
-    priceLabel: '$294',
-    description:
-      'Advanced blood test to detect early Alzheimer’s-related brain changes — shown in research to align up to 90% with PET scans.'
-  }
+  // {
+  //   key: 'PTAU',
+  //   flag: 'ptau',
+  //   name: 'p-Tau217 Alzheimer’s Risk Marker',
+  //   priceLabel: '$294',
+  //   description:
+  //     'Advanced blood test to detect early Alzheimer’s-related brain changes — shown in research to align up to 90% with PET scans.'
+  // }
 ];
 
 const usd = (cents) =>
