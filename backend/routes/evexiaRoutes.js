@@ -1685,17 +1685,22 @@ async function OrderListHandler(req, res) {
 const patientOrderCompleteHandler = async (req, res) => {
   try {
     const patientOrderID = req.query.patientOrderID || req.body?.patientOrderID;
-    const externalClientID = req.query.externalClientID || req.body?.externalClientID;
+
+    const externalClientID = process.env.EVEXIA_EXTERNAL_CLIENT_ID;
+    const AUTH = pickAuthKey();
+    const BASE = pickBaseUrl();
+    
+    
     const patientPay = String(req.query.patientPay ?? req.body?.patientPay ?? 'false');
     const includeFHR = String(req.query.includeFHR ?? req.body?.includeFHR ?? 'false');
     const clientPhysicianID = req.query.clientPhysicianID || req.body?.clientPhysicianID || 0;
+
+
 
     if (!patientOrderID || !externalClientID) {
       return res.status(400).json({ error: 'patientOrderID and externalClientID are required' });
     }
 
-    const BASE = pickBaseUrl();
-    const AUTH = normalizeAuth(pickAuthKey());
     if (!BASE) return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
     if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
 
@@ -1920,7 +1925,7 @@ async function patientListHandler(req, res) {
     }
 
     const BASE = pickBaseUrl();
-    const AUTH = normalizeAuth(pickAuthKey());
+    const AUTH = pickAuthKey();
     if (!BASE) return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
     if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
 
