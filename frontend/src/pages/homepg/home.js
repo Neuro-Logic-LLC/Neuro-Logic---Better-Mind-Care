@@ -39,12 +39,14 @@ function Home() {
         </p>
 
         <div className="button-row">
-          <PillOne onClick={() => navigate('/about')}>
+          <PillOne onClick={() => navigate('/')}> 
             Learn More
           </PillOne>
-          <PillTwo onClick={() => navigate('/resources')}>
+          {/* was /about */}
+          <PillTwo onClick={() => navigate('/')}>
             Resources
           </PillTwo>
+          {/* was /resources  */}
           {/* <OutlineButton onClick={() => navigate('/intake-form')}>
             Start Now
           </OutlineButton> */}
