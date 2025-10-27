@@ -2080,7 +2080,91 @@ async function OrderEmpty(req, res) {
   }
 }
 
+async function addOrderHandler(req, res) {
+  try {
+    const q = { ...(req.query || {}), ...(req.body || {}) };
 
+    const PatientID = String(q.patientID ?? q.PatientID ?? '').trim();
+    const OrderType = String(q.orderType ?? q.OrderType ?? '').trim();
+    const PhlebotomyOption = String(q.phlebotomyOption ?? q.PhlebotomyOption ?? '').trim();
+    let CollectionDate = String(q.collectionDate ?? q.CollectionDate ?? '').trim();
+    const ExternalClientID = String(
+      q.externalClientID ?? q.ExternalClientID ?? process.env.EVEXIA_EXTERNAL_CLIENT_ID ?? ''
+    ).trim();
+
+    if (!PatientID ) {
+      return res.status(400).json({
+        error: 'Missing required fields: patientID, orderType, or phlebotomyOption'
+      });
+    }
+
+    if (!CollectionDate) {
+      CollectionDate = new Date().toISOString().split('T')[0];
+    }
+
+    const AUTH = pickAuthKey();
+    const BASE = pickBaseUrl();
+    const PATH = '/api/EDIPlatform/OrderAdd';
+
+    if (!AUTH) return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
+    if (!BASE) return res.status(500).json({ error: 'Server missing EVEXIA_BASE_URL' });
+
+    const url = new URL(PATH, BASE);
+
+    const payload = {
+      patientID: PatientID,
+      orderType: OrderType,
+      phlebotomyOption: PhlebotomyOption,
+      collectionDate: CollectionDate,
+      externalClientID: ExternalClientID
+    };
+
+    const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
+    const controller = new AbortController();
+    const to = setTimeout(() => controller.abort(), timeoutMs);
+
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: AUTH,
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/plain, */*'
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    }).finally(() => clearTimeout(to));
+
+    const text = await r.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = text;
+    }
+
+    if (!r.ok) {
+      return res.status(r.status).json({
+        error: 'Upstream error',
+        upstreamStatus: r.status,
+        upstreamBody: data
+      });
+    }
+
+    // Expected Evexia response shape
+    return res.status(200).json({
+      Success: true,
+      PatientOrderID:
+        data.PatientOrderID ?? data.patientOrderID ?? data.patientOrderId ?? data?.id ?? null
+    });
+  } catch (err) {
+    console.error('[Evexia] addOrderHandler error:', err);
+    if (err.name === 'AbortError')
+      return res.status(504).json({ error: 'Upstream request timed out' });
+    return res.status(500).json({ error: err.message || 'Server error' });
+  }
+}
+
+router.post('/order-add', addOrderHandler);
 
 router.get('/patient-order-complete', patientOrderCompleteHandler)
 

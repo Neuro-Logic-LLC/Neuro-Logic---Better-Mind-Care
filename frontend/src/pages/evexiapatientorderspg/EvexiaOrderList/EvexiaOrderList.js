@@ -566,22 +566,32 @@ export default function EvexiaOrderList({
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="w-full space-y-4">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <Card className="orders-header">
-              Orders for {user.first_name} {user.last_name}
-            </Card>
-          </div>
-        </div>
-
         {/* buttons: space-x works even if children are components */}
       </div>
-      <div className="search-container">
+
+      <div className="flex items-center justify-between mb-4">
+        <h2
+          style={{ marginBottom: '20px' }}
+          className="text-lg font-semibold orders-header"
+        >
+          Orders for {user.first_name} {user.last_name}
+          <PrimaryButton
+            className="row-action-btn bg-[#f39c3f] hover:bg-[#e68a2f] text-white"
+            onClick={() => setShowAddOrder(true)}
+            style={{ marginLeft: '50px' }}
+          >
+            {/* <Plus className="w-4 h-4 mr-1"  /> */}
+            Add Order
+          </PrimaryButton>{' '}
+        </h2>
+      </div>
+
+      {/* Search bar below */}  
+      <div className="search-container mb-4">
         <div className="search-icon">
           <Search />
         </div>
 
-        {/* remove inline // comment — JSX will break otherwise */}
         <TextInput
           id="evexia-search"
           value={query}
@@ -813,10 +823,10 @@ function AddOrderDialog({
 }) {
   const [form, setForm] = useState({
     PatientID: defaultPatientId || '',
-    ExternalOrderID: '',
     OrderType: '',
     PhlebotomyOption: '',
-    ExternalClientID: defaultExternalClientID || ''
+    ExternalClientID: defaultExternalClientID || '',
+    CollectionDate: new Date().toISOString().split('T')[0] // default to today
   });
 
   useEffect(() => {
@@ -833,6 +843,8 @@ function AddOrderDialog({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.PatientID) return alert('PatientID required to create order');
+    if (!form.CollectionDate)
+      form.CollectionDate = new Date().toISOString().split('T')[0];
     onCreate(form);
   };
 
@@ -862,6 +874,7 @@ function AddOrderDialog({
               className="block w-full mt-1 p-2 border rounded"
             />
           </label>
+
           <label className="text-sm">
             OrderType
             <input
@@ -870,11 +883,22 @@ function AddOrderDialog({
               className="block w-full mt-1 p-2 border rounded"
             />
           </label>
+
           <label className="text-sm">
             PhlebotomyOption
             <input
               value={form.PhlebotomyOption}
               onChange={onChange('PhlebotomyOption')}
+              className="block w-full mt-1 p-2 border rounded"
+            />
+          </label>
+
+          <label className="text-sm">
+            CollectionDate
+            <input
+              type="date"
+              value={form.CollectionDate}
+              onChange={onChange('CollectionDate')}
               className="block w-full mt-1 p-2 border rounded"
             />
           </label>
