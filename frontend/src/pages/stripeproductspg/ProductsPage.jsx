@@ -8,7 +8,7 @@ const PRODUCTS = [
     name: 'Brain Health Blueprint',
     tagline: 'Your Personalized Brain Health Experience.',
     amount: 44900,
-    priceLabel: '$449 One-Time Purchase',
+    priceLabel: '$0 One-Time Purchase',
     summary:
       'Take control of your cognitive future with a comprehensive, science-based approach to brain health.',
     details: [
