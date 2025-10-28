@@ -518,50 +518,54 @@ export default function EvexiaOrderList({
     }
   };
 
-  const handleDeleteOrderItem = async (row, externalClientID) => {
-    try {
-      const patientID = row.patientID || row.PatientID || row.patientId;
-      const patientOrderID =
-        row.patientOrderID || row.PatientOrderID || row.orderID || row.OrderID;
-      const externalClientID = row.externalClientID || row.ExternalClientID;
-      const isPanel = 'false';
-      // Fetch order details
-      const detailRes = await fetch(
-        `/api/evexia/order-detail?PatientID=${patientID}&PatientOrderID=${patientOrderID}`
-      );
-      const detailData = await detailRes.json();
-      console.log('Order details:', detailData);
+ const handleDeleteOrderItem = async (row) => {
+  try {
+    const patientID = row.patientID || row.PatientID || row.patientId;
+    const patientOrderID =
+      row.patientOrderID || row.PatientOrderID || row.orderID || row.OrderID;
+    const externalClientID = row.externalClientID || row.ExternalClientID;
+    const isPanel = 'false';
 
-      const productID =
-        detailData.upstream?.ProductID ||
-        (Array.isArray(detailData.upstream?.ProductList) &&
-          detailData.upstream.ProductList[0]?.ProductID);
+    const detailRes = await fetch(
+      `/api/evexia/order-detail?PatientID=${patientID}&PatientOrderID=${patientOrderID}`
+    );
+    const detailData = await detailRes.json();
 
-      if (!productID) {
-        alert('No productID found for this order.');
-        return;
-      }
+    const productID =
+      detailData.upstream?.ProductID ||
+      (Array.isArray(detailData.upstream?.ProductList) &&
+        detailData.upstream.ProductList[0]?.ProductID);
 
-      const params = new URLSearchParams({
-        patientOrderID,
-        productID,
-        externalClientID: row.externalClientID || externalClientID,
-        isPanel: isPanel
-      });
-
-      const res = await fetch(`${orderItemDeletePath}?${params}`, {
-        method: 'GET',
-        headers: { Accept: 'application/json' }
-      });
-
-      const data = await res.json();
-      console.log('Delete result:', data);
-      alert('Order item deleted successfully');
-    } catch (err) {
-      console.error('Delete failed:', err);
-      alert('Error deleting order item');
+    if (!productID) {
+      alert('No productID found for this order.');
+      return;
     }
-  };
+
+    const params = new URLSearchParams({
+      patientOrderID,
+      productID,
+      externalClientID,
+      isPanel
+    });
+
+    const res = await fetch(`/api/evexia/order-item-delete?${params}`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' }
+    });
+
+    const data = await res.json();
+    console.log('Delete result:', data);
+
+    if (!res.ok) {
+      throw new Error(JSON.stringify(data));
+    }
+
+    alert('Order item deleted successfully');
+  } catch (err) {
+    console.error('Delete failed:', err);
+    alert('Error deleting order item');
+  }
+};
   // ----- render -----------------------------------------------------------
   return (
     <div className="w-full space-y-4">
@@ -586,7 +590,7 @@ export default function EvexiaOrderList({
         </h2>
       </div>
 
-      {/* Search bar below */}  
+      {/* Search bar below */}
       <div className="search-container mb-4">
         <div className="search-icon">
           <Search />

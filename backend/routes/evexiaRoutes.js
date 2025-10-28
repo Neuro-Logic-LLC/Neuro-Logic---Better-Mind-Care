@@ -1966,13 +1966,13 @@ const getClientId = (req, res) => {
 
 const OrderItemDelete = async (req, res) => {
   try {
-    const externalClientID = trimOrNull(req.query.externalClientID || req.body?.externalClientID);
+    const externalClientID = trimOrNull(req.query.externalClientID || req.body?.externalClientID || process.env.EVEXIA_EXTERNAL_CLIENT_ID);
     const patientOrderID = trimOrNull(req.query.patientOrderID || req.body?.patientOrderID);
     const productID = trimOrNull(req.query.productID || req.body?.productID);
 
     // ✅ force isPanel to "true"/"false" string
     const rawIsPanel = req.query.isPanel ?? req.body?.isPanel;
-    const isPanel = String(rawIsPanel).toLowerCase() === 'true' ? 'true' : 'false';
+    const isPanel = false;
 
     if (!externalClientID || !patientOrderID || !productID) {
       return res
@@ -1981,7 +1981,9 @@ const OrderItemDelete = async (req, res) => {
     }
 
     const BASE = pickBaseUrl();
-    const AUTH = normalizeAuth(pickAuthKey());
+    const AUTH = pickAuthKey();
+
+
     if (!BASE) return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
     if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
 
