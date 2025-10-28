@@ -517,6 +517,42 @@ export default function EvexiaOrderList({
       return [];
     }
   };
+  const handleCancelOrder = async (row) => {
+    try {
+      const patientOrderID =
+        row.patientOrderID || row.PatientOrderID || row.orderID || row.OrderID;
+      const externalClientID = row.externalClientID || row.ExternalClientID;
+
+      if (!patientOrderID || !externalClientID) {
+        alert('Missing required order info.');
+        return;
+      }
+
+      const res = await fetch('/api/evexia/order-cancel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({
+          patientOrderID,
+          externalClientID
+        })
+      });
+
+      const data = await res.json();
+      console.log('Cancel result:', data);
+
+      if (!res.ok) {
+        throw new Error(JSON.stringify(data));
+      }
+
+      alert('Order canceled successfully');
+    } catch (err) {
+      console.error('Cancel failed:', err);
+      alert('Error canceling order');
+    }
+  };
 
   const handleDeleteOrderItem = async (row) => {
     try {
@@ -540,7 +576,7 @@ export default function EvexiaOrderList({
         return;
       }
       let isPanel = true;
-      
+
       const params = new URLSearchParams({
         patientID,
         patientOrderID,

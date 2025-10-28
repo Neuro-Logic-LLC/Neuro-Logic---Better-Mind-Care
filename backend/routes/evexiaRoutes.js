@@ -2198,6 +2198,74 @@ async function addOrderHandler(req, res) {
   }
 }
 
+const OrderCancel = async (req, res) => {
+  try {
+    const q = { ...(req.query || {}), ...(req.body || {}) };
+
+    const externalClientID = trimOrNull(
+      q.externalClientID || process.env.EVEXIA_EXTERNAL_CLIENT_ID
+    );
+    const patientOrderID = trimOrNull(q.patientOrderID);
+
+    if (!externalClientID || !patientOrderID) {
+      return res.status(400).json({
+        error: 'externalClientID and patientOrderID are required',
+      });
+    }
+
+    const BASE = pickBaseUrl();
+    const AUTH = pickAuthKey();
+
+    if (!BASE)
+      return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
+    if (!AUTH)
+      return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
+
+    const CANCEL_PATH = '/api/EDIPlatform/OrderCancel';
+    const url = new URL(CANCEL_PATH, BASE);
+
+    // ✅ Add query params (Evexia expects GET with params)
+    url.searchParams.set('externalClientID', externalClientID);
+    url.searchParams.set('patientOrderID', patientOrderID);
+
+    console.log('➡️ Forwarding OrderCancel (GET):', url.toString());
+
+    // ✅ GET — no body, no Content-Type header
+    const r = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: AUTH,
+        Accept: 'application/json',
+      },
+    });
+
+    const text = await r.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = text;
+    }
+
+    if (!r.ok) {
+      console.error('Upstream error (OrderCancel):', data);
+      return res.status(r.status).json({
+        error: 'Upstream error',
+        upstream: data,
+      });
+    }
+
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).json({ success: true, data });
+
+  } catch (err) {
+    console.error('OrderCancel error:', err);
+    return res.status(500).json({ error: err.message || 'Server error' });
+  }
+};
+
+
+
 router.post('/order-add', addOrderHandler);
 
 router.get('/patient-order-complete', patientOrderCompleteHandler);
@@ -2232,5 +2300,8 @@ router.post('/lab-result', labResultHandler);
 router.get('/list-all-patients', listAllPatients);
 
 router.post('/patient-add', patientAddV2);
+router.get('/order-cancel', OrderCancel);
+router.post('/order-cancel', OrderCancel);
+
 
 module.exports = router;
