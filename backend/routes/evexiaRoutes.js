@@ -1689,13 +1689,10 @@ const patientOrderCompleteHandler = async (req, res) => {
     const externalClientID = process.env.EVEXIA_EXTERNAL_CLIENT_ID;
     const AUTH = pickAuthKey();
     const BASE = pickBaseUrl();
-    
-    
+
     const patientPay = String(req.query.patientPay ?? req.body?.patientPay ?? 'false');
     const includeFHR = String(req.query.includeFHR ?? req.body?.includeFHR ?? 'false');
     const clientPhysicianID = req.query.clientPhysicianID || req.body?.clientPhysicianID || 0;
-
-
 
     if (!patientOrderID || !externalClientID) {
       return res.status(400).json({ error: 'patientOrderID and externalClientID are required' });
@@ -1719,8 +1716,8 @@ const patientOrderCompleteHandler = async (req, res) => {
       method: 'GET',
       headers: {
         Authorization: AUTH,
-        Accept: 'application/json',
-      },
+        Accept: 'application/json'
+      }
     });
 
     const text = await r.text();
@@ -1966,42 +1963,67 @@ const getClientId = (req, res) => {
 
 const OrderItemDelete = async (req, res) => {
   try {
-    const externalClientID = trimOrNull(req.query.externalClientID || req.body?.externalClientID || process.env.EVEXIA_EXTERNAL_CLIENT_ID);
-    const patientOrderID = trimOrNull(req.query.patientOrderID || req.body?.patientOrderID);
-    const productID = trimOrNull(req.query.productID || req.body?.productID);
+    // Merge query and body params for flexibility
+    const q = { ...(req.query || {}), ...(req.body || {}) };
 
-    // ✅ force isPanel to "true"/"false" string
-    const rawIsPanel = req.query.isPanel ?? req.body?.isPanel;
-    const isPanel = false;
+    const externalClientID = trimOrNull(
+      q.externalClientID || process.env.EVEXIA_EXTERNAL_CLIENT_ID
+    );
+    const patientOrderID = trimOrNull(q.patientOrderID);
+    const productID = trimOrNull(q.productID);
+    const rawIsPanel = q.isPanel ?? q.IsPanel ?? 'false';
 
+
+
+
+    // Validation
     if (!externalClientID || !patientOrderID || !productID) {
-      return res
-        .status(400)
-        .json({ error: 'externalClientID, patientOrderID, and productID are required' });
+      return res.status(400).json({
+        error:
+          'externalClientID, patientOrderID, and productID are required',
+      });
     }
 
+    // Base + Auth
     const BASE = pickBaseUrl();
     const AUTH = pickAuthKey();
 
+    if (!BASE)
+      return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
+    if (!AUTH)
+      return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
 
-    if (!BASE) return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
-    if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
+    // Normalize isPanel → always "true" or "false" string
+    const isPanelBool = (() => {
+      if (typeof rawIsPanel === 'boolean') return rawIsPanel;
+      const s = String(rawIsPanel).trim().toLowerCase();
+      return s === 'true' || s === '1' || s === 'yes' || s === 'on';
+    })();
+    const isPanel = isPanelBool ? 'true' : 'false';
 
+    // Build Evexia URL
     const DELETE_PATH = pickOrderItemDeletePath();
     const url = new URL(DELETE_PATH, BASE);
-    url.searchParams.set('externalClientID', externalClientID);
-    url.searchParams.set('patientOrderID', patientOrderID);
-    url.searchParams.set('productID', productID);
-    url.searchParams.set('isPanel', isPanel);
 
-    dlog('Forwarding OrderItemDelete:', url.toString()); // 👀 Log exactly what’s sent upstream
+    // Prepare payload — Evexia’s newer servers expect POST with JSON
+    const payload = {
+      externalClientID,
+      patientOrderID,
+      productID,
+      isPanel,
+    };
 
+    console.log('➡️ Forwarding OrderItemDelete (POST):', url.toString(), payload);
+
+    // Perform POST request to Evexia
     const r = await fetch(url, {
-      method: 'GET',
+      method: 'POST', // ✅ POST to match “Add” behavior
       headers: {
-        Authorization: AUTH,
-        Accept: 'application/json'
-      }
+        Authorization: AUTH, // must include Bearer prefix
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(payload),
     });
 
     const text = await r.text();
@@ -2013,14 +2035,19 @@ const OrderItemDelete = async (req, res) => {
     }
 
     if (!r.ok) {
-      return res.status(r.status).json({ error: 'Upstream error', upstream: data });
+      console.error('Upstream error:', data);
+      return res
+        .status(r.status)
+        .json({ error: 'Upstream error', upstream: data });
     }
 
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json({ success: true, data });
   } catch (err) {
     console.error('OrderItemDelete error:', err);
-    return res.status(500).json({ error: err.message || 'Server error' });
+    return res
+      .status(500)
+      .json({ error: err.message || 'Server error' });
   }
 };
 
@@ -2099,7 +2126,7 @@ async function addOrderHandler(req, res) {
       q.externalClientID ?? q.ExternalClientID ?? process.env.EVEXIA_EXTERNAL_CLIENT_ID ?? ''
     ).trim();
 
-    if (!PatientID ) {
+    if (!PatientID) {
       return res.status(400).json({
         error: 'Missing required fields: patientID, orderType, or phlebotomyOption'
       });
@@ -2173,7 +2200,7 @@ async function addOrderHandler(req, res) {
 
 router.post('/order-add', addOrderHandler);
 
-router.get('/patient-order-complete', patientOrderCompleteHandler)
+router.get('/patient-order-complete', patientOrderCompleteHandler);
 
 router.get('/order-empty', OrderEmpty);
 
@@ -2183,6 +2210,7 @@ router.get('/client-id', getClientId);
 router.post('/order-item-add', OrderItemAdd);
 router.post('/order-items-add', OrderItemsAdd);
 router.get('/order-item-delete', OrderItemDelete);
+router.post('/order-item-delete', OrderItemDelete);
 router.get('/order-list', OrderListHandler);
 
 //patient order routes
