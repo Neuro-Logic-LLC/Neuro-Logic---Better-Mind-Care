@@ -33,21 +33,21 @@
 /* ===== Primary (orange → teal) ===== */
 .btn-primary {
   background-color: var(--gold-amber);
-  color: var(--soft-white);
+   color: #ffffff !important;
 }
 .btn-primary:hover {
-  background-color: var(--teal);
-  color: var(--soft-white);
+  background-color: var(--dark-amber);
+   color: #ffffff !important;
 }
 
 /* ===== Secondary (teal → deeper teal) ===== */
 .btn-secondary {
   background-color: var(--teal);
-  color: var(--soft-white);
+   color: #ffffff !important;
 }
 .btn-secondary:hover {
-  background-color: #125463;
-  color: var(--soft-white);
+  background-color: var(--dark-teal);
+   color: #ffffff !important;
 }
 
 /* ===== Outline ===== */
@@ -58,6 +58,7 @@
 }
 .btn-outline:hover {
   background-color: var(--soft-white);
+  color: white;
 }
 
 /* Disabled */
@@ -87,29 +88,29 @@
     background-color 0.25s ease,
     transform 0.08s ease,
     color 0.2s ease;
-  color: var(--soft-white);
+   color: #ffffff !important;
 }
 
-/* Pill One — Orange → Teal */
+/* Pill One — Orange*/
 .btn-pill-one {
   background-color: var(--gold-amber); /* orange */
-  color: var(--soft-white);
+   color: #ffffff !important;
   padding-bottom: 15px;
 }
 .btn-pill-one:hover {
-  background-color: var(--teal); /* teal on hover */
-  color: var(--soft-white);
+  background-color: var(--dark-amber); /* dark-amber on hover */
+   color: #ffffff !important;
   transform: translateY(-1px);
 }
 
-/* Pill Two — Teal → Orange */
+/* Pill Two — Teal */
 .btn-pill-two {
   background-color: var(--teal); /* teal */
-  color: var(--soft-white);
+   color: #ffffff !important;
 }
 .btn-pill-two:hover {
-  background-color: var(--gold-amber); /* orange on hover */
-  color: var(--soft-white);
+  background-color: var(--dark-teal); /* dark-teal on hover */
+   color: #ffffff !important;
   transform: translateY(-1px);
 }
 
