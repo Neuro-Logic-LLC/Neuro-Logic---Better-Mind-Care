@@ -17,10 +17,13 @@
 :root {
   /* Brand Colors */
   --teal: #176d81; /* teal */
+  --dark-teal:#0E3E4A; /* deeper teal */
   --gold-amber: #f9a03f; /* orange */
+  --dark-amber: #d87d1c; /* deeper orange */
   --soft-white: #fafafa; /* Seasalt – background */
   --soft-blue: #a3e8dc; /* Tiffany Blue – optional accent */
   --charcoal: #2e3440; /* text tone */
+  --slate: #777777; /* secondary text tone */
   --warm-coral: #F46B61; /* coral red -warning/danger */
 
   /* Semantic Mapping (use these across the app) */
@@ -132,13 +135,13 @@ a:hover {
 }
 
 /* Inputs & interactive elements get a visible focus too */
-button:focus-visible,
+/* button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
   outline: var(--focus-ring);
   outline-offset: var(--focus-offset);
-}
+} */
 
 /* ====== Surfaces / Cards ====== */
 .card-wrapper {

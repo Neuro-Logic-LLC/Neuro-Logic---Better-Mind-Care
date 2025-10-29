@@ -318,7 +318,7 @@
 }
 .navbar-right a[href='/contact']:hover,
 .navbar-right a[href='/contact']:focus-visible {
-  background-color: var(--gold-amber);
+  background-color: var(--dark-teal);
 
 }
 .navbar-right-wrap {
