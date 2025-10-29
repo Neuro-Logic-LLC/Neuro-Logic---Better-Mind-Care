@@ -2264,7 +2264,63 @@ const OrderCancel = async (req, res) => {
   }
 };
 
+const getRequisition = async (req, res) => {
+  try {
+    const q = { ...(req.query || {}), ...(req.body || {}) };
 
+    const externalClientID = trimOrNull(
+      q.externalClientID || process.env.EVEXIA_EXTERNAL_CLIENT_ID
+    );
+    const patientOrderID = trimOrNull(q.patientOrderID);
+    const patientID = String(q.PatientID ?? q.patientID ?? '').trim();
+
+    if (!patientOrderID) {
+      return res.status(400).json({ error: 'patientOrderID required' });
+    }
+
+    if (!patientID) {
+      return res.status(400).json({ error: 'patientID required' });
+    }
+
+    const BASE = pickBaseUrl();
+    const AUTH = pickAuthKey();
+
+    if (!BASE)
+      return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
+    if (!AUTH)
+      return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
+
+    const REQISITION_PATH = '/api/EDIPlatform/RequisitionGet';
+    const url = new URL(REQISITION_PATH, BASE);
+    url.searchParams.set('externalClientID', externalClientID);
+    url.searchParams.set('patientID', patientID);
+    url.searchParams.set('patientOrderID', patientOrderID);
+
+    console.log('➡️ Forwarding RequisitionGet (GET):', url.toString());
+
+    const r = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: AUTH,
+        Accept: 'application/json',
+      },
+    });
+
+    if (!r.ok) {
+      const text = await r.text();
+      console.error('❌ Evexia error:', text);
+      return res.status(r.status).json({ error: 'Evexia API error', detail: text });
+    }
+
+    const data = await r.json();
+    return res.status(200).json(data);
+
+  } catch (err) {
+    console.error('❌ getRequisition error:', err);
+    return res.status(500).json({ error: err.message || 'Internal Server Error' });
+  }
+};
+    
 
 router.post('/order-add', addOrderHandler);
 
