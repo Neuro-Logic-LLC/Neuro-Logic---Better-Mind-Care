@@ -47,34 +47,4 @@
   outline: none;
 }
 
-/* Button */
-.feedback-form button.btn {
-  background-color: var(--teal);
-  color: #fff;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: var(--radius-md, 16px);
-  cursor: pointer;
-  font-family: var(--font-heading, 'Outfit', sans-serif);
-  font-weight: 600;
-  font-size: 16px;
-  transition:
-    background-color 0.2s ease,
-    transform 0.1s ease;
-}
 
-.feedback-form button.btn:hover {
-  background-color: var(--gold-amber);
-  transform: translateY(-1px);
-}
-
-.feedback-form button.btn:active {
-  background-color: var(--color-link-hover, #008db0);
-  transform: translateY(0);
-}
-
-/* Accessibility */
-.feedback-form button.btn:focus-visible {
-  outline: 3px solid var(--gold-amber);
-  outline-offset: 3px;
-}
