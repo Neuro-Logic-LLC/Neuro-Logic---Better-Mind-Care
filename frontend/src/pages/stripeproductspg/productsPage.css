@@ -168,10 +168,7 @@
   color: var(--teal);
 }
 
-.product-card .btn {
-  width: 100%;
-  margin: 0;
-}
+
 
 .products-addons {
   margin: 2.5rem auto 2.5rem;
