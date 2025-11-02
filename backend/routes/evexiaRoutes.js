@@ -2141,8 +2141,6 @@ const getDrawCenterLocator = async (req, res) => {
     ).trim();
 
     const postalCode = String(q.postalCode || '').trim();
-    const city = String(q.city || '').trim();
-    const state = String(q.state || '').trim();
     const distance = String(q.distance || '').trim() || '25';
 
     const BASE = pickBaseUrl();
@@ -2151,18 +2149,11 @@ const getDrawCenterLocator = async (req, res) => {
     if (!BASE) return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
     if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
 
-    const PATH = '/api/EDIPlatform/DrawCenterLocator';
-    const url = new URL(PATH, BASE);
-
-    if (postalCode) url.searchParams.set('postalCode', postalCode);
-    else {
-      if (city) url.searchParams.set('city', city);
-      if (state) url.searchParams.set('state', state);
-    }
-
-    url.searchParams.set('distance', distance);
+    const url = new URL('/api/EDIPlatform/DrawCenterLocator', BASE);
     url.searchParams.set('externalClientID', externalClientID);
-
+    url.searchParams.set('postalCode', postalCode);
+    url.searchParams.set('distance', distance);
+    if (externalClientID) url.searchParams.set('externalClientID', externalClientID);
 
     console.log('➡️ Forwarding DrawCenterLocator (GET):', url.toString());
 
@@ -2174,23 +2165,30 @@ const getDrawCenterLocator = async (req, res) => {
       },
     });
 
-    const text = await r.text();
-    if (!r.ok) {
-      console.error('❌ Evexia error:', text);
-      return res.status(r.status).json({ error: 'Evexia API error', detail: text });
-    }
+const text = await r.text();
 
-    let data = null;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      return res.status(502).json({
-        error: 'Invalid response from Evexia API',
-        raw: text.slice(0, 500),
-      });
-    }
+if (r.status === 204) {
+  // Evexia explicitly says "no content" — return empty list instead of error
+  return res.status(200).json({ DrawCenters: [] });
+}
 
-    return res.status(200).json(data);
+if (!r.ok) {
+  console.error('❌ Evexia error:', text);
+  return res.status(r.status).json({ error: 'Evexia API error', detail: text });
+}
+
+let data;
+try {
+  data = JSON.parse(text);
+} catch {
+  console.error('❌ Invalid JSON from Evexia:', text.slice(0, 500));
+  return res.status(502).json({
+    error: 'Invalid response from Evexia API',
+    raw: text.slice(0, 500),
+  });
+}
+
+return res.status(200).json(data);
   } catch (err) {
     console.error('❌ getDrawCenterLocator error:', err);
     return res.status(500).json({ error: err.message || 'Internal Server Error' });

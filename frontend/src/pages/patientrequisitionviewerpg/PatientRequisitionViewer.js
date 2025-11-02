@@ -3,21 +3,12 @@ import { useParams, useSearchParams } from 'react-router-dom';
 
 export default function PatientRequisitionViewer() {
   const [params, setSearchParams] = useSearchParams();
-  const { patientID: pidFromPath, patientOrderID: poidFromPath } =
-    useParams() || {};
+  const { patientID: pidFromPath, patientOrderID: poidFromPath } = useParams() || {};
 
   const qp = (k) => params.get(k) || params.get(k.toLowerCase()) || '';
   const patientID = (qp('PatientID') || pidFromPath || '').trim();
-  const patientOrderID = (
-    qp('PatientOrderID') ||
-    qp('PatientOrderId') ||
-    poidFromPath ||
-    ''
-  ).trim();
+  const patientOrderID = (qp('PatientOrderID') || qp('PatientOrderId') || poidFromPath || '').trim();
   const externalClientID = (qp('ExternalClientID') || '').trim();
-
-  const API_BASE =
-    process.env.NODE_ENV === 'production' ? '' : 'https://localhost:5050';
 
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
@@ -120,11 +111,9 @@ export default function PatientRequisitionViewer() {
   const needsIds = !patientID || !patientOrderID;
 
   // -----------------------------
-  // 🩸 Draw Center Locator logic
+  // 🩸 Draw Center Locator logic (ZIP-only)
   // -----------------------------
   const [zip, setZip] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
   const [distance, setDistance] = useState('25');
   const [drawCenters, setDrawCenters] = useState([]);
   const [dcStatus, setDcStatus] = useState('idle');
@@ -132,29 +121,31 @@ export default function PatientRequisitionViewer() {
 
   const searchDrawCenters = async () => {
     try {
+      if (!zip.trim()) {
+        setDcError('Please enter a ZIP code.');
+        setDcStatus('error');
+        return;
+      }
+
       setDcStatus('loading');
       setDcError(null);
       setDrawCenters([]);
 
       const qs = new URLSearchParams();
-      const controller = new AbortController();
-      abortRef.current = controller;
-      if (zip) qs.set('postalCode', zip);
-      if (city) qs.set('city', city);
-      if (state) qs.set('state', state);
-      if (distance) qs.set('distance', distance);
+      qs.set('postalCode', zip.trim());
+      qs.set('distance', distance);
       if (externalClientID) qs.set('externalClientID', externalClientID);
 
-      const res = await fetch(
-        `/api/evexia/draw-center-locator?${qs.toString()}`,
-        {
-          method: 'GET',
-          credentials: 'include',
-          headers: { Accept: 'application/json' },
-          signal: controller.signal,
-          cache: 'no-store'
-        }
-      );
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      const res = await fetch(`/api/evexia/draw-center-locator?${qs.toString()}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+        signal: controller.signal,
+        cache: 'no-store'
+      });
 
       const text = await res.text();
       if (!res.ok) throw new Error(`HTTP ${res.status} - ${text}`);
@@ -219,17 +210,9 @@ export default function PatientRequisitionViewer() {
         </div>
 
         {needsIds && (
-          <div
-            style={{ border: '1px solid #ddd', borderRadius: 8, padding: 12 }}
-          >
+          <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 12 }}>
             <p>Enter PatientID and PatientOrderID to load requisition:</p>
-            <div
-              style={{
-                display: 'grid',
-                gap: 8,
-                gridTemplateColumns: '1fr 1fr auto'
-              }}
-            >
+            <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr auto' }}>
               <input
                 placeholder="PatientID"
                 value={pidInput}
@@ -253,9 +236,7 @@ export default function PatientRequisitionViewer() {
 
         {!needsIds && status === 'loading' && <p>Fetching requisition…</p>}
         {!needsIds && status === 'error' && (
-          <p style={{ color: 'red', whiteSpace: 'pre-wrap' }}>
-            {error || 'Error'}
-          </p>
+          <p style={{ color: 'red', whiteSpace: 'pre-wrap' }}>{error || 'Error'}</p>
         )}
 
         {blobUrl && status === 'done' && (
@@ -270,31 +251,13 @@ export default function PatientRequisitionViewer() {
       {/* Draw Center Locator Section */}
       <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 16 }}>
         <h3>Draw Center Locator</h3>
-        <p>
-          Enter a ZIP code, or a City and State, to find nearby draw centers.
-        </p>
+        <p>Enter a ZIP code to find nearby draw centers.</p>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr 1fr auto',
-            gap: 8
-          }}
-        >
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 8 }}>
           <input
             placeholder="ZIP"
             value={zip}
             onChange={(e) => setZip(e.target.value)}
-          />
-          <input
-            placeholder="City"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-          />
-          <input
-            placeholder="State"
-            value={state}
-            onChange={(e) => setState(e.target.value)}
           />
           <input
             placeholder="Distance (mi)"
@@ -308,15 +271,12 @@ export default function PatientRequisitionViewer() {
         {dcStatus === 'error' && (
           <p style={{ color: 'red', whiteSpace: 'pre-wrap' }}>{dcError}</p>
         )}
-        {dcStatus === 'done' && drawCenters.length === 0 && (
-          <p>No draw centers found.</p>
-        )}
+        {dcStatus === 'done' && drawCenters.length === 0 && <p>No draw centers found.</p>}
         {drawCenters.length > 0 && (
           <ul style={{ marginTop: 12, paddingLeft: 20 }}>
             {drawCenters.map((dc) => (
               <li key={dc.DrawCenterID}>
-                <strong>{dc.Name}</strong> — {dc.Address}, {dc.City}, {dc.State}{' '}
-                {dc.Zip}
+                <strong>{dc.Name}</strong> — {dc.Address}, {dc.City}, {dc.State} {dc.Zip}
                 <br />
                 <small>
                   {dc.Phone} ·{' '}
