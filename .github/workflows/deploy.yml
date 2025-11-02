@@ -8,40 +8,21 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
-      # --- install node manually, no setup-node auth injection ---
-      - name: Install Node.js 18 (no auth)
-        run: |
-          curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-          sudo apt-get install -y nodejs
-          node -v
-          npm -v
-          npm config set registry https://registry.npmjs.org/
-          npm config delete '//registry.npmjs.org/:_authToken' || true
-          rm -f ~/.npmrc .npmrc /home/runner/.npmrc || true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
 
-      # --- ensure no injected tokens from env or org secrets ---
-      - name: Purge npm tokens from environment
-        run: |
-          unset NODE_AUTH_TOKEN
-          unset NPM_TOKEN
-          echo "Checking env..."
-          env | grep -i npm || echo "✅ No npm env vars found"
-          env | grep -i auth || echo "✅ No auth vars found"
-
-      - name: Kill GitHub-injected npm tokens
-        run: |
-          unset NODE_AUTH_TOKEN
-          unset NPM_TOKEN
-          npm config delete '//registry.npmjs.org/:_authToken' || true
-          echo "✅ Cleared all npm tokens"
-          
+      # ---------- FRONTEND (CRA) ----------
       - name: Install frontend deps
         working-directory: frontend
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: npm ci
 
       - name: Build (CRA)
         working-directory: frontend
@@ -59,10 +40,10 @@ jobs:
           path: frontend/build
           if-no-files-found: error
 
-      # ---------- BACKEND ----------
+      # ---------- BACKEND BUNDLE ----------
       - name: Install backend deps
         working-directory: backend
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: npm ci
 
       - name: Prune dev deps
         working-directory: backend
@@ -73,8 +54,10 @@ jobs:
         run: |
           set -e
           rm -rf deploy && mkdir -p deploy
+          # Put ecosystem.config.js at archive root and keep the backend/ folder
           tar -czf backend.tar.gz ecosystem.config.js backend
           mv backend.tar.gz deploy/
+
 
       - name: Upload backend artifact
         uses: actions/upload-artifact@v4
@@ -86,7 +69,6 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-
     steps:
       - name: Download frontend artifact
         uses: actions/download-artifact@v4
@@ -108,19 +90,25 @@ jobs:
       - name: Trust host
         run: ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Push artifacts
+      - name: Ensure remote dirs
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            sudo mkdir -p /var/www/bmc /opt/bmc
+            sudo mkdir -p /var/www/bmc
+            sudo mkdir -p /opt/bmc
             sudo chown -R $USER:$USER /var/www/bmc /opt/bmc
           '
+
+      - name: Push artifacts
+        run: |
           rsync -azh --delete web-build/ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/var/www/bmc/
           rsync -azh backend-bundle/backend.tar.gz ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/backend.tar.gz
 
-      - name: Deploy backend with PM2
+      - name: Install backend + PM2 reload
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} <<'SSH'
           set -Eeuo pipefail
+          trap 'echo "::error::failed at line $LINENO: $BASH_COMMAND"' ERR
+
           APP_DIR="/opt/bmc"
           REL_DIR="$APP_DIR/releases"
           TS="$(date +%Y%m%d%H%M%S)"
@@ -128,25 +116,103 @@ jobs:
           APP_NAME="bmc-api"
           ECOS="$APP_DIR/current/ecosystem.config.js"
 
-          mkdir -p "$REL_DIR" "$APP_DIR/shared"
+          # --- dirs & ownership ---
+          sudo mkdir -p "$REL_DIR" "$APP_DIR/shared"
+          sudo chown -R "$USER":"$USER" "$APP_DIR"
+
+          # --- unpack release ---
           mkdir -p "$NEW_REL"
           tar -xzf /tmp/backend.tar.gz -C "$NEW_REL"
 
+          # --- install backend deps (prod) ---
           if [ -f "$NEW_REL/backend/package.json" ]; then
             (cd "$NEW_REL/backend" && npm ci --omit=dev)
+            # ensure AWS SDK v3 is present for SSM bootstrap
             (cd "$NEW_REL/backend" && npm ls @aws-sdk/client-ssm >/dev/null 2>&1 || npm i @aws-sdk/client-ssm)
           fi
 
+          # --- repoint current ---
           ln -sfn "$NEW_REL" "$APP_DIR/current"
+
+          # --- PM2 available? ---
           command -v pm2 >/dev/null 2>&1 || sudo npm i -g pm2
 
+          # --- create SSM bootstrap wrapper (Node) ---
+          cat > "$APP_DIR/current/backend/start-ssm.js" <<'EOF'
+          // Kill any process-wide OpenSSL overrides that break outbound TLS
+          delete process.env.SSL_CERT_FILE;
+          delete process.env.SSL_CERT_DIR;
+          // Pin AWS to system CA bundle (Amazon Linux)
+          process.env.AWS_CA_BUNDLE = '/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem';
+
+          const path = process.env.SSM_PARAMS_PATH; // e.g. /bmc/prod
+          if (!path) {
+            console.error('[startup] SSM_PARAMS_PATH missing');
+            process.exit(1);
+          }
+
+          const { SSMClient, GetParametersByPathCommand } = require('@aws-sdk/client-ssm');
+          const region = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'us-east-2';
+
+          async function loadSSMIntoEnv() {
+            const ssm = new SSMClient({ region });
+            let nextToken;
+            do {
+              const out = await ssm.send(new GetParametersByPathCommand({
+                Path: path.endsWith('/') ? path : path + '/',
+                Recursive: true,
+                WithDecryption: true,
+                NextToken: nextToken,
+              }));
+              (out.Parameters || []).forEach(p => {
+                const key = (p.Name || '').replace(new RegExp('^' + path.replace(/\/?$/, '/') ), '');
+                if (key && !(key in process.env)) process.env[key] = p.Value ?? '';
+              });
+              nextToken = out.NextToken;
+            } while (nextToken);
+          }
+
+          (async () => {
+            await loadSSMIntoEnv();
+
+            const required = (process.env.REQUIRED_ENV_VARS || 'GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,JWT_SECRET,SESSION_SECRET').split(',').map(s=>s.trim()).filter(Boolean);
+            const missing = required.filter(k => !process.env[k]);
+            if (missing.length) {
+              console.error('[startup] Missing required env from SSM:', missing);
+              process.exit(1);
+            }
+
+            // Start your server
+            require('./server');
+          })().catch(e => { console.error('[startup] fatal:', e); process.exit(1); });
+          EOF
+
+          # --- patch ecosystem: point to wrapper, drop SSL_CERT_* time bombs, add SSM vars if missing ---
+          # 1) use wrapper
+          sed -i 's#\./backend/start\.js#./backend/start-ssm.js#g; s#\./backend/server\.js#./backend/start-ssm.js#g' "$ECOS" || true
+          # 2) remove any SSL_CERT_* that poison OpenSSL
+          sed -i '/SSL_CERT_FILE/d;/SSL_CERT_DIR/d' "$ECOS" || true
+          # 3) ensure env_production has SSM config (adds if not present)
+          grep -q 'SSM_PARAMS_PATH' "$ECOS" || sed -i 's/env_production: *{/&\
+            SSM_PARAMS_PATH: "\/bmc\/prod",\
+            REQUIRED_ENV_VARS: "GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,JWT_SECRET,SESSION_SECRET",/g' "$ECOS"
+
+          # --- start / reload ---
           pm2 delete "$APP_NAME" || true
           pm2 startOrReload "$ECOS" --env production --only "$APP_NAME"
           pm2 set pm2:autodump true
           pm2 save
+
+          # --- health (best effort) ---
+          curl -fsS http://127.0.0.1/api/health || curl -fsS http://127.0.0.1/health || echo "health check failed (non-fatal)"
+
+          # debug: show env keys that matter (values redacted)
+          pm2 env 0 | egrep 'NODE_ENV|AWS_.*REGION|SSM_PARAMS_PATH' || true
+
+          pm2 ls || true
           SSH
 
-      - name: Reload NGINX
+      - name: Reload NGINX (serve new frontend)
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
             sudo nginx -t && sudo systemctl reload nginx
