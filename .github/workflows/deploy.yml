@@ -20,16 +20,14 @@ jobs:
             frontend/package-lock.json
             backend/package-lock.json
       - name: Clean npm auth + config
+        shell: bash
         run: |
           echo "Wiping global npm credentials..."
           rm -f ~/.npmrc
           rm -rf ~/.npm/_auth*
-          npm config delete //registry.npmjs.org/:_authToken || true
+          npm config delete '//registry.npmjs.org/:_authToken' || true
           npm config delete registry || true
           npm cache clean --force
-            - name: Install frontend deps
-              working-directory: frontend
-              run: npm ci
 
       - name: Build (CRA)
         working-directory: frontend
