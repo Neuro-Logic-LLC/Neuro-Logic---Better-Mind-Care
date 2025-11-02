@@ -25,15 +25,29 @@ jobs:
           env | grep -i npm || echo "No npm env vars found"
           env | grep -i auth || echo "No auth env vars found"
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
+      # 💥 Add this step right here
+      - name: Force public npm install (no auth)
+        run: |
+          echo "💥 Nuking any npm credentials..."
+          rm -f ~/.npmrc .npmrc /home/runner/.npmrc || true
+          npm config set registry https://registry.npmjs.org/
+          npm config delete '//registry.npmjs.org/:_authToken' || true
+          npm config delete _auth || true
+          unset NODE_AUTH_TOKEN
+          unset NPM_TOKEN
+          echo "✅ Registry:"
+          npm config get registry
+          echo "✅ Auth test:"
+          npm whoami || echo "Not logged in — good"
 
-      # ---------- FRONTEND (CRA) ----------
       - name: Install frontend deps
         working-directory: frontend
-        run: npm ci
+        run: npm ci --no-audit --no-fund
 
       - name: Build (CRA)
         working-directory: frontend
