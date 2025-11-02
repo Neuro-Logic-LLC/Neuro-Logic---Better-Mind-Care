@@ -20,8 +20,8 @@
   opacity: 0.6;
 }
 .row-action-btn {
-  display: inline-flex !important;   /* inline-flex for flow, flex for centering */
-  align-items: center !important;    /* vertical center */
+  display: inline-flex !important; /* inline-flex for flow, flex for centering */
+  align-items: center !important; /* vertical center */
   justify-content: center !important;
   height: 44px !important;
   padding: 0 20px !important;
@@ -31,8 +31,8 @@
 }
 
 .row-icon-btn {
-  display: inline-flex !important;   /* <- inline-flex, not block */
-  align-items: center !important;    /* vertical center */
+  display: inline-flex !important; /* <- inline-flex, not block */
+  align-items: center !important; /* vertical center */
   justify-content: center !important;
   width: 24px !important;
   height: 25px !important;
@@ -46,31 +46,34 @@
 .row-icon-btn svg {
   width: 24px;
   height: 24px;
-  margin-top:12px;
+  margin-top: 12px;
   /* don't set display:block; leave it inline (browser default) or let flex center it */
 }
 
-.add-order-item-row{
-  display:inline-block;
-  margin:10px;
+.add-order-item-row {
+  display: inline-block;
+  margin: 10px;
 }
 
 /* defensive: prevent .btn base styles from expanding */
-.row-action-btn, .row-icon-btn { flex: 0 0 auto !important; }
+.row-action-btn,
+.row-icon-btn {
+  flex: 0 0 auto !important;
+}
 
-.chevron-button{
+.chevron-button {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
   padding: 0 !important;
   min-width: 0 !important;
-  width: 40px;   
+  width: 40px;
   height: 40px;
-  border-radius: 10px; 
+  border-radius: 10px;
 }
 
 .orders-header {
-  font-family:'Lucida Sans';
+  font-family: 'Lucida Sans';
 }
 /* force SVG inside lucide to a sane size */
 .search-container .search-icon svg {

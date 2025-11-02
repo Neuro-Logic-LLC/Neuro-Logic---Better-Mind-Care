@@ -23,7 +23,7 @@ const S = {
   },
   heading: { fontSize: 28, fontWeight: 700, marginBottom: 8 },
   sub: { color: '#5a6b7a', fontSize: 14, marginBottom: 24 },
-  field: { marginBottom: 16},
+  field: { marginBottom: 16 },
   label: { display: 'block', fontSize: 14, marginBottom: 6 },
   input: {
     display: 'flex',
@@ -90,8 +90,7 @@ export default function CheckoutStep() {
   const [resent, setResent] = useState(false);
   const navigate = useNavigate();
 
-  if (!user) 
-  console.log(user);
+  if (!user) console.log(user);
 
   const [cart, setCart] = useState({
     CORE: false,
@@ -107,7 +106,7 @@ export default function CheckoutStep() {
       (cart.NEURO ? PRICES.NEURO : 0);
 
   useEffect(() => {
-    if (!state.email) navigate('/join'); 
+    if (!state.email) navigate('/join');
     if (state.email) navigate('/join/checkout');
   }, [state.email, navigate]);
 
@@ -262,7 +261,6 @@ export default function CheckoutStep() {
   return (
     <div style={S.page}>
       <h2 style={S.heading}>Purchase</h2>
-
 
       {/* Fields */}
       <div style={S.field}>

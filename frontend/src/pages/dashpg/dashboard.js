@@ -15,7 +15,10 @@ function Dashboard() {
       {user.first_name + ' ' + user.last_name}
 
       {user?.role?.toLowerCase() === 'patient' && (
-        <div style={{display:'flex', justifyContent: 'space-evenly' }} className="mt-4">
+        <div
+          style={{ display: 'flex', justifyContent: 'space-evenly' }}
+          className="mt-4"
+        >
           <button className="btn" onClick={() => navigate('/my-reports')}>
             View Patient Report
           </button>
@@ -28,7 +31,10 @@ function Dashboard() {
         </div>
       )}
       {['admin', 'superadmin'].includes(user?.role?.toLowerCase()) && (
-        <div style={{display:'flex', justifyContent: 'space-evenly' }} className="mt-4">
+        <div
+          style={{ display: 'flex', justifyContent: 'space-evenly' }}
+          className="mt-4"
+        >
           <button className="btn" onClick={() => navigate('/intake-form')}>
             Start Patient Intake
           </button>

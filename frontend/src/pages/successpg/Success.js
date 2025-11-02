@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { fetchPaidCalendarAccess } from "../../calendarApi/calendarApi";
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { fetchPaidCalendarAccess } from '../../calendarApi/calendarApi';
 
 export default function SuccessPage() {
   const location = useLocation();
@@ -8,8 +8,8 @@ export default function SuccessPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const userId = params.get("userId");
-    const productKey = params.get("productKey");
+    const userId = params.get('userId');
+    const productKey = params.get('productKey');
 
     if (!userId || !productKey) return;
 
@@ -22,7 +22,7 @@ export default function SuccessPage() {
         window.location.href = join_url;
       } catch (err) {
         console.error(err);
-        setError(err.message || "Failed to access calendar.");
+        setError(err.message || 'Failed to access calendar.');
       }
     }
 

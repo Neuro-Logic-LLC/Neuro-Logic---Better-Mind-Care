@@ -52,7 +52,7 @@ export default function UserList() {
 
   const handleInput = (e) => {
     const { name, value } = e.target;
-    setForm(f => ({ ...f, [name]: value }));
+    setForm((f) => ({ ...f, [name]: value }));
   };
 
   const handleCreateUser = async () => {
@@ -140,8 +140,16 @@ export default function UserList() {
 
       <form
         autoComplete="off"
-        onSubmit={(e) => { e.preventDefault(); handleCreateUser(); }}
-        style={{ display: 'grid', gap: '0.5rem', maxWidth: '520px', marginBottom: '2rem' }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleCreateUser();
+        }}
+        style={{
+          display: 'grid',
+          gap: '0.5rem',
+          maxWidth: '520px',
+          marginBottom: '2rem'
+        }}
       >
         <h3>Create New User</h3>
 
@@ -206,11 +214,23 @@ export default function UserList() {
             placeholder="Password"
             value={form.password}
             onChange={handleInput}
-            style={{ width: '100%', paddingRight: '2.5rem', padding: '0.5rem', fontSize: '1rem' }}
+            style={{
+              width: '100%',
+              paddingRight: '2.5rem',
+              padding: '0.5rem',
+              fontSize: '1rem'
+            }}
           />
           <span
             onClick={() => setShowPassword(!showPassword)}
-            style={{ position: 'absolute', top: '50%', right: '0.75rem', transform: 'translateY(-50%)', cursor: 'pointer', fontSize: '1.2rem' }}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              right: '0.75rem',
+              transform: 'translateY(-50%)',
+              cursor: 'pointer',
+              fontSize: '1.2rem'
+            }}
             title={showPassword ? 'Hide Password' : 'Show Password'}
           >
             {showPassword ? '🙈' : '👁️'}
@@ -219,13 +239,22 @@ export default function UserList() {
 
         <button
           type="submit"
-          style={{ padding: '0.5rem', fontSize: '1rem', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px' }}
+          style={{
+            padding: '0.5rem',
+            fontSize: '1rem',
+            backgroundColor: '#333',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px'
+          }}
         >
           ➕ Create User
         </button>
       </form>
 
-      {loading ? <p>Loading users...</p> : (
+      {loading ? (
+        <p>Loading users...</p>
+      ) : (
         <ul>
           {users.map((u) => {
             if (u.id === user.id) return null;
@@ -233,43 +262,68 @@ export default function UserList() {
               <li key={u.id} style={{ marginBottom: '1rem' }}>
                 ({u.email}) – {u.role_name}
                 <br />
-                <small>Status: {u.is_deleted ? '❌ Deleted' : u.is_active ? '✅ Active' : '⚠️ Inactive'}</small>
+                <small>
+                  Status:{' '}
+                  {u.is_deleted
+                    ? '❌ Deleted'
+                    : u.is_active
+                      ? '✅ Active'
+                      : '⚠️ Inactive'}
+                </small>
                 <br />
-
                 {u.is_active && !u.is_deleted && (
                   <>
                     {user.role?.toLowerCase() === 'superadmin' ? (
                       <button
                         style={{ color: 'red' }}
                         onClick={async () => {
-                          if (!window.confirm('🚨 Hard delete this user? This action is permanent.')) return;
-                          const res = await fetch(`/api/auth/admin/user/hard-delete/${u.id}`, {
-                            method: 'DELETE',
-                            credentials: 'include'
-                          });
+                          if (
+                            !window.confirm(
+                              '🚨 Hard delete this user? This action is permanent.'
+                            )
+                          )
+                            return;
+                          const res = await fetch(
+                            `/api/auth/admin/user/hard-delete/${u.id}`,
+                            {
+                              method: 'DELETE',
+                              credentials: 'include'
+                            }
+                          );
                           if (res.ok) {
                             alert('✅ User permanently deleted');
                             await refetchUsers();
                           } else {
                             const err = await res.json().catch(() => ({}));
-                            alert(`❌ Failed: ${err?.error || 'Unknown error'}`);
+                            alert(
+                              `❌ Failed: ${err?.error || 'Unknown error'}`
+                            );
                           }
                         }}
                       >
                         🚨 Hard Delete
                       </button>
                     ) : (
-                      <button onClick={() => handleDelete(u.id)}>🗑 Soft Delete</button>
+                      <button onClick={() => handleDelete(u.id)}>
+                        🗑 Soft Delete
+                      </button>
                     )}
                   </>
                 )}
-
-                <button onClick={() => setResetTarget(u.id)}>🔑 Reset Password</button>
+                <button onClick={() => setResetTarget(u.id)}>
+                  🔑 Reset Password
+                </button>
                 {u.is_deleted && (
-                  <button onClick={() => handleReactivate(u.id)}>♻️ Reactivate</button>
+                  <button onClick={() => handleReactivate(u.id)}>
+                    ♻️ Reactivate
+                  </button>
                 )}
-                <Link to={`/admin/users/${u.id}`} style={{ marginLeft: '0.5rem' }}>📄 View Details</Link>
-
+                <Link
+                  to={`/admin/users/${u.id}`}
+                  style={{ marginLeft: '0.5rem' }}
+                >
+                  📄 View Details
+                </Link>
                 {resetTarget === u.id && (
                   <div>
                     <input
@@ -280,7 +334,9 @@ export default function UserList() {
                       onChange={(e) => setResetPassword(e.target.value)}
                       style={{ marginTop: '0.25rem' }}
                     />
-                    <button onClick={() => handleResetPassword(u.id)}>✅ Confirm</button>
+                    <button onClick={() => handleResetPassword(u.id)}>
+                      ✅ Confirm
+                    </button>
                   </div>
                 )}
               </li>

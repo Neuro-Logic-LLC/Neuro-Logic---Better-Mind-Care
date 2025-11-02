@@ -33,21 +33,21 @@
 /* ===== Primary (orange → teal) ===== */
 .btn-primary {
   background-color: var(--gold-amber);
-   color: #ffffff !important;
+  color: #ffffff !important;
 }
 .btn-primary:hover {
   background-color: var(--dark-amber);
-   color: #ffffff !important;
+  color: #ffffff !important;
 }
 
 /* ===== Secondary (teal → deeper teal) ===== */
 .btn-secondary {
   background-color: var(--teal);
-   color: #ffffff !important;
+  color: #ffffff !important;
 }
 .btn-secondary:hover {
   background-color: var(--dark-teal);
-   color: #ffffff !important;
+  color: #ffffff !important;
 }
 
 /* ===== Outline ===== */
@@ -59,6 +59,28 @@
 .btn-outline:hover {
   background-color: var(--soft-white);
   color: white;
+}
+
+/* Teal outline (used in calendar toolbar/buttons) */
+.btn-outline-teal {
+  background-color: #fff;
+  color: var(--teal);
+  border: 2px solid var(--teal);
+}
+.btn-outline-teal:hover {
+  background-color: color-mix(in oklab, var(--teal) 12%, #fff);
+  color: var(--teal);
+}
+
+/* Destructive actions */
+.btn-danger {
+  background-color: #fff;
+  color: var(--warm-coral);
+  border: 2px solid color-mix(in oklab, var(--warm-coral) 75%, #fff);
+}
+.btn-danger:hover {
+  background-color: color-mix(in oklab, var(--warm-coral) 12%, #fff);
+  color: var(--warm-coral);
 }
 
 /* Disabled */
@@ -88,29 +110,28 @@
     background-color 0.25s ease,
     transform 0.08s ease,
     color 0.2s ease;
-   color: #ffffff !important;
+  color: #ffffff !important;
 }
 
 /* Pill One — Orange*/
 .btn-pill-one {
   background-color: var(--gold-amber); /* orange */
-   color: #ffffff !important;
-  padding-bottom: 15px;
+  color: #ffffff !important;
 }
 .btn-pill-one:hover {
   background-color: var(--dark-amber); /* dark-amber on hover */
-   color: #ffffff !important;
+  color: #ffffff !important;
   transform: translateY(-1px);
 }
 
 /* Pill Two — Teal */
 .btn-pill-two {
   background-color: var(--teal); /* teal */
-   color: #ffffff !important;
+  color: #ffffff !important;
 }
 .btn-pill-two:hover {
   background-color: var(--dark-teal); /* dark-teal on hover */
-   color: #ffffff !important;
+  color: #ffffff !important;
   transform: translateY(-1px);
 }
 

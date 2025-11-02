@@ -13,18 +13,62 @@
   cursor: pointer !important;
 }
 
+.rbc-event, .rbc-day-slot .rbc-background-event {
+  background-color:#176d81 !important;
+}
+
+.rbc-button-link {
+  font-size: 16px !important ;
+  font-weight: 600 !important ;
+}
+
+.rbc-header{
+  color: #ffffff;
+  background-color:#0e3e4a !important;
+
+}
+
+/* Calendar font override */
+.rbc-calendar {
+  font-family: 'Open Sans', sans-serif !important;
+}
+.rbc-calendar * {
+  font-family: 'Open Sans', sans-serif !important;
+}
+
+/* Outline button styles for calendar navigation */
+.btn-outline {
+  background: transparent !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+.btn-outline:hover,
+.btn-outline:focus {
+  background: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+/* Calendar highlight color */
+.rbc-today {
+  background-color: var(--soft-blue) !important;
+}
+.rbc-selected {
+  background-color: var(--dark-teal) !important;
+}
+
 /* ====== Global Design Tokens ====== */
 :root {
   /* Brand Colors */
   --teal: #176d81; /* teal */
-  --dark-teal:#0E3E4A; /* deeper teal */
+  --dark-teal: #0e3e4a; /* deeper teal */
   --gold-amber: #f9a03f; /* orange */
   --dark-amber: #d87d1c; /* deeper orange */
   --soft-white: #fafafa; /* Seasalt – background */
   --soft-blue: #a3e8dc; /* Tiffany Blue – optional accent */
   --charcoal: #2e3440; /* text tone */
   --slate: #777777; /* secondary text tone */
-  --warm-coral: #F46B61; /* coral red -warning/danger */
+  --warm-coral: #f46b61; /* coral red -warning/danger */
 
   /* Semantic Mapping (use these across the app) */
   --color-bg: var(--soft-white);

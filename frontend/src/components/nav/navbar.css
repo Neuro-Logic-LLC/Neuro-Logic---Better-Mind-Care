@@ -2,11 +2,10 @@
 
 .navbar {
   display: flex;
-  justify-content:flex-start;
+  justify-content: flex-start;
   align-items: center;
 
-
-  padding: .5rem 1rem;
+  padding: 0.5rem 1rem;
   border-bottom: 1px solid color-mix(in oklab, var(--soft-blue) 55%, white);
 
   font-family: var(--font-body, 'Open Sans', system-ui, sans-serif);
@@ -57,7 +56,7 @@
 /* Links */
 .navbar-right a {
   display: flex;
-  align-items:flex-end;
+  align-items: flex-end;
   color: var(--teal);
   text-decoration: none;
   font-size: 0.95rem;
@@ -69,7 +68,6 @@
 }
 
 .navbar-right a:hover {
-
   /* text-decoration: underline; */
   text-underline-offset: 2px;
 }
@@ -150,8 +148,7 @@
 /* Make header buttons pill-shaped and a bit tighter */
 .navbar-ctas .btn {
   border-radius: 9999px;
-  padding: 10px 18px;
-  line-height: 1;
+  padding: 8px 18px;
   box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.06));
 }
 
@@ -175,7 +172,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-
 
   padding: 1rem 2rem;
 
@@ -279,48 +275,6 @@
   opacity: 0.85;
 }
 
-/* --- Turn CONTACT and ORDER links into pill buttons --- */
-.navbar-right a[href='/contact'],
-.navbar-right a[href='/order'] {
-  order: 2; /* second row */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 16px;
-  margin-right: 85px;
-  border-radius: 9999px;
-  line-height: 1;
-  font-weight: 700;
-  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.06));
-  text-decoration: none !important;
-}
-.navbar-right .navbar-order,
-.navbar-right .navbar-order:link,
-.navbar-right .navbar-order:visited {
-  background-color: var(--gold-amber);
-  color: var(--soft-white);
-  text-decoration: none;
-}
-
-/* .navbar-right .navbar-order:hover {
-  background-color: var(--teal);
-  color: var(--coral);
-} */
-/* .navbar-right .navbar-order:active,
-.navbar-right .navbar-order:focus-visible {
-  background-color: var(--gold-amber);
-  color: var(--soft-white);
-} */
-
-.navbar-right a[href='/contact'] {
-
-  color: var(--soft-white);
-}
-.navbar-right a[href='/contact']:hover,
-.navbar-right a[href='/contact']:focus-visible {
-  background-color: var(--dark-teal);
-
-}
 .navbar-right-wrap {
   margin-left: auto; /* pushes right side away from logo */
   display: flex;
@@ -343,7 +297,6 @@
 }
 .navbar-auth-row a:hover,
 .navbar-auth-row a:focus-visible {
-
   text-decoration: underline;
   text-underline-offset: 2px;
 }

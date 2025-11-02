@@ -1,33 +1,33 @@
 /** @format */
 
 .legal-callout {
-	margin-top: 48px;
-	padding: 28px 32px;
-	background-color: var(--teal);
-	background-image: linear-gradient(135deg, var(--teal) 0%, #0f5162 100%);
-	color: var(--charcoal);
-	border-radius: var(--radius-lg);
-	box-shadow: var(--shadow-md);
+  margin-top: 48px;
+  padding: 28px 32px;
+  background-color: var(--teal);
+  background-image: linear-gradient(135deg, var(--teal) 0%, #0f5162 100%);
+  color: var(--charcoal);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .legal-callout h3 {
-	font-size: clamp(20px, 2.4vw, 26px);
-	margin-bottom: 12px;
-	color: var(--soft-white);
+  font-size: clamp(20px, 2.4vw, 26px);
+  margin-bottom: 12px;
+  color: var(--soft-white);
 }
 
 .legal-callout p {
-	margin: 0;
-	color: var(--soft-white);
+  margin: 0;
+  color: var(--soft-white);
 }
 
 .legal-callout a {
-	color: var(--soft-white);
-	text-decoration: underline;
+  color: var(--soft-white);
+  text-decoration: underline;
 }
 
 @media (max-width: 768px) {
-	.legal-callout {
-		padding: 24px;
-	}
+  .legal-callout {
+    padding: 24px;
+  }
 }

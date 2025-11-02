@@ -2,9 +2,6 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-
-
-
 export default function AuditLog() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -25,7 +22,7 @@ export default function AuditLog() {
     fetch('/api/auth/audit-log', {
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
         // 'X-Client-Timezone': detectedTZ,
         // 'X-Client-Time': new Date().toISOString()
       }

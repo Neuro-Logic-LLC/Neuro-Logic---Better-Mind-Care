@@ -26,17 +26,18 @@ export default function EmailStep() {
   return (
     <div className="pl-4 md:pl-8 lg:pl-12 py-10">
       <form onSubmit={submit} className="flex flex-col gap-4">
-        <div style={{ display: 'flex', alignItems: 'center', marginLeft: '20px'}}>
+        <div
+          style={{ display: 'flex', alignItems: 'center', marginLeft: '20px' }}
+        >
           <h1 className="text-2xl font-semibold mb-2">Join</h1>
         </div>
-        <p  
-        style={{marginLeft: '20px'}}
-        className="text-sm text-neutral-600 mb-6">
+        <p
+          style={{ marginLeft: '20px' }}
+          className="text-sm text-neutral-600 mb-6"
+        >
           Enter your email to start.
         </p>
-        <div 
-        style={{marginLeft: '20px'}}
-        className="flex items-center gap-3">
+        <div style={{ marginLeft: '20px' }} className="flex items-center gap-3">
           <input
             style={{ cursor: 'pointer', marginRight: '30px' }}
             className="flex-1 h-11 rounded-lg border px-3"

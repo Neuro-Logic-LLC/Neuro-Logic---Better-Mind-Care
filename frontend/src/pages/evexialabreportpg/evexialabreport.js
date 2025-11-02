@@ -3,22 +3,35 @@ import { useParams, useSearchParams } from 'react-router-dom';
 
 export default function EvexiaLabReport() {
   const [params, setSearchParams] = useSearchParams();
-  const { patientID: pidFromPath, patientOrderID: poidFromPath } = useParams() || {};
+  const { patientID: pidFromPath, patientOrderID: poidFromPath } =
+    useParams() || {};
 
   // Read params with tolerant casing
   const qp = (k) => params.get(k) || params.get(k.toLowerCase()) || '';
   const patientID = (qp('PatientID') || pidFromPath || '').trim();
-  const patientOrderID = (qp('PatientOrderID') || qp('PatientOrderId') || poidFromPath || '').trim();
+  const patientOrderID = (
+    qp('PatientOrderID') ||
+    qp('PatientOrderId') ||
+    poidFromPath ||
+    ''
+  ).trim();
   const specimen = (qp('Specimen') || '').trim();
-  const externalClientID = (qp('ExternalClientID') || qp('externalClientId') || '').trim();
+  const externalClientID = (
+    qp('ExternalClientID') ||
+    qp('externalClientId') ||
+    ''
+  ).trim();
 
-  const API_BASE = process.env.NODE_ENV === 'production' ? '' : 'https://localhost:5050';
+  const API_BASE =
+    process.env.NODE_ENV === 'production' ? '' : 'https://localhost:5050';
 
   const [status, setStatus] = useState('idle'); // idle | loading | done | error
   const [error, setError] = useState(null);
   const [blobUrl, setBlobUrl] = useState(null);
   const [fileName, setFileName] = useState(
-    patientID && patientOrderID ? `lab-${patientID}-${patientOrderID}.pdf` : 'lab-result.pdf'
+    patientID && patientOrderID
+      ? `lab-${patientID}-${patientOrderID}.pdf`
+      : 'lab-result.pdf'
   );
 
   // Fallback inputs (when URL has no IDs)
@@ -55,7 +68,10 @@ export default function EvexiaLabReport() {
     const controller = new AbortController();
     abortRef.current = controller;
 
-    const qs = new URLSearchParams({ PatientID: patientID, PatientOrderID: patientOrderID });
+    const qs = new URLSearchParams({
+      PatientID: patientID,
+      PatientOrderID: patientOrderID
+    });
     if (specimen) qs.set('Specimen', specimen);
 
     fetch(`/api/evexia/lab-result?${qs.toString()}`, {
@@ -71,11 +87,16 @@ export default function EvexiaLabReport() {
       .then(async (r) => {
         if (!r.ok) {
           let j = null;
-          try { j = await r.json(); } catch {}
+          try {
+            j = await r.json();
+          } catch {}
           const msg = j?.error || `HTTP ${r.status}`;
           throw Object.assign(new Error(msg), { details: j, status: r.status });
         }
-        const disp = r.headers.get('Content-Disposition') || r.headers.get('content-disposition') || '';
+        const disp =
+          r.headers.get('Content-Disposition') ||
+          r.headers.get('content-disposition') ||
+          '';
         const m = /filename="([^"]+)"/i.exec(disp);
         if (m && m[1]) setFileName(m[1]);
         return r.blob();
@@ -89,8 +110,10 @@ export default function EvexiaLabReport() {
         setStatus('error');
         const parts = [];
         if (e?.message) parts.push(e.message);
-        if (e?.details?.resultCount === 0) parts.push('No report yet (not finalized).');
-        if (e?.details?.upstreamStatus) parts.push(`Upstream: ${e.details.upstreamStatus}`);
+        if (e?.details?.resultCount === 0)
+          parts.push('No report yet (not finalized).');
+        if (e?.details?.upstreamStatus)
+          parts.push(`Upstream: ${e.details.upstreamStatus}`);
         setError(parts.join(' '));
       });
 
@@ -124,7 +147,12 @@ export default function EvexiaLabReport() {
               type="button"
               onClick={onDownload}
               disabled={!blobUrl || status !== 'done'}
-              style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #ccc', cursor: 'pointer' }}
+              style={{
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: '1px solid #ccc',
+                cursor: 'pointer'
+              }}
             >
               Download PDF
             </button>
@@ -133,8 +161,15 @@ export default function EvexiaLabReport() {
               target="_blank"
               rel="noreferrer"
               aria-disabled={!blobUrl || status !== 'done'}
-              style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #ccc', textDecoration: 'none' }}
-              onClick={(e) => { if (!blobUrl) e.preventDefault(); }}
+              style={{
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: '1px solid #ccc',
+                textDecoration: 'none'
+              }}
+              onClick={(e) => {
+                if (!blobUrl) e.preventDefault();
+              }}
             >
               Open in new tab
             </a>
@@ -145,9 +180,16 @@ export default function EvexiaLabReport() {
       {needsIds && (
         <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 12 }}>
           <p style={{ marginTop: 0 }}>
-            Missing <code>PatientID</code> or <code>PatientOrderID</code>. Enter them below.
+            Missing <code>PatientID</code> or <code>PatientOrderID</code>. Enter
+            them below.
           </p>
-          <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr 1fr auto' }}>
+          <div
+            style={{
+              display: 'grid',
+              gap: 8,
+              gridTemplateColumns: '1fr 1fr 1fr auto'
+            }}
+          >
             <input
               placeholder="PatientID"
               value={pidInput}
@@ -170,17 +212,40 @@ export default function EvexiaLabReport() {
               type="button"
               onClick={kickFetch}
               disabled={!pidInput.trim() || !poidInput.trim()}
-              style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #ccc', cursor: 'pointer' }}
+              style={{
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: '1px solid #ccc',
+                cursor: 'pointer'
+              }}
             >
               Load report
             </button>
           </div>
-          <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
-            <small>Example: <code>?PatientID=113002&PatientOrderID=210824</code></small>
+          <div
+            style={{
+              marginTop: 8,
+              display: 'flex',
+              gap: 8,
+              alignItems: 'center'
+            }}
+          >
+            <small>
+              Example: <code>?PatientID=113002&PatientOrderID=210824</code>
+            </small>
             <button
               type="button"
-              onClick={() => { setPidInput('113002'); setPoidInput('210824'); setSpecInput(''); }}
-              style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #ccc', cursor: 'pointer' }}
+              onClick={() => {
+                setPidInput('113002');
+                setPoidInput('210824');
+                setSpecInput('');
+              }}
+              style={{
+                padding: '4px 8px',
+                borderRadius: 6,
+                border: '1px solid #ccc',
+                cursor: 'pointer'
+              }}
             >
               Fill example
             </button>
@@ -190,14 +255,21 @@ export default function EvexiaLabReport() {
 
       {!needsIds && status === 'loading' && <p>Fetching report…</p>}
       {!needsIds && status === 'error' && (
-        <p style={{ color: '#b00', whiteSpace: 'pre-wrap' }}>{error || 'Error'}</p>
+        <p style={{ color: '#b00', whiteSpace: 'pre-wrap' }}>
+          {error || 'Error'}
+        </p>
       )}
 
       {blobUrl && status === 'done' && (
         <iframe
           title={fileName}
           src={blobUrl}
-          style={{ width: '100%', height: '80vh', border: '1px solid #ddd', borderRadius: 8 }}
+          style={{
+            width: '100%',
+            height: '80vh',
+            border: '1px solid #ddd',
+            borderRadius: 8
+          }}
         />
       )}
     </div>
