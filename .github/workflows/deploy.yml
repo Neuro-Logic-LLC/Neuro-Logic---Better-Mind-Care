@@ -12,33 +12,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js (no auth)
+      # --- install node manually, no setup-node auth injection ---
+      - name: Install Node.js 18 (no auth)
         run: |
-          echo "Installing Node 18 manually (no auth, no setup-node)..."
           curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
           sudo apt-get install -y nodejs
           node -v
           npm -v
-          echo "Registry -> $(npm config get registry)"
+          npm config set registry https://registry.npmjs.org/
           npm config delete '//registry.npmjs.org/:_authToken' || true
-          rm -f ~/.npmrc
-          echo "Wiped npmrc"
+          rm -f ~/.npmrc .npmrc /home/runner/.npmrc || true
 
-      - name: Clean npm auth + config
-        shell: bash
+      # --- ensure no injected tokens from env or org secrets ---
+      - name: Purge npm tokens from environment
         run: |
-          echo "Removing all npm auth..."
-          rm -f ~/.npmrc
-          npm config delete '//registry.npmjs.org/:_authToken' || true
-          npm config set registry "https://registry.npmjs.org"
-          npm cache clean --force
-          echo "Registry now -> $(npm config get registry)"
+          unset NODE_AUTH_TOKEN
+          unset NPM_TOKEN
+          echo "Checking env..."
+          env | grep -i npm || echo "✅ No npm env vars found"
+          env | grep -i auth || echo "✅ No auth vars found"
 
-      - name: Install frontend deps (no auth)
+      - name: Install frontend deps
         working-directory: frontend
-        run: |
-          npm config set registry https://registry.npmjs.org
-          npm ci --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Build (CRA)
         working-directory: frontend
@@ -105,26 +101,45 @@ jobs:
       - name: Trust host
         run: ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Ensure remote dirs
-        run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            sudo mkdir -p /var/www/bmc
-            sudo mkdir -p /opt/bmc
-            sudo chown -R $USER:$USER /var/www/bmc /opt/bmc
-          '
-
       - name: Push artifacts
         run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+            sudo mkdir -p /var/www/bmc /opt/bmc
+            sudo chown -R $USER:$USER /var/www/bmc /opt/bmc
+          '
           rsync -azh --delete web-build/ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/var/www/bmc/
           rsync -azh backend-bundle/backend.tar.gz ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/backend.tar.gz
 
-      - name: Install backend + PM2 reload
+      - name: Deploy backend with PM2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} <<'SSH'
-          # your PM2 setup goes here
+          set -Eeuo pipefail
+          APP_DIR="/opt/bmc"
+          REL_DIR="$APP_DIR/releases"
+          TS="$(date +%Y%m%d%H%M%S)"
+          NEW_REL="$REL_DIR/$TS"
+          APP_NAME="bmc-api"
+          ECOS="$APP_DIR/current/ecosystem.config.js"
+
+          mkdir -p "$REL_DIR" "$APP_DIR/shared"
+          mkdir -p "$NEW_REL"
+          tar -xzf /tmp/backend.tar.gz -C "$NEW_REL"
+
+          if [ -f "$NEW_REL/backend/package.json" ]; then
+            (cd "$NEW_REL/backend" && npm ci --omit=dev)
+            (cd "$NEW_REL/backend" && npm ls @aws-sdk/client-ssm >/dev/null 2>&1 || npm i @aws-sdk/client-ssm)
+          fi
+
+          ln -sfn "$NEW_REL" "$APP_DIR/current"
+          command -v pm2 >/dev/null 2>&1 || sudo npm i -g pm2
+
+          pm2 delete "$APP_NAME" || true
+          pm2 startOrReload "$ECOS" --env production --only "$APP_NAME"
+          pm2 set pm2:autodump true
+          pm2 save
           SSH
 
-      - name: Reload NGINX (serve new frontend)
+      - name: Reload NGINX
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
             sudo nginx -t && sudo systemctl reload nginx
