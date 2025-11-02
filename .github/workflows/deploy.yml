@@ -18,6 +18,7 @@ jobs:
           cache-dependency-path: |
             frontend/package-lock.json
             backend/package-lock.json
+    registry-url: 'https://registry.npmjs.org'
       - name: Show npm auth config
         working-directory: frontend
         run: |
