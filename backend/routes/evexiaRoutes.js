@@ -315,7 +315,9 @@ async function labResultHandler(req, res) {
   try {
     const q = { ...(req.query || {}), ...(req.body || {}) };
 
-    const externalClientID = String(q.externalClientID || process.env.EVEXIA_EXTERNAL_CLIENT_ID || '').trim();
+    const externalClientID = String(
+      q.externalClientID || process.env.EVEXIA_EXTERNAL_CLIENT_ID || ''
+    ).trim();
     const patientOrderID = String(q.PatientOrderID ?? q.patientOrderID ?? '').trim();
     const patientID = String(q.PatientID ?? q.patientID ?? '').trim();
 
@@ -2130,6 +2132,71 @@ const getRequisition = async (req, res) => {
   }
 };
 
+const getDrawCenterLocator = async (req, res) => {
+  try {
+    const q = { ...(req.query || {}), ...(req.body || {}) };
+
+    const externalClientID = String(
+      q.externalClientID || process.env.EVEXIA_EXTERNAL_CLIENT_ID || ''
+    ).trim();
+
+    const postalCode = String(q.postalCode || '').trim();
+    const city = String(q.city || '').trim();
+    const state = String(q.state || '').trim();
+    const distance = String(q.distance || '').trim() || '25';
+
+    const BASE = pickBaseUrl();
+    const AUTH = pickAuthKey();
+
+    if (!BASE) return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
+    if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
+
+    const PATH = '/api/EDIPlatform/DrawCenterLocator';
+    const url = new URL(PATH, BASE);
+
+    if (postalCode) url.searchParams.set('postalCode', postalCode);
+    else {
+      if (city) url.searchParams.set('city', city);
+      if (state) url.searchParams.set('state', state);
+    }
+
+    url.searchParams.set('distance', distance);
+    url.searchParams.set('externalClientID', externalClientID);
+
+
+    console.log('➡️ Forwarding DrawCenterLocator (GET):', url.toString());
+
+    const r = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: AUTH,
+        Accept: 'application/json',
+      },
+    });
+
+    const text = await r.text();
+    if (!r.ok) {
+      console.error('❌ Evexia error:', text);
+      return res.status(r.status).json({ error: 'Evexia API error', detail: text });
+    }
+
+    let data = null;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return res.status(502).json({
+        error: 'Invalid response from Evexia API',
+        raw: text.slice(0, 500),
+      });
+    }
+
+    return res.status(200).json(data);
+  } catch (err) {
+    console.error('❌ getDrawCenterLocator error:', err);
+    return res.status(500).json({ error: err.message || 'Internal Server Error' });
+  }
+};
+
 router.post('/order-add', addOrderHandler);
 
 router.get('/patient-order-complete', patientOrderCompleteHandler);
@@ -2170,4 +2237,6 @@ router.post('/order-cancel', OrderCancel);
 router.get('/requisition-get', getRequisition);
 router.post('/requisition-get', getRequisition);
 
+router.get('/draw-center-locator', getDrawCenterLocator);
+router.post('/draw-center-locator', getDrawCenterLocator);
 module.exports = router;
