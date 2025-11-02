@@ -19,6 +19,7 @@ jobs:
           cache-dependency-path: |
             frontend/package-lock.json
             backend/package-lock.json
+
       - name: Clean npm auth + config
         shell: bash
         run: |
@@ -29,6 +30,10 @@ jobs:
           npm config delete registry || true
           npm cache clean --force
 
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+        
       - name: Build (CRA)
         working-directory: frontend
         env:
