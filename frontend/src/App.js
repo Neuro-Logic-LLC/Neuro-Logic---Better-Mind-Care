@@ -147,7 +147,7 @@ function App() {
                   }
                 />
 
-                                <Route
+                <Route
                   path="/automated-lab-results"
                   element={
                     <ProtectedRoute>

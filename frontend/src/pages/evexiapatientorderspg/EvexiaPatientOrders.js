@@ -46,8 +46,9 @@ export default function PatientOrders({
     if (p == null) {
       id = null;
     } else if (typeof p === 'object') {
-      id =  p.id ?? p.PatientID ?? p.patientId ?? null;
-      const first = user.first_name?? p.FirstName ?? p.firstName ?? p.first ??  '';
+      id = p.id ?? p.PatientID ?? p.patientId ?? null;
+      const first =
+        user.first_name ?? p.FirstName ?? p.firstName ?? p.first ?? '';
       const last = user.last_name ?? p.LastName ?? p.lastName ?? p.last ?? '';
       name = `${first} ${last}`.trim();
     } else {
@@ -89,9 +90,7 @@ export default function PatientOrders({
         <div>
           <Card className="rounded-2xl shadow-sm p-4">
             <div className="flex items-center justify-between mb-3">
-              <div>
-
-              </div>
+              <div></div>
               <div className="flex items-center gap-2"></div>
 
               {ordersPaneOpen && selectedPatientId ? (

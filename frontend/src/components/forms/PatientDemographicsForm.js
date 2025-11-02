@@ -41,7 +41,7 @@ function PatientDemographicsForm(props) {
       }
     }
   };
-  
+
   const isValidAge = (dobStr) => {
     const dob = new Date(dobStr);
     const today = new Date();

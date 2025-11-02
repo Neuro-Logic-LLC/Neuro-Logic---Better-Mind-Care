@@ -10,7 +10,9 @@ function MyReports() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('/api/intake/my-reports', { credentials: 'include' });
+        const res = await fetch('/api/intake/my-reports', {
+          credentials: 'include'
+        });
         if (res.status === 401) {
           navigate('/login', { replace: true });
           return;
@@ -29,7 +31,9 @@ function MyReports() {
 
         const list = Array.isArray(data)
           ? data
-          : (Array.isArray(data.logs) ? data.logs : []);
+          : Array.isArray(data.logs)
+            ? data.logs
+            : [];
         setReports(list);
       } catch (e) {
         console.error('my-reports fetch failed:', e);
@@ -41,28 +45,34 @@ function MyReports() {
     })();
   }, [navigate]);
 
-const handleView = (r) => {
-  const output =
-    typeof r.report_output === 'string'
-      ? (() => { try { return JSON.parse(r.report_output); } catch { return {}; } })()
-      : (r.report_output || {});
+  const handleView = (r) => {
+    const output =
+      typeof r.report_output === 'string'
+        ? (() => {
+            try {
+              return JSON.parse(r.report_output);
+            } catch {
+              return {};
+            }
+          })()
+        : r.report_output || {};
 
-  const raw = output.report || output;
-  const innerReport = Array.isArray(raw) ? { sections: raw } : raw;
+    const raw = output.report || output;
+    const innerReport = Array.isArray(raw) ? { sections: raw } : raw;
 
-  navigate('/report', {
-    state: {
-      report: {
-        ...innerReport, // now guaranteed to be an object
-        labRecommendations: output.labRecommendations,
-        userEmail: r.user_email,
-        submittedAt: r.submitted_at || r.created_at,
+    navigate('/report', {
+      state: {
+        report: {
+          ...innerReport, // now guaranteed to be an object
+          labRecommendations: output.labRecommendations,
+          userEmail: r.user_email,
+          submittedAt: r.submitted_at || r.created_at
+        },
+        reportId: r.id // optional: helpful on hard reload
       },
-      reportId: r.id, // optional: helpful on hard reload
-    },
-    replace: true,
-  });
-};
+      replace: true
+    });
+  };
   if (loading) return <p>Loading your reports...</p>;
   if (err) return <p style={{ color: 'crimson' }}>Error: {err}</p>;
 

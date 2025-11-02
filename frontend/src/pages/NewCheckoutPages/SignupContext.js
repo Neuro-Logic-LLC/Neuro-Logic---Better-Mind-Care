@@ -8,7 +8,7 @@ export default function SignupProvider({ children }) {
     email: '',
     first_name: '',
     last_name: '',
-    phone: '',
+    phone: ''
   });
   const setField = (k, v) => setState((s) => ({ ...s, [k]: v }));
   return <Ctx.Provider value={{ state, setField }}>{children}</Ctx.Provider>;

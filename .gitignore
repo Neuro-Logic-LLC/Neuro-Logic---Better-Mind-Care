@@ -29,3 +29,10 @@ coverage/
 *.local
 *.ecosystem.config.js
 *.development
+
+#Local environment files 
+/frontend/env.development.local
+/backend/env.development.local
+deploy.yml
+https-on-localhost/fullchain.pem
+https-on-localhost/privkey.pem

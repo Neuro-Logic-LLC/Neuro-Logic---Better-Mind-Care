@@ -1,5 +1,11 @@
 // src/auth/AuthContext.jsx
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback
+} from 'react';
 
 // ---- shared API base detection (same as your login file) ----
 function normalizeBase(raw) {
@@ -11,16 +17,22 @@ function readMeta(name) {
   return el ? el.getAttribute('content') : '';
 }
 const API_BASE = (() => {
-  const injected = ((window.__APP_CONFIG__ && window.__APP_CONFIG__.API_BASE)
-    || (document.querySelector('meta[name="app-env:api-base"]')?.content)
-    || '').trim().replace(/\/+$/, '');
+  const injected = (
+    (window.__APP_CONFIG__ && window.__APP_CONFIG__.API_BASE) ||
+    document.querySelector('meta[name="app-env:api-base"]')?.content ||
+    ''
+  )
+    .trim()
+    .replace(/\/+$/, '');
 
   if (injected) return injected;
 
   const host = window.location.hostname;
-  if (host === 'localhost' || host === '127.0.0.1') return 'https://localhost:5050';
+  if (host === 'localhost' || host === '127.0.0.1')
+    return 'https://localhost:5050';
 
-  if (host.includes('staging.bettermindcare.com')) return 'https://staging.bettermindcare.com';
+  if (host.includes('staging.bettermindcare.com'))
+    return 'https://staging.bettermindcare.com';
 
   return window.location.origin; // prod same-origin
 })();
@@ -29,19 +41,26 @@ console.log('[Auth] API_BASE =', API_BASE); // leave this in until fixed
 async function req(path, opts = {}) {
   const url = `${API_BASE}${path}`;
   const res = await fetch(url, {
-    credentials: 'include',                     // <-- carry session cookie
+    credentials: 'include', // <-- carry session cookie
     headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
     ...opts
   });
   let data = null;
   try {
     data = await res.json();
-  } catch { /* non-JSON */ }
+  } catch {
+    /* non-JSON */
+  }
   return { res, data };
 }
 
 // ---- Auth context ----
-const AuthContext = createContext({ user: null, setUser: () => {}, loading: true, logout: () => {} });
+const AuthContext = createContext({
+  user: null,
+  setUser: () => {},
+  loading: true,
+  logout: () => {}
+});
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -63,40 +82,42 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  useEffect(() => { checkSession(); }, [checkSession]);
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
 
-const logout = useCallback(async () => {
-  try {
-    await req('/api/auth/logout', { method: 'POST' });
-  } catch (err) {
-    console.warn('Logout failed:', err);
-  } finally {
-    setUser(null);
-
-    // optional: clear service worker caches so no stale UI remains
-    if ('caches' in window) {
-      const keys = await caches.keys();
-      await Promise.all(keys.map(k => caches.delete(k)));
-    }
-
-    // optional: notify other tabs
+  const logout = useCallback(async () => {
     try {
-      const bc = new BroadcastChannel('auth');
-      bc.postMessage({ type: 'logout' });
-      bc.close();
-    } catch {}
+      await req('/api/auth/logout', { method: 'POST' });
+    } catch (err) {
+      console.warn('Logout failed:', err);
+    } finally {
+      setUser(null);
 
-    // use replace so Back doesn’t resurrect dashboard
-    window.location.replace('/login');
-  }
-}, [req, setUser]);
+      // optional: clear service worker caches so no stale UI remains
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+
+      // optional: notify other tabs
+      try {
+        const bc = new BroadcastChannel('auth');
+        bc.postMessage({ type: 'logout' });
+        bc.close();
+      } catch {}
+
+      // use replace so Back doesn’t resurrect dashboard
+      window.location.replace('/login');
+    }
+  }, [req, setUser]);
 
   return (
     <AuthContext.Provider value={{ user, setUser, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );
-}	
+}
 
 export function useAuth() {
   return useContext(AuthContext);

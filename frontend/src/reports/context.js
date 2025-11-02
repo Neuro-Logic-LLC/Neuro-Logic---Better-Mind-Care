@@ -50,24 +50,22 @@ const normaliseRecommendations = (payload) => {
         ? payload.report
         : [];
 
-  return raw
-    .filter(Boolean)
-    .map((item, idx) => {
-      if (typeof item === 'string') {
-        return {
-          id: `rec-${idx}`,
-          title: item,
-          description: ''
-        };
-      }
-      const title = item?.title || item?.heading || `Recommendation ${idx + 1}`;
-      const description = item?.body || item?.description || item?.text || '';
+  return raw.filter(Boolean).map((item, idx) => {
+    if (typeof item === 'string') {
       return {
         id: `rec-${idx}`,
-        title,
-        description
+        title: item,
+        description: ''
       };
-    });
+    }
+    const title = item?.title || item?.heading || `Recommendation ${idx + 1}`;
+    const description = item?.body || item?.description || item?.text || '';
+    return {
+      id: `rec-${idx}`,
+      title,
+      description
+    };
+  });
 };
 
 const normaliseLabs = (payload) => {
@@ -149,24 +147,24 @@ export function buildReportContext(payload = {}) {
   const recommendations = normaliseRecommendations(payload);
   const labs = normaliseLabs(payload);
 
-  const introLetter = payload?.introLetter || buildIntroLetter(firstName, triggers);
+  const introLetter =
+    payload?.introLetter || buildIntroLetter(firstName, triggers);
   const summaryCopy = payload?.summary || buildSummary(triggers);
 
-  const globalDisclaimer = payload?.globalDisclaimer || DEFAULT_GLOBAL_DISCLAIMER;
+  const globalDisclaimer =
+    payload?.globalDisclaimer || DEFAULT_GLOBAL_DISCLAIMER;
   const footerBanner = payload?.footerBanner || DEFAULT_FOOTER_BANNER;
 
   const supplementalSections =
     Array.isArray(payload?.sections) && payload.sections.length > 0
-      ? payload.sections
-          .filter(Boolean)
-          .map((section, idx) => ({
-            id: section.id || `custom-${idx}`,
-            title: section.title || `Section ${idx + 1}`,
-            body: section.body || '',
-            items: section.items || [],
-            footer: footerBanner,
-            meta: { source: 'payload' }
-          }))
+      ? payload.sections.filter(Boolean).map((section, idx) => ({
+          id: section.id || `custom-${idx}`,
+          title: section.title || `Section ${idx + 1}`,
+          body: section.body || '',
+          items: section.items || [],
+          footer: footerBanner,
+          meta: { source: 'payload' }
+        }))
       : [];
 
   const sections = [
@@ -240,7 +238,7 @@ const computeBmi = (feet, inches, weightLbs) => {
   if (!weightNum) return null;
   const totalInches = feetNum * 12 + inchNum;
   if (!totalInches) return null;
-  const bmi = (weightNum / (totalInches ** 2)) * 703;
+  const bmi = (weightNum / totalInches ** 2) * 703;
   if (!Number.isFinite(bmi)) return null;
   return Number(bmi.toFixed(2));
 };

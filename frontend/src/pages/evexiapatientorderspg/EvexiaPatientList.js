@@ -71,13 +71,16 @@ export default function EvexiaPatientList({
   }, [fetchPatients]);
 
   // call parent when selecting a patient
-  const handleSelect = useCallback((p) => {
-    const id = p.id || null;
-    setSelected(id);
-    if (typeof onSelectPatient === 'function' && id != null && id !== '') {
-      onSelectPatient(id);
-    }
-  }, [onSelectPatient]);
+  const handleSelect = useCallback(
+    (p) => {
+      const id = p.id || null;
+      setSelected(id);
+      if (typeof onSelectPatient === 'function' && id != null && id !== '') {
+        onSelectPatient(id);
+      }
+    },
+    [onSelectPatient]
+  );
 
   // inline styles
   const th = {

@@ -11,6 +11,7 @@ import {
   endOfMonth,
   startOfDay,
   endOfDay,
+  addDays,
   addMinutes // you used this, so import it
 } from 'date-fns';
 import enUS from 'date-fns/locale/en-US';
@@ -31,6 +32,141 @@ const localizer = dateFnsLocalizer({
   getDay,
   locales
 });
+
+const USE_MOCK_CALENDAR = process.env.REACT_APP_CALENDAR_MOCK === '1';
+
+const toolbarButtonStyle = {
+  minWidth: 44,
+  padding: '0.4rem 0.95rem'
+};
+const toolbarViewButtonStyle = {
+  minWidth: 88,
+  padding: '0.45rem 1.1rem'
+};
+
+// Custom Toolbar Component
+function CustomToolbar({ date, view, views, onNavigate, onView, label }) {
+  const navigate = (action) => {
+    onNavigate(action);
+  };
+
+  const viewNames = {
+    month: 'Month',
+    week: 'Week',
+    day: 'Day',
+    agenda: 'Agenda'
+  };
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16
+      }}
+    >
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          type="button"
+          className="btn btn-outline-teal"
+          style={toolbarButtonStyle}
+          onClick={() => navigate('PREV')}
+          aria-label="Previous"
+        >
+          ‹
+        </button>
+        <button
+          type="button"
+          className="btn btn-outline-teal"
+          style={toolbarButtonStyle}
+          onClick={() => navigate('TODAY')}
+        >
+          Today
+        </button>
+        <button
+          type="button"
+          className="btn btn-outline-teal"
+          style={toolbarButtonStyle}
+          onClick={() => navigate('NEXT')}
+          aria-label="Next"
+        >
+          ›
+        </button>
+      </div>
+      <div style={{ fontSize: 18, fontWeight: 600, color: '#334155' }}>
+        {label}
+      </div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {views.map((v) => (
+          <button
+            key={v}
+            type="button"
+            className={`btn ${
+              view === v ? 'btn-secondary' : 'btn-outline-teal'
+            }`}
+            style={toolbarViewButtonStyle}
+            onClick={() => onView(v)}
+          >
+            {viewNames[v] || v}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function buildMockEvents(anchorDate) {
+  const base = startOfDay(anchorDate || new Date());
+
+  const templates = [
+    {
+      offsetDays: 1,
+      startMinutes: 10 * 60,
+      durationMinutes: 60,
+      title: 'Care Plan Review',
+      description:
+        'Review upcoming care milestones and answer caregiver questions.',
+      location: 'Virtual Session'
+    },
+    {
+      offsetDays: 2,
+      startMinutes: 13 * 60 + 30,
+      durationMinutes: 45,
+      title: 'Neurologist Check-in',
+      description:
+        'Quarterly check-in with Dr. Alvarez to review medication and cognition.',
+      location: 'Clinic Room 4'
+    },
+    {
+      offsetDays: -1,
+      startMinutes: 17 * 60,
+      durationMinutes: 30,
+      title: 'Support Group (Virtual)',
+      description:
+        'Weekly caregiver support circle hosted by Better Mind Care.',
+      location: 'Google Meet'
+    }
+  ];
+
+  return templates.map((tpl, idx) => {
+    const start = addMinutes(addDays(base, tpl.offsetDays), tpl.startMinutes);
+    const end = addMinutes(start, tpl.durationMinutes);
+
+    return {
+      id: `mock-${idx + 1}`,
+      title: tpl.title,
+      start,
+      end,
+      description: tpl.description,
+      location: tpl.location,
+      meetUrl:
+        tpl.location === 'Google Meet'
+          ? 'https://meet.google.com/mock-room'
+          : undefined
+    };
+  });
+}
 
 // Helpers
 function computeRange(view, date) {
@@ -74,28 +210,6 @@ const rowStyle = {
   gap: 8,
   marginTop: 8
 };
-const btn = {
-  width: '100%',
-  height: 40,
-  padding: '10px 12px',
-  borderRadius: 8,
-  border: '1px solid #cbd5e1',
-  background: '#f8fafc',
-  cursor: 'pointer',
-  fontWeight: 600
-};
-const btnPrimary = {
-  ...btn,
-  background: '#0ea5e9',
-  color: '#fff',
-  borderColor: '#0ea5e9'
-};
-const btnDanger = {
-  ...btn,
-  color: '#b00020',
-  background: '#fff',
-  borderColor: '#f0b2bb'
-};
 
 export default function GoogleCalendar() {
   const [events, setEvents] = useState([]);
@@ -138,19 +252,33 @@ export default function GoogleCalendar() {
 
   async function load(r) {
     const includePastDays = pastDaysFor(view);
-    const evs = await fetchEvents(
-      r.start.toISOString(),
-      r.end.toISOString(),
-      calendarId,
-      includePastDays
-    );
-    setEvents(
-      (evs || []).map((e) => ({
-        ...e,
-        start: new Date(e.start),
-        end: new Date(e.end)
-      }))
-    );
+    if (USE_MOCK_CALENDAR) {
+      setEvents(buildMockEvents(r.start));
+      return;
+    }
+
+    try {
+      const evs = await fetchEvents(
+        r.start.toISOString(),
+        r.end.toISOString(),
+        calendarId,
+        includePastDays
+      );
+      setEvents(
+        (evs || []).map((e) => ({
+          ...e,
+          start: new Date(e.start),
+          end: new Date(e.end)
+        }))
+      );
+    } catch (err) {
+      console.error('Failed to load calendar events', err);
+      if (process.env.NODE_ENV === 'development') {
+        setEvents(buildMockEvents(r.start));
+        return;
+      }
+      throw err;
+    }
   }
 
   useEffect(() => {
@@ -200,6 +328,28 @@ export default function GoogleCalendar() {
         return;
       }
 
+      if (USE_MOCK_CALENDAR) {
+        const nextEvent = {
+          id: `mock-${Date.now()}`,
+          title: createTitle.trim(),
+          description: createDesc || '',
+          start: s,
+          end: e,
+          location: 'Mock Calendar',
+          meetUrl: 'https://meet.google.com/mock-room',
+          patient_email: createPatientEmail || undefined,
+          patient_name: createPatientName || undefined
+        };
+
+        setEvents((prev) =>
+          [...prev, nextEvent].sort(
+            (a, b) => a.start.getTime() - b.start.getTime()
+          )
+        );
+        setShowCreate(false);
+        return;
+      }
+
       await createMeeting({
         summary: createTitle.trim(),
         description: createDesc || '',
@@ -235,18 +385,31 @@ export default function GoogleCalendar() {
         gap: 8
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <label>
-          Calendar:&nbsp;
-          <select
-            style={{cursor:'pointer'}}
-            value={calendarId}
-            onChange={(e) => setCalendarId(e.target.value)}
-          >
-            <option value="primary">Primary</option>
-          </select>
-        </label>
-        <button style={{cursor:'pointer'}} onClick={() => load(range)}>Refresh</button>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          fontSize: 20,
+          fontWeight: 600,
+          color: '#1f2937'
+        }}
+      >
+        <span>Calendar:</span>
+        <select
+          style={{ cursor: 'pointer', fontSize: 18, fontWeight: 500 }}
+          value={calendarId}
+          onChange={(e) => setCalendarId(e.target.value)}
+        >
+          <option value="primary">Primary</option>
+        </select>
+        <button
+          type="button"
+          className="btn btn-outline-teal"
+          onClick={() => load(range)}
+        >
+          Refresh
+        </button>
       </div>
 
       <Calendar
@@ -269,6 +432,9 @@ export default function GoogleCalendar() {
           setEditTitle(ev.title || '');
           setEditStart(toLocalInputValue(ev.start));
           setEditEnd(toLocalInputValue(ev.end));
+        }}
+        components={{
+          toolbar: CustomToolbar
         }}
         style={{ flex: 1 }}
       />
@@ -397,10 +563,20 @@ export default function GoogleCalendar() {
             </div>
 
             <div style={{ ...rowStyle, marginTop: 12 }}>
-              <button style={btnPrimary} onClick={submitCreate}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={submitCreate}
+                style={{ width: '100%' }}
+              >
                 Create
               </button>
-              <button style={btn} onClick={() => setShowCreate(false)}>
+              <button
+                type="button"
+                className="btn btn-outline-teal"
+                onClick={() => setShowCreate(false)}
+                style={{ width: '100%' }}
+              >
                 Cancel
               </button>
             </div>
@@ -471,16 +647,20 @@ export default function GoogleCalendar() {
                   {selected.meetUrl && (
                     <>
                       <button
-                        style={btnPrimary}
+                        type="button"
+                        className="btn btn-secondary"
                         onClick={() => window.open(selected.meetUrl, '_blank')}
+                        style={{ width: '100%' }}
                       >
                         Join Google Meet
                       </button>
                       <button
-                        style={btn}
+                        type="button"
+                        className="btn btn-outline-teal"
                         onClick={() =>
                           navigator.clipboard.writeText(selected.meetUrl)
                         }
+                        style={{ width: '100%' }}
                       >
                         Copy Meet Link
                       </button>
@@ -488,22 +668,37 @@ export default function GoogleCalendar() {
                   )}
                   {selected.htmlLink && (
                     <button
-                      style={btn}
+                      type="button"
+                      className="btn btn-outline-teal"
                       onClick={() => window.open(selected.htmlLink, '_blank')}
+                      style={{ width: '100%' }}
                     >
                       Open in Google Calendar
                     </button>
                   )}
 
-                  <button style={btn} onClick={() => setIsEditing(true)}>
+                  <button
+                    type="button"
+                    className="btn btn-outline-teal"
+                    onClick={() => setIsEditing(true)}
+                    style={{ width: '100%' }}
+                  >
                     Update
                   </button>
 
                   <button
-                    style={btnDanger}
+                    type="button"
+                    className="btn btn-danger"
                     onClick={async () => {
                       if (!window.confirm('Delete this meeting?')) return;
                       try {
+                        if (USE_MOCK_CALENDAR && selected) {
+                          setEvents((prev) =>
+                            prev.filter((ev) => ev.id !== selected.id)
+                          );
+                          setSelected(null);
+                          return;
+                        }
                         await deleteEvent(calendarId, selected.id);
                         setSelected(null);
                         await load(range);
@@ -521,11 +716,17 @@ export default function GoogleCalendar() {
                         }
                       }
                     }}
+                    style={{ width: '100%' }}
                   >
                     Delete
                   </button>
 
-                  <button style={btn} onClick={() => setSelected(null)}>
+                  <button
+                    type="button"
+                    className="btn btn-outline-teal"
+                    onClick={() => setSelected(null)}
+                    style={{ width: '100%' }}
+                  >
                     Close
                   </button>
                 </div>
@@ -581,7 +782,8 @@ export default function GoogleCalendar() {
 
                 <div style={{ ...rowStyle, marginTop: 12 }}>
                   <button
-                    style={btnPrimary}
+                    type="button"
+                    className="btn btn-primary"
                     onClick={async () => {
                       try {
                         if (!editStart || !editEnd) {
@@ -592,6 +794,24 @@ export default function GoogleCalendar() {
                           e = new Date(editEnd);
                         if (s >= e) {
                           alert('End time must be after start time.');
+                          return;
+                        }
+
+                        if (USE_MOCK_CALENDAR && selected) {
+                          setEvents((prev) =>
+                            prev.map((ev) =>
+                              ev.id === selected.id
+                                ? {
+                                    ...ev,
+                                    title: editTitle,
+                                    start: s,
+                                    end: e
+                                  }
+                                : ev
+                            )
+                          );
+                          setIsEditing(false);
+                          setSelected(null);
                           return;
                         }
                         await updateEvent(calendarId, selected.id, {
@@ -615,10 +835,16 @@ export default function GoogleCalendar() {
                         }
                       }
                     }}
+                    style={{ width: '100%' }}
                   >
                     Save Update
                   </button>
-                  <button style={btn} onClick={() => setIsEditing(false)}>
+                  <button
+                    type="button"
+                    className="btn btn-outline-teal"
+                    onClick={() => setIsEditing(false)}
+                    style={{ width: '100%' }}
+                  >
                     Cancel
                   </button>
                 </div>

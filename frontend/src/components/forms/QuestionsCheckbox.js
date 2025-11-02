@@ -13,10 +13,15 @@ function QuestionsCheckbox({
   error
 }) {
   const errorId = error ? `${id}-error` : undefined;
-  const describedIds = [describedBy, errorId].filter(Boolean).join(' ') || undefined;
+  const describedIds =
+    [describedBy, errorId].filter(Boolean).join(' ') || undefined;
 
   return (
-    <fieldset id={id} className="question-block" aria-describedby={describedIds}>
+    <fieldset
+      id={id}
+      className="question-block"
+      aria-describedby={describedIds}
+    >
       <legend className="question-label">{label}</legend>
       <div className="question-options">
         {options.map((opt) => {
@@ -26,7 +31,11 @@ function QuestionsCheckbox({
           const checked = values.includes(optionValue);
 
           return (
-            <label key={optionValue} className="checkbox-option" htmlFor={inputId}>
+            <label
+              key={optionValue}
+              className="checkbox-option"
+              htmlFor={inputId}
+            >
               <input
                 id={inputId}
                 type="checkbox"

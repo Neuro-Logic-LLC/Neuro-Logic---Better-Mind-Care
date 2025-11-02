@@ -1,35 +1,35 @@
 /** @format */
 
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import Card from "../../components/cards/Card";
-import DividerWave from "../../components/bg/DividerWave";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import Card from '../../components/cards/Card';
+import DividerWave from '../../components/bg/DividerWave';
 import {
-		// PrimaryButton,
-		// SecondaryButton,
-		// OutlineButton,
-    PillOne,
-    PillTwo
-	} from "../../components/button/Buttons";
-import { useAuth } from "../../auth/AuthContext";
+  // PrimaryButton,
+  // SecondaryButton,
+  // OutlineButton,
+  PillOne,
+  PillTwo
+} from '../../components/button/Buttons';
+import { useAuth } from '../../auth/AuthContext';
 
-import CaregiverIcon from "../../assets/icons/Caregiver.png";
-import HeartHandsIcon from "../../assets/icons/HeartHands.png";
-import LocationIcon from "../../assets/icons/Location.png";
+import CaregiverIcon from '../../assets/icons/Caregiver.png';
+import HeartHandsIcon from '../../assets/icons/HeartHands.png';
+import LocationIcon from '../../assets/icons/Location.png';
 import './home.css';
 
 function Home() {
-	const navigate = useNavigate();
-	const { user } = useAuth();
-	const handleViewDetails = () => {
-		if (user) {
-			navigate("/dashboard");
-			return;
-		}
-		navigate("/sign-up");
-	};
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const handleViewDetails = () => {
+    if (user) {
+      navigate('/dashboard');
+      return;
+    }
+    navigate('/sign-up');
+  };
 
-	return (
+  return (
     <main className="main-content">
       <section className="hero-section">
         <h1>Supporting Alzheimer's Care & Families</h1>
@@ -39,13 +39,9 @@ function Home() {
         </p>
 
         <div className="button-row">
-          <PillOne onClick={() => navigate('/')}> 
-            Learn More
-          </PillOne>
+          <PillOne onClick={() => navigate('/')}>Learn More</PillOne>
           {/* was /about */}
-          <PillTwo onClick={() => navigate('/')}>
-            Resources
-          </PillTwo>
+          <PillTwo onClick={() => navigate('/')}>Resources</PillTwo>
           {/* was /resources  */}
           {/* <OutlineButton onClick={() => navigate('/intake-form')}>
             Start Now
@@ -61,7 +57,7 @@ function Home() {
         </div> */}
 
         <section className="card-section">
-          <div style={{cursor:'pointer'}} className="card-grid">
+          <div style={{ cursor: 'pointer' }} className="card-grid">
             <Card
               title="For Caregivers"
               subtitle="Tips, advice..."

@@ -210,7 +210,7 @@ export default function ScreeningOrder() {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: '9px',
+              gap: '9px'
             }}
             className="flex flex-col sm:flex-row items-center justify-center gap-2 w-full"
           >

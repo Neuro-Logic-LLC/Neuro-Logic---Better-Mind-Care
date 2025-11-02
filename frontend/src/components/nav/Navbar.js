@@ -153,14 +153,10 @@ function Navbar() {
 
           {/* CTA pills as LINKS using your button classes */}
 
-          <div >
-            <PillOne   to="/">Order</PillOne> 
-            {/* Was /join */}
-          </div>
-
-          <div >
+          <li role="none" className="navbar-ctas">
+            <PillOne to="/">Order</PillOne>
             <PillTwo to="/contact">Contact</PillTwo>
-          </div>
+          </li>
         </ul>
       </div>
     </nav>

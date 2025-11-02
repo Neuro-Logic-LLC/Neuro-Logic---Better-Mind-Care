@@ -1,17 +1,17 @@
 /** @format */
 
 .legal-ordered-list {
-	margin: 0 0 16px 20px;
-	padding-left: 16px;
-	counter-reset: section-counter;
+  margin: 0 0 16px 20px;
+  padding-left: 16px;
+  counter-reset: section-counter;
 }
 
 .legal-ordered-list li {
-	margin-bottom: 12px;
-	counter-increment: section-counter;
-	list-style: decimal;
+  margin-bottom: 12px;
+  counter-increment: section-counter;
+  list-style: decimal;
 }
 
 .legal-ordered-list strong {
-	color: var(--color-heading);
+  color: var(--color-heading);
 }

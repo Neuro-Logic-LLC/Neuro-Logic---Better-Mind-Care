@@ -33,7 +33,7 @@ const PRODUCTS = [
         body: 'Your customized strategy to help slow, stop, or reverse key drivers of cognitive decline.'
       }
     ]
-  },
+  }
   // {
   //   key: 'APOE',
   //   name: 'APOE Gene Test',
@@ -72,7 +72,7 @@ const OPTIONAL_ADDONS = [
     priceLabel: '$0',
     description:
       'Understand your genetic risk for Alzheimer’s and tailor your prevention strategy accordingly.'
-  },
+  }
   // {
   //   key: 'PTAU',
   //   flag: 'ptau',

@@ -22,7 +22,10 @@ const renderItems = (items = []) => {
 const Section = ({ section, fallbackFooter }) => {
   if (!section) return null;
   const footer = section.footer || fallbackFooter;
-  if (!section.body && (!Array.isArray(section.items) || section.items.length === 0)) {
+  if (
+    !section.body &&
+    (!Array.isArray(section.items) || section.items.length === 0)
+  ) {
     return null;
   }
 
@@ -83,8 +86,8 @@ function PatientReport() {
           // 1) { report_output: { report, labRecommendations } }
           // 2) { report: {...} } or just the report object
           const output = data?.report_output
-            ? (data.report_output.report || data.report)
-            : (data?.report || data);
+            ? data.report_output.report || data.report
+            : data?.report || data;
 
           setReport(output || null);
           setError(null);

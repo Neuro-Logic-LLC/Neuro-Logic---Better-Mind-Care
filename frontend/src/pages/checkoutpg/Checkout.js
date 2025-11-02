@@ -40,9 +40,13 @@ function ProductRow({ item, selected, onToggle, disabled }) {
       />
       <div className="flex-1">
         <div className="text-sm md:text-base font-semibold">{item.name}</div>
-        <div className="text-xs md:text-sm text-gray-600">{usd(item.amount)}</div>
+        <div className="text-xs md:text-sm text-gray-600">
+          {usd(item.amount)}
+        </div>
       </div>
-      {disabled && <span className="text-xs text-gray-500">Included in bundle</span>}
+      {disabled && (
+        <span className="text-xs text-gray-500">Included in bundle</span>
+      )}
     </label>
   );
 }
@@ -85,7 +89,11 @@ export default function CheckoutPage() {
     setError('');
     try {
       const hasAny =
-        cart.BUNDLE_CORE_APOE || cart.CORE || cart.APOE || cart.NEURO || cart.PTAU;
+        cart.BUNDLE_CORE_APOE ||
+        cart.CORE ||
+        cart.APOE ||
+        cart.NEURO ||
+        cart.PTAU;
       if (!hasAny) throw new Error('Pick at least one item');
 
       if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -97,13 +105,20 @@ export default function CheckoutPage() {
       const selPtau = Boolean(cart.PTAU);
 
       const patientId = sessionStorage.getItem('evx_patientId') || undefined;
-      const patientOrderId = sessionStorage.getItem('evx_patientOrderId') || undefined;
+      const patientOrderId =
+        sessionStorage.getItem('evx_patientOrderId') || undefined;
 
       const baseUrl = window.location.origin;
 
       const baseMeta = {
         source: 'frontend-pages',
-        productKey: selBrainhealth ? 'BRAINHEALTH' : selApoe ? 'APOE' : selPtau ? 'PTAU' : 'MIXED',
+        productKey: selBrainhealth
+          ? 'BRAINHEALTH'
+          : selApoe
+            ? 'APOE'
+            : selPtau
+              ? 'PTAU'
+              : 'MIXED',
         ...(patientId ? { patientId: String(patientId) } : {}),
         ...(patientOrderId ? { patientOrderId: String(patientOrderId) } : {})
       };
@@ -138,9 +153,15 @@ export default function CheckoutPage() {
       });
 
       const text = await res.text();
-      let data; try { data = JSON.parse(text); } catch { throw new Error(text || 'Bad server response'); }
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(text || 'Bad server response');
+      }
 
-      if (!res.ok) throw new Error(data.error || `Checkout failed with ${res.status}`);
+      if (!res.ok)
+        throw new Error(data.error || `Checkout failed with ${res.status}`);
       if (!data?.url) throw new Error('No redirect URL from server');
 
       window.location.href = data.url;
@@ -154,8 +175,14 @@ export default function CheckoutPage() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <header className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold">BetterMindCare Checkout</h1>
-        <Link className="text-sm underline" to="/success" title="Preview success">
+        <h1 className="text-2xl md:text-3xl font-bold">
+          BetterMindCare Checkout
+        </h1>
+        <Link
+          className="text-sm underline"
+          to="/success"
+          title="Preview success"
+        >
           Preview success
         </Link>
       </header>
@@ -168,7 +195,10 @@ export default function CheckoutPage() {
               item={item}
               selected={cart[item.key]}
               onToggle={toggle}
-              disabled={cart.BUNDLE_CORE_APOE && (item.key === 'CORE' || item.key === 'APOE')}
+              disabled={
+                cart.BUNDLE_CORE_APOE &&
+                (item.key === 'CORE' || item.key === 'APOE')
+              }
             />
           ))}
         </div>
@@ -177,7 +207,9 @@ export default function CheckoutPage() {
           <h2 className="text-lg font-semibold mb-4">Order</h2>
           <div className="space-y-3 text-sm">
             <label className="block">
-              <span className="text-gray-700">Email (optional for receipt)</span>
+              <span className="text-gray-700">
+                Email (optional for receipt)
+              </span>
               <input
                 type="email"
                 value={email}
@@ -194,12 +226,16 @@ export default function CheckoutPage() {
 
             {splitApoePtau && (
               <p className="text-xs text-gray-600">
-                Heads up: these will be placed as <strong>two</strong> lab orders on our side.
+                Heads up: these will be placed as <strong>two</strong> lab
+                orders on our side.
               </p>
             )}
 
             {error && (
-              <div aria-live="polite" className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-xl p-2">
+              <div
+                aria-live="polite"
+                className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-xl p-2"
+              >
                 {error}
               </div>
             )}
@@ -213,7 +249,8 @@ export default function CheckoutPage() {
             </button>
 
             <p className="text-xs text-gray-600">
-              You will be redirected to Stripe Checkout. Promo codes are supported by the backend if enabled.
+              You will be redirected to Stripe Checkout. Promo codes are
+              supported by the backend if enabled.
             </p>
           </div>
         </aside>

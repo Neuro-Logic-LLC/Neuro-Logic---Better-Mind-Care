@@ -18,3 +18,14 @@ a.btn:active {
   text-decoration: none !important;
   color: inherit;
 }
+
+.hero-section h1,
+.hero-section p {
+  text-align: center;
+}
+
+.hero-section p {
+  max-width: 60ch;
+  margin: 0 auto;
+  color: var(--color-muted);
+}

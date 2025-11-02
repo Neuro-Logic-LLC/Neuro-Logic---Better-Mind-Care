@@ -1,8 +1,8 @@
 /** @format */
-import React from "react";
-import { Link } from "react-router-dom";
-import "./buttons.css";
-import "../../App.css";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import './buttons.css';
+import '../../App.css';
 
 /* ---------- utils ---------- */
 function mergeButtonClasses(base, extra) {
@@ -15,8 +15,8 @@ export const PrimaryButton = React.forwardRef(
     <button
       ref={ref}
       // default to type="button" so forms don’t submit by accident
-      type={type ?? "button"}
-       className={mergeButtonClasses("btn btn-primary", className)}
+      type={type ?? 'button'}
+      className={mergeButtonClasses('btn btn-primary', className)}
       {...props}
     >
       {children}
@@ -28,8 +28,8 @@ export const SecondaryButton = React.forwardRef(
   ({ children, className, type, ...props }, ref) => (
     <button
       ref={ref}
-      type={type ?? "button"}
-       className={mergeButtonClasses("btn btn-secondary", className)}
+      type={type ?? 'button'}
+      className={mergeButtonClasses('btn btn-secondary', className)}
       {...props}
     >
       {children}
@@ -41,8 +41,8 @@ export const OutlineButton = React.forwardRef(
   ({ children, className, type, ...props }, ref) => (
     <button
       ref={ref}
-      type={type ?? "button"}
-      className={mergeButtonClasses("btn btn-outline", className)}
+      type={type ?? 'button'}
+      className={mergeButtonClasses('btn btn-outline', className)}
       {...props}
     >
       {children}
@@ -54,13 +54,13 @@ export const OutlineButton = React.forwardRef(
 /* Orange → Teal */
 export const PillOne = React.forwardRef(
   ({ to, href, children, className, ...props }, ref) => {
-    const Comp = to ? Link : "a";
-    const navProps = to ? { to } : { href: href ?? "#" };
+    const Comp = to ? Link : 'a';
+    const navProps = to ? { to } : { href: href ?? '#' };
     // role="menuitem" is only correct inside an ARIA menu. Dropping it.
     return (
       <Comp
         ref={ref}
-        className={mergeButtonClasses("btn btn-pill-one", className)}
+        className={mergeButtonClasses('btn btn-pill-one', className)}
         {...navProps}
         // allow target/rel etc. to pass through
         {...props}
@@ -74,12 +74,12 @@ export const PillOne = React.forwardRef(
 /* Teal → Orange */
 export const PillTwo = React.forwardRef(
   ({ to, href, children, className, ...props }, ref) => {
-    const Comp = to ? Link : "a";
-    const navProps = to ? { to } : { href: href ?? "#" };
+    const Comp = to ? Link : 'a';
+    const navProps = to ? { to } : { href: href ?? '#' };
     return (
       <Comp
         ref={ref}
-        className={mergeButtonClasses("btn btn-pill-two", className)}
+        className={mergeButtonClasses('btn btn-pill-two', className)}
         {...navProps}
         {...props}
       >

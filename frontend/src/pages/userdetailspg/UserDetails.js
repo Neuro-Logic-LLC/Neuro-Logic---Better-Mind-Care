@@ -114,13 +114,7 @@ export default function UserDetails() {
       <hr style={{ margin: '2rem 0' }} />
       <h3>Edit User</h3>
 
-      {[
-        'email',
-        'phone',
-        'role_id',
-        'first_name',
-        'last_name'
-      ].map((field) => (
+      {['email', 'phone', 'role_id', 'first_name', 'last_name'].map((field) => (
         <div key={field} style={{ marginBottom: '0.75rem' }}>
           <label>{field.replace('_', ' ')}:</label>
           <input
@@ -140,7 +134,7 @@ export default function UserDetails() {
           onChange={handleChange}
           style={{ padding: '0.5rem', width: '100%' }}
         >
-          <option value="">Select gender</option> 
+          <option value="">Select gender</option>
           <option value="Male">Male</option>
           <option value="Female">Female</option>
           <option value="Nonbinary">Non-binary</option>
