@@ -11,6 +11,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Kill any injected npm auth (fix E401)
+        run: |
+          echo "🔒 Nuking npm credentials..."
+          rm -f ~/.npmrc .npmrc /home/runner/.npmrc || true
+          npm config delete '//registry.npmjs.org/:_authToken' || true
+          npm config delete _auth || true
+          npm config delete username || true
+          npm config set registry https://registry.npmjs.org/
+          unset NODE_AUTH_TOKEN
+          unset NPM_TOKEN
+          echo "✅ Verified npm environment:"
+          env | grep -i npm || echo "No npm env vars found"
+          env | grep -i auth || echo "No auth env vars found"
+
       - uses: actions/setup-node@v4
         with:
           node-version: 18
