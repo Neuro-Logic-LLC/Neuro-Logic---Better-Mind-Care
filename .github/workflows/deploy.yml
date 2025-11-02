@@ -20,6 +20,7 @@ jobs:
             frontend/package-lock.json
             backend/package-lock.json
           registry-url: 'https://registry.npmjs.org'
+          always-auth: false
 
       - name: Clean npm auth + config
         shell: bash
