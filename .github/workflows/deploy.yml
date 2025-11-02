@@ -1,4 +1,4 @@
- build:
+build:
     runs-on: ubuntu-latest
 
     steps:
