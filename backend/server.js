@@ -42,13 +42,7 @@ async function loadSSMIntoEnv(pathPrefix) {
 
   const PORT = process.env.PORT || 5050;
 
-  // HTTPS (your existing cert paths)
-  const keyFile  = process.env.SSL_KEY_FILE  || path.resolve(__dirname, '../https-on-localhost/key.pem');
-  const certFile = process.env.SSL_CERT_FILE || path.resolve(__dirname, '../https-on-localhost/cert.pem');
-  const key  = fs.readFileSync(keyFile);
-  const cert = fs.readFileSync(certFile);
-
-  https.createServer({ key, cert }, app).listen(PORT, () => {
-    console.log(`🚀 HTTPS server running on ${base}`);
+  app.listen(PORT, () => {
+    console.log(`🚀 HTTP server running on ${base}`);
   });
 })();
