@@ -8,8 +8,12 @@ export default function PatientRequisitionViewer() {
   const qp = (k) => params.get(k) || params.get(k.toLowerCase()) || '';
   const patientID = (qp('PatientID') || pidFromPath || '').trim();
   const patientOrderID = (qp('PatientOrderID') || qp('PatientOrderId') || poidFromPath || '').trim();
+  const externalClientID = qp('ExternalClientID') || qp('externalClientID') || ''; // ✅ define it
 
-  const API_BASE = process.env.NODE_ENV === 'production' ? 'https://staging.bettermindcare.com' : 'https://localhost:5050';
+  const API_BASE =
+    process.env.NODE_ENV === 'production'
+      ? 'https://staging.bettermindcare.com'
+      : 'https://localhost:5050';
 
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
@@ -28,6 +32,7 @@ export default function PatientRequisitionViewer() {
     const next = new URLSearchParams();
     next.set('PatientID', pidInput.trim());
     next.set('PatientOrderID', poidInput.trim());
+    if (externalClientID) next.set('ExternalClientID', externalClientID);
     setSearchParams(next);
   };
 
@@ -57,7 +62,7 @@ export default function PatientRequisitionViewer() {
       credentials: 'include',
       headers: { Accept: 'application/json' },
       signal: controller.signal,
-      cache: 'no-store'
+      cache: 'no-store',
     })
       .then(async (r) => {
         if (!r.ok) {
@@ -65,8 +70,6 @@ export default function PatientRequisitionViewer() {
           throw new Error(`HTTP ${r.status} - ${text}`);
         }
         const data = await r.json();
-
-        // If your endpoint returns base64 or encrypted PDF content, decode it:
         const b64 = data?.pdfBase64 || data?.content || null;
         if (!b64) throw new Error('No PDF content found in response.');
 
@@ -80,15 +83,17 @@ export default function PatientRequisitionViewer() {
         setStatus('done');
       })
       .catch((e) => {
-        setError(e.message || 'Error fetching requisition.');
-        setStatus('error');
+        if (e.name !== 'AbortError') {
+          setError(e.message || 'Error fetching requisition.');
+          setStatus('error');
+        }
       });
 
     return () => {
       controller.abort();
       abortRef.current = null;
     };
-  }, [patientID, patientOrderID, externalClientID]);
+  }, [patientID, patientOrderID, externalClientID]); // ✅ includes all deps
 
   const onDownload = () => {
     if (!blobUrl) return;
@@ -103,7 +108,7 @@ export default function PatientRequisitionViewer() {
   const needsIds = !patientID || !patientOrderID;
 
   // -----------------------------
-  // 🩸 Draw Center Locator logic (ZIP-only)
+  // 🩸 Draw Center Locator
   // -----------------------------
   const [zip, setZip] = useState('');
   const [distance, setDistance] = useState('25');
@@ -136,7 +141,7 @@ export default function PatientRequisitionViewer() {
         credentials: 'include',
         headers: { Accept: 'application/json' },
         signal: controller.signal,
-        cache: 'no-store'
+        cache: 'no-store',
       });
 
       const text = await res.text();
@@ -157,9 +162,6 @@ export default function PatientRequisitionViewer() {
     }
   };
 
-  // -----------------------------
-  // 🩸 UI
-  // -----------------------------
   return (
     <div style={{ display: 'grid', gap: 12, padding: 16 }}>
       <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -174,7 +176,9 @@ export default function PatientRequisitionViewer() {
               target="_blank"
               rel="noreferrer"
               aria-disabled={!blobUrl || status !== 'done'}
-              onClick={(e) => { if (!blobUrl) e.preventDefault(); }}
+              onClick={(e) => {
+                if (!blobUrl) e.preventDefault();
+              }}
             >
               Open in new tab
             </a>
@@ -182,44 +186,43 @@ export default function PatientRequisitionViewer() {
         )}
       </div>
 
-        {needsIds && (
-          <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 12 }}>
-            <p>Enter PatientID and PatientOrderID to load requisition:</p>
-            <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr auto' }}>
-              <input
-                placeholder="PatientID"
-                value={pidInput}
-                onChange={(e) => setPidInput(e.target.value)}
-              />
-              <input
-                placeholder="PatientOrderID"
-                value={poidInput}
-                onChange={(e) => setPoidInput(e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={kickFetch}
-                disabled={!pidInput.trim() || !poidInput.trim()}
-              >
-                Load
-              </button>
-            </div>
+      {needsIds && (
+        <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 12 }}>
+          <p>Enter PatientID and PatientOrderID to load requisition:</p>
+          <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr auto' }}>
+            <input
+              placeholder="PatientID"
+              value={pidInput}
+              onChange={(e) => setPidInput(e.target.value)}
+            />
+            <input
+              placeholder="PatientOrderID"
+              value={poidInput}
+              onChange={(e) => setPoidInput(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={kickFetch}
+              disabled={!pidInput.trim() || !poidInput.trim()}
+            >
+              Load
+            </button>
           </div>
-        )}
+        </div>
+      )}
 
-        {!needsIds && status === 'loading' && <p>Fetching requisition…</p>}
-        {!needsIds && status === 'error' && (
-          <p style={{ color: 'red', whiteSpace: 'pre-wrap' }}>{error || 'Error'}</p>
-        )}
+      {!needsIds && status === 'loading' && <p>Fetching requisition…</p>}
+      {!needsIds && status === 'error' && (
+        <p style={{ color: 'red', whiteSpace: 'pre-wrap' }}>{error || 'Error'}</p>
+      )}
 
-        {blobUrl && status === 'done' && (
-          <iframe
-            title={fileName}
-            src={blobUrl}
-            style={{ width: '100%', height: '80vh', border: '1px solid #ccc' }}
-          />
-        )}
-      </div>
+      {blobUrl && status === 'done' && (
+        <iframe
+          title={fileName}
+          src={blobUrl}
+          style={{ width: '100%', height: '80vh', border: '1px solid #ccc' }}
+        />
+      )}
 
       {/* Draw Center Locator Section */}
       <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 16 }}>
@@ -227,11 +230,7 @@ export default function PatientRequisitionViewer() {
         <p>Enter a ZIP code to find nearby draw centers.</p>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 8 }}>
-          <input
-            placeholder="ZIP"
-            value={zip}
-            onChange={(e) => setZip(e.target.value)}
-          />
+          <input placeholder="ZIP" value={zip} onChange={(e) => setZip(e.target.value)} />
           <input
             placeholder="Distance (mi)"
             value={distance}
@@ -269,4 +268,4 @@ export default function PatientRequisitionViewer() {
       </div>
     </div>
   );
-}
+} 
