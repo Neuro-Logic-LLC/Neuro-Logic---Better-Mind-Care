@@ -19,9 +19,14 @@ jobs:
             frontend/package-lock.json
             backend/package-lock.json
 
-      - name: Install frontend deps
-        working-directory: frontend
-        run: npm ci
+      - name: Debug env token presence
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN}" ]; then
+            echo "::error::NODE_AUTH_TOKEN is missing!"
+            exit 1
+          else
+            echo "NODE_AUTH_TOKEN is set ✅"
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
