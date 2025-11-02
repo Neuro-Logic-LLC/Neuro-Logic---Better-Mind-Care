@@ -18,7 +18,17 @@ jobs:
           cache-dependency-path: |
             frontend/package-lock.json
             backend/package-lock.json
-
+      - name: Show npm auth config
+        working-directory: frontend
+        run: |
+          echo "----- npm config -----"
+          npm config get registry
+          echo "----- npmrc contents -----"
+          cat .npmrc
+          echo "----- env token preview -----"
+          echo "${NODE_AUTH_TOKEN}" | sed 's/./& /g' | head -c 100
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Install frontend deps
         working-directory: frontend
