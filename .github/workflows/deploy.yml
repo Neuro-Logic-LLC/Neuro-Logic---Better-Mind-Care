@@ -21,8 +21,10 @@ jobs:
 
       - name: Install frontend deps
         working-directory: frontend
-        run: npm i
-
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
       - name: Build (CRA)
         working-directory: frontend
         env:
