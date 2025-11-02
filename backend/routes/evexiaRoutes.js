@@ -2358,6 +2358,7 @@ router.get('/list-all-patients', listAllPatients);
 router.post('/patient-add', patientAddV2);
 router.get('/order-cancel', OrderCancel);
 router.post('/order-cancel', OrderCancel);
-
+router.get('/requisition-get', getRequisition);
+router.post('/requisition-get', getRequisition);
 
 module.exports = router;

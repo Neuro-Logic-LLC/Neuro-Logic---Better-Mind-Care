@@ -42,6 +42,7 @@ import EmailStep from './pages/NewCheckoutPages/EmailStep';
 import CheckoutStep from './pages/NewCheckoutPages/CheckoutStep';
 import SignupProvider from './pages/NewCheckoutPages/SignupContext';
 import PatientOrders from './pages/evexiapatientorderspg/EvexiaPatientOrders';
+import PatientRequisitionViewer from './pages/patientrequisitionviewerpg/PatientRequisitionViewer';
 
 function App() {
   return (
@@ -147,13 +148,18 @@ function App() {
                   }
                 />
 
-                                <Route
+                <Route
                   path="/automated-lab-results"
                   element={
                     <ProtectedRoute>
                       <AutomatedLabResults />
                     </ProtectedRoute>
                   }
+                />
+
+                <Route
+                  path="/patient-req"
+                  element={<PatientRequisitionViewer />}
                 />
 
                 <Route path="/sign-up" element={<SignUp />} />

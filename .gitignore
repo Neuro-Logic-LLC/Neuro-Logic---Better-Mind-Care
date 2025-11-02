@@ -29,3 +29,7 @@ coverage/
 *.local
 *.ecosystem.config.js
 *.development
+https-on-localhost/fullchain.pem
+https-on-localhost/privkey.pem
+https-on-localhost/key.pem
+https-on-localhost/cert.pem

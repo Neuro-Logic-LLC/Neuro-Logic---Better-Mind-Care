@@ -8,19 +8,21 @@ export default function PatientRequisitionViewer() {
   const qp = (k) => params.get(k) || params.get(k.toLowerCase()) || '';
   const patientID = (qp('PatientID') || pidFromPath || '').trim();
   const patientOrderID = (qp('PatientOrderID') || qp('PatientOrderId') || poidFromPath || '').trim();
+  const externalClientID = (qp('ExternalClientID') || '').trim();
 
-  const API_BASE = process.env.NODE_ENV === 'production' ? 'https://staging.bettermindcare.com' : 'https://localhost:5050';
+  const API_BASE = process.env.NODE_ENV === 'production' ? '' : 'https://localhost:5050';
 
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
   const [blobUrl, setBlobUrl] = useState(null);
   const [fileName, setFileName] = useState(
-    patientID && patientOrderID ? `requisition-${patientID}-${patientOrderID}.pdf` : 'requisition.pdf'
+    patientID && patientOrderID
+      ? `requisition-${patientID}-${patientOrderID}.pdf`
+      : 'requisition.pdf'
   );
 
   const [pidInput, setPidInput] = useState(patientID);
   const [poidInput, setPoidInput] = useState(patientOrderID);
-
   const abortRef = useRef(null);
 
   const kickFetch = () => {
@@ -49,22 +51,34 @@ export default function PatientRequisitionViewer() {
     abortRef.current = controller;
 
     const qs = new URLSearchParams({ patientID, patientOrderID });
+    if (externalClientID) qs.set('externalClientID', externalClientID);
 
-    fetch(`${API_BASE}/patient-requisition?${qs.toString()}`, {
+    fetch(`${API_BASE}/api/evexia/requisition-get?${qs.toString()}`, {
       method: 'GET',
+      credentials: 'include',
       headers: { Accept: 'application/json' },
       signal: controller.signal,
-      cache: 'no-store',
+      cache: 'no-store'
     })
       .then(async (r) => {
         if (!r.ok) {
           const text = await r.text();
           throw new Error(`HTTP ${r.status} - ${text}`);
         }
-        const data = await r.json();
 
-        // If your endpoint returns base64 or encrypted PDF content, decode it:
-        const b64 = data?.pdfBase64 || data?.content || null;
+        const text = await r.text(); // read as plain text in case it's raw base64
+        let b64 = null;
+
+        try {
+          const json = JSON.parse(text);
+          b64 = Array.isArray(json)
+            ? json[0]?.RequisitionString
+            : json?.RequisitionString;
+        } catch {
+          // not JSON — maybe raw base64 string
+          if (text.startsWith('JVBER')) b64 = text;
+        }
+
         if (!b64) throw new Error('No PDF content found in response.');
 
         const binary = atob(b64);
@@ -85,7 +99,7 @@ export default function PatientRequisitionViewer() {
       controller.abort();
       abortRef.current = null;
     };
-  }, [patientID, patientOrderID]);
+  }, [patientID, patientOrderID, externalClientID]);
 
   const onDownload = () => {
     if (!blobUrl) return;
@@ -105,7 +119,11 @@ export default function PatientRequisitionViewer() {
         <h2 style={{ margin: 0, flex: 1 }}>Requisition Viewer</h2>
         {!needsIds && (
           <>
-            <button onClick={onDownload} disabled={!blobUrl || status !== 'done'}>
+            <button
+              onClick={onDownload}
+              disabled={!blobUrl || status !== 'done'}
+              style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #ccc', cursor: 'pointer' }}
+            >
               Download PDF
             </button>
             <a
@@ -113,6 +131,7 @@ export default function PatientRequisitionViewer() {
               target="_blank"
               rel="noreferrer"
               aria-disabled={!blobUrl || status !== 'done'}
+              style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #ccc', textDecoration: 'none' }}
               onClick={(e) => { if (!blobUrl) e.preventDefault(); }}
             >
               Open in new tab
