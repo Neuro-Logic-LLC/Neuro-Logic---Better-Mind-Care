@@ -18,15 +18,11 @@ jobs:
           cache-dependency-path: |
             frontend/package-lock.json
             backend/package-lock.json
-            
+
       - name: Install frontend deps
         run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      # ---------- FRONTEND (CRA) ----------
-      - name: Install frontend deps
-        working-directory: frontend
-        run: npm ci
 
       - name: Build (CRA)
         working-directory: frontend
