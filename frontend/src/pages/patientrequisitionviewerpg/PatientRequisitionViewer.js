@@ -8,7 +8,8 @@ export default function PatientRequisitionViewer() {
   const qp = (k) => params.get(k) || params.get(k.toLowerCase()) || '';
   const patientID = (qp('PatientID') || pidFromPath || '').trim();
   const patientOrderID = (qp('PatientOrderID') || qp('PatientOrderId') || poidFromPath || '').trim();
-  const externalClientID = (qp('ExternalClientID') || '').trim();
+
+  const API_BASE = process.env.NODE_ENV === 'production' ? 'https://staging.bettermindcare.com' : 'https://localhost:5050';
 
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
@@ -51,7 +52,7 @@ export default function PatientRequisitionViewer() {
     const qs = new URLSearchParams({ patientID, patientOrderID });
     if (externalClientID) qs.set('externalClientID', externalClientID);
 
-    fetch(`/api/evexia/requisition-get?${qs.toString()}`, {
+    fetch(`${API_BASE}/patient-requisition?${qs.toString()}`, {
       method: 'GET',
       credentials: 'include',
       headers: { Accept: 'application/json' },
@@ -63,19 +64,10 @@ export default function PatientRequisitionViewer() {
           const text = await r.text();
           throw new Error(`HTTP ${r.status} - ${text}`);
         }
+        const data = await r.json();
 
-        const text = await r.text();
-        let b64 = null;
-
-        try {
-          const json = JSON.parse(text);
-          b64 = Array.isArray(json)
-            ? json[0]?.RequisitionString
-            : json?.RequisitionString;
-        } catch {
-          if (text.startsWith('JVBER')) b64 = text;
-        }
-
+        // If your endpoint returns base64 or encrypted PDF content, decode it:
+        const b64 = data?.pdfBase64 || data?.content || null;
         if (!b64) throw new Error('No PDF content found in response.');
 
         const binary = atob(b64);
@@ -169,45 +161,26 @@ export default function PatientRequisitionViewer() {
   // 🩸 UI
   // -----------------------------
   return (
-    <div style={{ display: 'grid', gap: 24, padding: 16 }}>
-      {/* Requisition Viewer Section */}
-      <div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <h2 style={{ margin: 0, flex: 1 }}>Requisition Viewer</h2>
-          {!needsIds && (
-            <>
-              <button
-                onClick={onDownload}
-                disabled={!blobUrl || status !== 'done'}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  border: '1px solid #ccc',
-                  cursor: 'pointer'
-                }}
-              >
-                Download PDF
-              </button>
-              <a
-                href={blobUrl || '#'}
-                target="_blank"
-                rel="noreferrer"
-                aria-disabled={!blobUrl || status !== 'done'}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  border: '1px solid #ccc',
-                  textDecoration: 'none'
-                }}
-                onClick={(e) => {
-                  if (!blobUrl) e.preventDefault();
-                }}
-              >
-                Open in new tab
-              </a>
-            </>
-          )}
-        </div>
+    <div style={{ display: 'grid', gap: 12, padding: 16 }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+        <h2 style={{ margin: 0, flex: 1 }}>Requisition Viewer</h2>
+        {!needsIds && (
+          <>
+            <button onClick={onDownload} disabled={!blobUrl || status !== 'done'}>
+              Download PDF
+            </button>
+            <a
+              href={blobUrl || '#'}
+              target="_blank"
+              rel="noreferrer"
+              aria-disabled={!blobUrl || status !== 'done'}
+              onClick={(e) => { if (!blobUrl) e.preventDefault(); }}
+            >
+              Open in new tab
+            </a>
+          </>
+        )}
+      </div>
 
         {needsIds && (
           <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 12 }}>
