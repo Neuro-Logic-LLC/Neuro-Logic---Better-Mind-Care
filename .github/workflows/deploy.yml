@@ -1,12 +1,4 @@
-name: Build & Deploy
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-
-jobs:
-  build:
+ build:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,24 +16,19 @@ jobs:
       - name: Clean npm auth + config
         shell: bash
         run: |
-          echo "Wiping global npm credentials..."
+          echo "Removing all npm auth..."
           rm -f ~/.npmrc
-          rm -rf ~/.npm/_auth*
           npm config delete '//registry.npmjs.org/:_authToken' || true
-          npm config set registry 'https://registry.npmjs.org'
+          npm config set registry "https://registry.npmjs.org"
           npm cache clean --force
-
-      - name: Verify npm environment
-        run: |
-          echo "Registry:" $(npm config get registry)
-          npm --version
-          node --version
+          echo "Registry now -> $(npm config get registry)"
 
       - name: Install frontend deps
         working-directory: frontend
         run: |
           echo "Installing frontend dependencies..."
-          npm ci
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm rebuild
           ls -la node_modules/.bin | grep react-scripts || echo "⚠️ react-scripts not found!"
 
       - name: Build (CRA)
@@ -63,7 +50,7 @@ jobs:
       # ---------- BACKEND ----------
       - name: Install backend deps
         working-directory: backend
-        run: npm ci
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Prune dev deps
         working-directory: backend
