@@ -315,269 +315,82 @@ async function labResultHandler(req, res) {
   try {
     const q = { ...(req.query || {}), ...(req.body || {}) };
 
-    const PatientID = String(q.PatientID ?? q.patientID ?? '').trim();
-    const PatientOrderID = String(
-      q.PatientOrderID ?? q.patientOrderID ?? q.patientOrderId ?? ''
-    ).trim();
-    const Specimen = String(q.Specimen ?? q.SpecimenID ?? q.specimen ?? '').trim();
+    const externalClientID = String(q.externalClientID || process.env.EVEXIA_EXTERNAL_CLIENT_ID || '').trim();
+    const patientOrderID = String(q.PatientOrderID ?? q.patientOrderID ?? '').trim();
+    const patientID = String(q.PatientID ?? q.patientID ?? '').trim();
 
-    if (!PatientID || !PatientOrderID) {
+    if (!patientOrderID || !patientID) {
       return res.status(400).json({ error: 'Missing PatientID or PatientOrderID' });
     }
 
-    const clientId = pickClientId(req, q);
-
-    const AUTH = process.env.EVEXIA_AUTH_KEY || process.env.EVEXIA_BEARER_TOKEN;
     const BASE = pickBaseUrl();
-    const PATH = pickLabResultsPath();
+    const AUTH = pickAuthKey();
+    const PATH = '/api/EDIPlatform/LabResultGet';
 
-    // Block accidental prod with fallbacks
-    if (!AUTH || (IS_PROD && AUTH === HARD_DEFAULT_AUTH_KEY)) {
-      return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
-    }
-    if (IS_PROD && clientId === HARD_DEFAULT_CLIENT_ID) {
-      return res.status(500).json({ error: 'Server missing EVEXIA client id env' });
-    }
-
-    // Build upstream URL (Specimen optional—omit unless present)
     const url = new URL(PATH, BASE);
-    url.searchParams.set('externalClientID', clientId);
-    url.searchParams.set('patientID', PatientID);
-    url.searchParams.set('patientOrderID', PatientOrderID);
-    if (Specimen) url.searchParams.set('Specimen', Specimen);
+    url.searchParams.set('externalClientID', externalClientID);
+    url.searchParams.set('patientID', patientID);
+    url.searchParams.set('patientOrderID', patientOrderID);
 
-    const maskedClient = clientId ? clientId.slice(0, 6) + '…' : '(none)';
-    dlog('Upstream GET', url.toString().replace(clientId, maskedClient));
-
-    // Node 18+ global fetch with timeout
-    const controller = new AbortController();
-    const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
-    const to = setTimeout(() => controller.abort(), timeoutMs);
+    console.log('➡️ Forwarding LabResultGet (GET):', url.toString());
 
     const r = await fetch(url, {
       method: 'GET',
       headers: {
         Authorization: AUTH,
-        Accept: 'text/plain, application/json, application/pdf, */*',
-        'User-Agent': 'BetterMindCare-EvexiaProxy/1.0'
-      },
-      signal: controller.signal
-    }).finally(() => clearTimeout(to));
+        Accept: 'application/json,text/plain,application/pdf,*/*'
+      }
+    });
+
+    if (!r.ok) {
+      const text = await r.text();
+      console.error('❌ Evexia error:', text);
+      return res.status(r.status).json({ error: 'Evexia API error', detail: text });
+    }
 
     const ct = (r.headers.get('content-type') || '').toLowerCase();
 
-    if (!r.ok) {
-      const preview = await r.text().catch(() => '');
-      return res.status(502).json({
-        error: 'Upstream error',
-        upstreamStatus: r.status,
-        upstreamContentType: ct,
-        upstreamPreview: preview.slice(0, LOG_SLICE)
-      });
-    }
-
-    // 1) Direct PDF passthrough
+    // --- Direct PDF passthrough ---
     if (ct.includes('application/pdf')) {
       const buf = Buffer.from(await r.arrayBuffer());
-
-      // Do not cache PHI
+      res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Cache-Control', 'no-store');
       res.setHeader('Pragma', 'no-cache');
-
-      // NEW: structured JSON from the PDF buffer
-      if (wantsStructuredJSON(req)) {
-        const { text = '' } = await pdfParse(buf);
-        const parsed = parseEvexiaPdfText(text);
-        return res.status(200).json({
-          patient: {
-            id: String(PatientID),
-            name: parsed.header.patientName,
-            dob: parsed.header.dob
-          },
-          order: {
-            id: String(PatientOrderID),
-            collected: parsed.header.collected,
-            finalized: parsed.header.finalized
-          },
-          meta: {
-            accession: parsed.header.accession,
-            requisition: parsed.header.requisition,
-            control: parsed.header.control,
-            account: parsed.header.account,
-            orderingPhysician: parsed.header.orderingPhysician
-          },
-          tests: parsed.results,
-          orderedTests: parsed.orderedTests
-        });
-      }
-
-      if (wantsBase64(req)) {
-        const b64 = buf.toString('base64');
-        const wantsJson =
-          ((req.get && req.get('accept')) || '').toLowerCase().includes('application/json') ||
-          String((req.query || {}).format || '').toLowerCase() === 'base64json';
-
-        if (wantsJson) {
-          res.setHeader('content-type', 'application/json; charset=utf-8');
-          return res.status(200).json({
-            filename: makeFilename(PatientID, PatientOrderID),
-            contentType: 'application/pdf',
-            base64: b64
-          });
-        }
-
-        res.setHeader('content-type', 'text/plain; charset=utf-8');
-        return res.status(200).send(b64);
-      }
-
-      res.setHeader('content-type', 'application/pdf');
-      res.setHeader(
-        'content-disposition',
-        `inline; filename="${makeFilename(PatientID, PatientOrderID)}"`
-      );
       return res.status(200).send(buf);
     }
 
-    // 2) JSON or text (Evexia often returns JSON-as-text)
+    // --- JSON or text (Evexia often wraps it) ---
     const text = await r.text();
     let data;
     try {
       data = JSON.parse(text);
+      if (typeof data === 'string') data = JSON.parse(data);
     } catch {
       data = text;
     }
-    if (typeof data === 'string' && data.trim().startsWith('{')) {
-      try {
-        data = JSON.parse(data);
-      } catch {}
+
+    // --- Extract base64 ---
+    const b64 =
+      data?.Report ||
+      data?.Result?.Report ||
+      data?.Result?.[0]?.Report ||
+      data?.ReportBase64 ||
+      null;
+
+    if (!b64) {
+      return res.status(404).json({ error: 'No PDF content found in Evexia response', raw: data });
     }
 
-    // Dev helper: return raw upstream blob if ?raw=1 in dev
-    const rawUpstreamRequested =
-      !IS_PROD && String((req.query || {}).raw || '').toLowerCase() === '1';
-    if (rawUpstreamRequested) {
-      res.setHeader('Cache-Control', 'no-store');
-      res.setHeader('Pragma', 'no-cache');
-      return res.status(200).json({ upstream: data });
-    }
+    const clean = b64.replace(/^data:application\/pdf;?base64,?/i, '').replace(/\s+/g, '');
+    const pdf = Buffer.from(clean, 'base64');
 
-    const b64 = selectReportBase64(data);
-
-    if (!b64 || typeof b64 !== 'string') {
-      const arr = Array.isArray(data?.Result)
-        ? data.Result
-        : Array.isArray(data?.result)
-        ? data.result
-        : [];
-
-      return res.status(404).json({
-        error: 'No PDF base64 found (expected Result[*].Report)',
-        evexiaTaskId: data?.Id ?? data?.id,
-        evexiaStatus: data?.Status ?? data?.status,
-        isCompleted: data?.IsCompleted ?? data?.isCompleted,
-        isCompletedSuccessfully: data?.IsCompletedSuccessfully ?? data?.isCompletedSuccessfully,
-        resultCount: Array.isArray(arr) ? arr.length : 0,
-        upstreamStatus: r.status,
-        upstreamContentType: ct,
-        upstreamPreview:
-          typeof data === 'string'
-            ? data.slice(0, LOG_SLICE)
-            : JSON.stringify(data).slice(0, LOG_SLICE)
-      });
-    }
-
-    const clean = (
-      b64.startsWith('data:application/pdf')
-        ? b64.replace(/^data:application\/pdf;?base64,?/i, '')
-        : b64
-    ).replace(/\s+/g, '');
-
-    try {
-      const knex = await initKnex();
-      const pdfBuffer = Buffer.from(clean, 'base64');
-      await knex('lab_results')
-        .insert({
-          patient_id: PatientID,
-          patient_order_id: PatientOrderID,
-          external_client_id: pickClientId(req, req.query || req.body || {}),
-          specimen: Specimen || null,
-          report_pdf: pdfBuffer,
-          raw_json: typeof data === 'string' ? { _raw: data } : data,
-          updated_at: knex.fn.now()
-        })
-        .onConflict('patient_order_id')
-        .merge({
-          external_client_id: pickClientId(req, req.query || req.body || {}),
-          specimen: Specimen || null,
-          report_pdf: pdfBuffer,
-          raw_json: typeof data === 'string' ? { _raw: data } : data,
-          updated_at: knex.fn.now()
-        });
-    } catch (e) {
-      console.error('[Evexia] DB upsert (base64) failed:', e);
-    }
-
-    // Do not cache PHI
+    res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('Pragma', 'no-cache');
-
-    // NEW: structured JSON from base64 → PDF buffer
-    if (wantsStructuredJSON(req)) {
-      const pdfBuf = Buffer.from(clean, 'base64');
-      const { text: parsedText = '' } = await pdfParse(pdfBuf);
-      const parsed = parseEvexiaPdfText(parsedText);
-      return res.status(200).json({
-        patient: {
-          id: String(PatientID),
-          name: parsed.header.patientName,
-          dob: parsed.header.dob
-        },
-        order: {
-          id: String(PatientOrderID),
-          collected: parsed.header.collected,
-          finalized: parsed.header.finalized
-        },
-        meta: {
-          accession: parsed.header.accession,
-          requisition: parsed.header.requisition,
-          control: parsed.header.control,
-          account: parsed.header.account,
-          orderingPhysician: parsed.header.orderingPhysician
-        },
-        tests: parsed.results,
-        orderedTests: parsed.orderedTests
-      });
-    }
-
-    if (wantsBase64(req)) {
-      const wantsJson =
-        ((req.get && req.get('accept')) || '').toLowerCase().includes('application/json') ||
-        String((req.query || {}).format || '').toLowerCase() === 'base64json';
-
-      if (wantsJson) {
-        res.setHeader('content-type', 'application/json; charset=utf-8');
-        return res.status(200).json({
-          filename: makeFilename(PatientID, PatientOrderID),
-          contentType: 'application/pdf',
-          base64: clean
-        });
-      }
-
-      res.setHeader('content-type', 'text/plain; charset=utf-8');
-      return res.status(200).send(clean);
-    }
-
-    // Otherwise decode back to binary PDF
-    const pdf = Buffer.from(clean, 'base64');
-    res.setHeader('content-type', 'application/pdf');
-    res.setHeader(
-      'content-disposition',
-      `inline; filename="${makeFilename(PatientID, PatientOrderID)}"`
-    );
     return res.status(200).send(pdf);
-  } catch (e) {
-    console.error('[Evexia] proxy failure:', e);
-    return res.status(500).json({ error: e?.message || String(e) });
+  } catch (err) {
+    console.error('❌ LabResultGet error:', err);
+    return res.status(500).json({ error: err.message || 'Internal Server Error' });
   }
 }
 
@@ -2346,6 +2159,7 @@ router.post('/analyte-result', analyteResultHandler);
 router.post('/patient-order-combined-ptau-first', patientOrderCombinedPtauFirst);
 router.post('/patient-order-combined-apoe-first', patientOrderCombinedApoeFirst);
 
+router.get('/lab-result', labResultHandler);
 router.post('/lab-result', labResultHandler);
 
 router.get('/list-all-patients', listAllPatients);

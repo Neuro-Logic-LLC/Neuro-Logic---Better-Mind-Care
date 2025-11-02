@@ -58,7 +58,7 @@ export default function EvexiaLabReport() {
     const qs = new URLSearchParams({ PatientID: patientID, PatientOrderID: patientOrderID });
     if (specimen) qs.set('Specimen', specimen);
 
-    fetch(`${API_BASE}/api/evexia/lab-result?${qs.toString()}`, {
+    fetch(`/api/evexia/lab-result?${qs.toString()}`, {
       method: 'GET',
       credentials: 'include',
       headers: {

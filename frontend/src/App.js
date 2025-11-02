@@ -151,9 +151,9 @@ function App() {
                 <Route
                   path="/automated-lab-results"
                   element={
-                    <ProtectedRoute>
+
                       <AutomatedLabResults />
-                    </ProtectedRoute>
+
                   }
                 />
 
