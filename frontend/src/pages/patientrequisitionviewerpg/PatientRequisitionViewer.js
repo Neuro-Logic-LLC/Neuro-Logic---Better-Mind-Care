@@ -53,7 +53,7 @@ export default function PatientRequisitionViewer() {
     const qs = new URLSearchParams({ patientID, patientOrderID });
     if (externalClientID) qs.set('externalClientID', externalClientID);
 
-    fetch(`${API_BASE}/api/evexia/requisition-get?${qs.toString()}`, {
+    fetch(`/api/evexia/requisition-get?${qs.toString()}`, {
       method: 'GET',
       credentials: 'include',
       headers: { Accept: 'application/json' },

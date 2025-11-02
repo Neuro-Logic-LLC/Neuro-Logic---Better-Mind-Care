@@ -1973,14 +1973,10 @@ const OrderItemDelete = async (req, res) => {
     const productID = trimOrNull(q.productID);
     const rawIsPanel = q.isPanel ?? q.IsPanel ?? 'false';
 
-
-
-
     // Validation
     if (!externalClientID || !patientOrderID || !productID) {
       return res.status(400).json({
-        error:
-          'externalClientID, patientOrderID, and productID are required',
+        error: 'externalClientID, patientOrderID, and productID are required'
       });
     }
 
@@ -1988,10 +1984,8 @@ const OrderItemDelete = async (req, res) => {
     const BASE = pickBaseUrl();
     const AUTH = pickAuthKey();
 
-    if (!BASE)
-      return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
-    if (!AUTH)
-      return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
+    if (!BASE) return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
+    if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
 
     // Normalize isPanel → always "true" or "false" string
     const isPanelBool = (() => {
@@ -2010,7 +2004,7 @@ const OrderItemDelete = async (req, res) => {
       externalClientID,
       patientOrderID,
       productID,
-      isPanel,
+      isPanel
     };
 
     console.log('➡️ Forwarding OrderItemDelete (POST):', url.toString(), payload);
@@ -2021,9 +2015,9 @@ const OrderItemDelete = async (req, res) => {
       headers: {
         Authorization: AUTH, // must include Bearer prefix
         'Content-Type': 'application/json',
-        Accept: 'application/json',
+        Accept: 'application/json'
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     });
 
     const text = await r.text();
@@ -2036,18 +2030,14 @@ const OrderItemDelete = async (req, res) => {
 
     if (!r.ok) {
       console.error('Upstream error:', data);
-      return res
-        .status(r.status)
-        .json({ error: 'Upstream error', upstream: data });
+      return res.status(r.status).json({ error: 'Upstream error', upstream: data });
     }
 
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json({ success: true, data });
   } catch (err) {
     console.error('OrderItemDelete error:', err);
-    return res
-      .status(500)
-      .json({ error: err.message || 'Server error' });
+    return res.status(500).json({ error: err.message || 'Server error' });
   }
 };
 
@@ -2209,17 +2199,15 @@ const OrderCancel = async (req, res) => {
 
     if (!externalClientID || !patientOrderID) {
       return res.status(400).json({
-        error: 'externalClientID and patientOrderID are required',
+        error: 'externalClientID and patientOrderID are required'
       });
     }
 
     const BASE = pickBaseUrl();
     const AUTH = pickAuthKey();
 
-    if (!BASE)
-      return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
-    if (!AUTH)
-      return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
+    if (!BASE) return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
+    if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
 
     const CANCEL_PATH = '/api/EDIPlatform/OrderCancel';
     const url = new URL(CANCEL_PATH, BASE);
@@ -2235,8 +2223,8 @@ const OrderCancel = async (req, res) => {
       method: 'GET',
       headers: {
         Authorization: AUTH,
-        Accept: 'application/json',
-      },
+        Accept: 'application/json'
+      }
     });
 
     const text = await r.text();
@@ -2251,13 +2239,12 @@ const OrderCancel = async (req, res) => {
       console.error('Upstream error (OrderCancel):', data);
       return res.status(r.status).json({
         error: 'Upstream error',
-        upstream: data,
+        upstream: data
       });
     }
 
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json({ success: true, data });
-
   } catch (err) {
     console.error('OrderCancel error:', err);
     return res.status(500).json({ error: err.message || 'Server error' });
@@ -2285,10 +2272,8 @@ const getRequisition = async (req, res) => {
     const BASE = pickBaseUrl();
     const AUTH = pickAuthKey();
 
-    if (!BASE)
-      return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
-    if (!AUTH)
-      return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
+    if (!BASE) return res.status(500).json({ error: 'Missing EVEXIA_BASE_URL' });
+    if (!AUTH) return res.status(500).json({ error: 'Missing EVEXIA_AUTH_KEY' });
 
     const REQISITION_PATH = '/api/EDIPlatform/RequisitionGet';
     const url = new URL(REQISITION_PATH, BASE);
@@ -2302,8 +2287,8 @@ const getRequisition = async (req, res) => {
       method: 'GET',
       headers: {
         Authorization: AUTH,
-        Accept: 'application/json',
-      },
+        Accept: 'application/json'
+      }
     });
 
     if (!r.ok) {
@@ -2312,15 +2297,25 @@ const getRequisition = async (req, res) => {
       return res.status(r.status).json({ error: 'Evexia API error', detail: text });
     }
 
-    const data = await r.json();
-    return res.status(200).json(data);
+    const raw = await r.text();
+    let data;
+    try {
+      data = JSON.parse(raw);
+      // Sometimes Evexia wraps JSON as a string again — handle that
+      if (typeof data === 'string') {
+        data = JSON.parse(data);
+      }
+    } catch (err) {
+      console.error('⚠️ Failed to parse Evexia JSON:', err);
+      data = raw;
+    }
 
+    return res.status(200).json(data);
   } catch (err) {
     console.error('❌ getRequisition error:', err);
     return res.status(500).json({ error: err.message || 'Internal Server Error' });
   }
 };
-    
 
 router.post('/order-add', addOrderHandler);
 
