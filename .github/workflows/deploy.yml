@@ -27,7 +27,7 @@ jobs:
         run: |
           echo "Registry: $(npm config get registry)"
           npm config list -l
-          
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -49,7 +49,7 @@ jobs:
           npm whoami || echo "Not logged in — good"
 
       - name: Install frontend deps
-        working-directory: frontend
+        working-directory: ./frontend
         run: npm ci --no-audit --no-fund
 
       - name: Build (CRA)
