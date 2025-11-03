@@ -2161,34 +2161,34 @@ const getDrawCenterLocator = async (req, res) => {
       method: 'GET',
       headers: {
         Authorization: AUTH,
-        Accept: 'application/json',
-      },
+        Accept: 'application/json'
+      }
     });
 
-const text = await r.text();
+    const text = await r.text();
 
-if (r.status === 204) {
-  // Evexia explicitly says "no content" — return empty list instead of error
-  return res.status(200).json({ DrawCenters: [] });
-}
+    if (r.status === 204) {
+      // Evexia explicitly says "no content" — return empty list instead of error
+      return res.status(200).json({ DrawCenters: [] });
+    }
 
-if (!r.ok) {
-  console.error('❌ Evexia error:', text);
-  return res.status(r.status).json({ error: 'Evexia API error', detail: text });
-}
+    if (!r.ok) {
+      console.error('❌ Evexia error:', text);
+      return res.status(r.status).json({ error: 'Evexia API error', detail: text });
+    }
 
-let data;
-try {
-  data = JSON.parse(text);
-} catch {
-  console.error('❌ Invalid JSON from Evexia:', text.slice(0, 500));
-  return res.status(502).json({
-    error: 'Invalid response from Evexia API',
-    raw: text.slice(0, 500),
-  });
-}
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      console.error('❌ Invalid JSON from Evexia:', text.slice(0, 500));
+      return res.status(502).json({
+        error: 'Invalid response from Evexia API',
+        raw: text.slice(0, 500)
+      });
+    }
 
-return res.status(200).json(data);
+    return res.status(200).json(data);
   } catch (err) {
     console.error('❌ getDrawCenterLocator error:', err);
     return res.status(500).json({ error: err.message || 'Internal Server Error' });
@@ -2218,7 +2218,10 @@ async function OrderListByStatusHandler(req, res) {
     url.searchParams.set('orderStatus', orderStatus);
 
     const maskedClient = externalClientID ? externalClientID.slice(0, 6) + '…' : '(none)';
-    console.log('➡️ Forwarding OrderListByStatus (GET):', url.toString().replace(externalClientID, maskedClient));
+    console.log(
+      '➡️ Forwarding OrderListByStatus (GET):',
+      url.toString().replace(externalClientID, maskedClient)
+    );
 
     const controller = new AbortController();
     const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
@@ -2237,16 +2240,13 @@ async function OrderListByStatusHandler(req, res) {
     const ct = (r.headers.get('content-type') || '').toLowerCase();
     const raw = ct.includes('application/json') ? await r.json() : await r.text();
 
-    if (!r.ok) {
-      return res.status(r.status).json({
-        error: 'Upstream error',
-        upstreamStatus: r.status,
-        upstreamContentType: ct,
-        upstreamPreview: (typeof raw === 'string' ? raw : JSON.stringify(raw)).slice(0, 500)
-      });
+    try {
+      const maybeParsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      return res.status(200).json(maybeParsed);
+    } catch {
+      // not JSON, just send as plain text
+      return res.status(200).send(raw);
     }
-
-    return res.status(200).json(raw);
   } catch (err) {
     console.error('[Evexia] OrderListByStatus error:', err);
     if (err.name === 'AbortError') {
