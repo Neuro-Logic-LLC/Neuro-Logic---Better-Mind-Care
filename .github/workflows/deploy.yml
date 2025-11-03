@@ -29,12 +29,12 @@ jobs:
 
       - name: Install frontend deps
         working-directory: ./frontend
-        env:
-          CI: false
         run: npm ci --no-audit --no-fund
 
       - name: Build frontend
         working-directory: ./frontend
+        env:
+          CI: false       # disable "treat warnings as errors" during build
         run: npm run build
 
       - name: Upload frontend artifact
