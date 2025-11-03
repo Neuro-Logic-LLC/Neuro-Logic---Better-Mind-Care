@@ -1,69 +1,38 @@
-name: Build & Deploy
+name: Build and Install Frontend
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Kill any injected npm auth (fix E401)
-        run: |
-          echo "🔒 Nuking npm credentials..."
-          rm -f ~/.npmrc .npmrc /home/runner/.npmrc || true
-          npm config delete '//registry.npmjs.org/:_authToken' || true
-          npm config delete _auth || true
-          npm config delete username || true
-          npm config set registry https://registry.npmjs.org/
-          unset NODE_AUTH_TOKEN
-          unset NPM_TOKEN
-          echo "✅ Verified npm environment:"
-          env | grep -i npm || echo "No npm env vars found"
-          env | grep -i auth || echo "No auth env vars found"
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: Debug npm settings
-        run: |
-          echo "Registry: $(npm config get registry)"
-          npm config list -l
-
-      - name: Setup Node
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
-      # 💥 Add this step right here
-      - name: Force public npm install (no auth)
+      - name: Verify repo structure
         run: |
-          echo "💥 Nuking any npm credentials..."
-          rm -f ~/.npmrc .npmrc /home/runner/.npmrc || true
-          npm config set registry https://registry.npmjs.org/
-          npm config delete '//registry.npmjs.org/:_authToken' || true
-          npm config delete _auth || true
-          unset NODE_AUTH_TOKEN
-          unset NPM_TOKEN
-          echo "✅ Registry:"
-          npm config get registry
-          echo "✅ Auth test:"
-          npm whoami || echo "Not logged in — good"
-
-      - uses: actions/checkout@v4
-        with:
-          repository: Neuro-Logic-LLC/BMC-Patient-Portal
-          path: bmc
+          echo "PWD: $(pwd)"
+          echo "Contents:"
+          ls -R
 
       - name: Install frontend deps
-        working-directory: ./bmc/frontend
+        working-directory: ./frontend
         run: npm ci --no-audit --no-fund
 
-      - name: Build (CRA)
-        working-directory: frontend
-        env:
-          CI: "false"
-          GENERATE_SOURCEMAP: "false"
-          INLINE_RUNTIME_CHUNK: "false"
-          NODE_OPTIONS: "--max-old-space-size=4096"
+      - name: Build frontend
+        working-directory: ./frontend
         run: npm run build
 
       - name: Upload frontend artifact
