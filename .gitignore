@@ -1,3 +1,4 @@
+.gitignore
 # Node dependencies
 node_modules/
 frontend/node_modules/
@@ -33,3 +34,5 @@ https-on-localhost/fullchain.pem
 https-on-localhost/privkey.pem
 https-on-localhost/key.pem
 https-on-localhost/cert.pem
+https-on-localhost/localhost.crt
+https-on-localhost/localhost.key
