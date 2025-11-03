@@ -48,8 +48,13 @@ jobs:
           echo "✅ Auth test:"
           npm whoami || echo "Not logged in — good"
 
+      - uses: actions/checkout@v4
+        with:
+          repository: Neuro-Logic-LLC/BMC-Patient-Portal
+          path: bmc
+
       - name: Install frontend deps
-        working-directory: ./frontend
+        working-directory: ./bmc/frontend
         run: npm ci --no-audit --no-fund
 
       - name: Build (CRA)
