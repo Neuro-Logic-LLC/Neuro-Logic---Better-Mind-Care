@@ -116,7 +116,7 @@ async function startAuth({ state, nonce }) {
   url.searchParams.set('client_id', client.client_id);
   url.searchParams.set('redirect_uri', redirectUri);
   url.searchParams.set('response_type', 'code');
-  url.searchParams.set('scope', 'openid email profile https://www.googleapis.com/auth/calendar');
+  url.searchParams.set('scope', 'openid email profile https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events');
   url.searchParams.set('state', state);
   url.searchParams.set('nonce', nonce);
   url.searchParams.set('code_challenge', code_challenge);
