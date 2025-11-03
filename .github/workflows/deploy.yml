@@ -23,6 +23,11 @@ jobs:
           env | grep -i npm || echo "No npm env vars found"
           env | grep -i auth || echo "No auth env vars found"
 
+      - name: Debug npm settings
+        run: |
+          echo "Registry: $(npm config get registry)"
+          npm config list -l
+          
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
