@@ -2195,6 +2195,68 @@ return res.status(200).json(data);
   }
 };
 
+// GET /api/evexia/order-list-by-status
+async function OrderListByStatusHandler(req, res) {
+  try {
+    const q = { ...(req.query || {}), ...(req.body || {}) };
+    const orderStatus = String(q.orderStatus || '').trim(); // Open, InProgress, etc.
+    const externalClientID = pickClientId(req, q);
+
+    if (!orderStatus) {
+      return res.status(400).json({ error: 'Missing required parameter: orderStatus' });
+    }
+
+    const AUTH = pickAuthKey();
+    const BASE = pickBaseUrl();
+    const PATH = '/api/EDIPlatform/OrderListByStatus';
+
+    if (!AUTH) return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
+    if (!BASE) return res.status(500).json({ error: 'Server missing EVEXIA_BASE_URL' });
+
+    const url = new URL(PATH, BASE);
+    url.searchParams.set('externalClientID', externalClientID);
+    url.searchParams.set('orderStatus', orderStatus);
+
+    const maskedClient = externalClientID ? externalClientID.slice(0, 6) + '…' : '(none)';
+    console.log('➡️ Forwarding OrderListByStatus (GET):', url.toString().replace(externalClientID, maskedClient));
+
+    const controller = new AbortController();
+    const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
+    const to = setTimeout(() => controller.abort(), timeoutMs);
+
+    const r = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: AUTH,
+        Accept: 'application/json, text/plain, */*',
+        'User-Agent': 'BetterMindCare-EvexiaProxy/1.0'
+      },
+      signal: controller.signal
+    }).finally(() => clearTimeout(to));
+
+    const ct = (r.headers.get('content-type') || '').toLowerCase();
+    const raw = ct.includes('application/json') ? await r.json() : await r.text();
+
+    if (!r.ok) {
+      return res.status(r.status).json({
+        error: 'Upstream error',
+        upstreamStatus: r.status,
+        upstreamContentType: ct,
+        upstreamPreview: (typeof raw === 'string' ? raw : JSON.stringify(raw)).slice(0, 500)
+      });
+    }
+
+    return res.status(200).json(raw);
+  } catch (err) {
+    console.error('[Evexia] OrderListByStatus error:', err);
+    if (err.name === 'AbortError') {
+      return res.status(504).json({ error: 'Upstream request timed out' });
+    }
+    return res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+}
+
+router.get('/order-list-by-status', OrderListByStatusHandler);
 router.post('/order-add', addOrderHandler);
 
 router.get('/patient-order-complete', patientOrderCompleteHandler);

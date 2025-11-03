@@ -12,18 +12,24 @@ async function loadSSMIntoEnv(pathPrefix) {
   const base = pathPrefix.endsWith('/') ? pathPrefix : pathPrefix + '/';
   let nextToken;
   do {
-    const out = await ssm.send(new GetParametersByPathCommand({
-      Path: base, Recursive: true, WithDecryption: true, NextToken: nextToken
-    }));
+    const out = await ssm.send(
+      new GetParametersByPathCommand({
+        Path: base,
+        Recursive: true,
+        WithDecryption: true,
+        NextToken: nextToken
+      })
+    );
     for (const p of out.Parameters || []) {
       const k = p.Name.replace(base, '');
       if (!(k in process.env)) process.env[k] = p.Value ?? '';
     }
-    nextToken = out.NextToken;  
+    nextToken = out.NextToken;
   } while (nextToken);
 
-  const got = ['SESSION_SECRET','JWT_SECRET','GOOGLE_CLIENT_ID','GOOGLE_CLIENT_SECRET']
-    .filter(k => process.env[k]).join(', ');
+  const got = ['SESSION_SECRET', 'JWT_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET']
+    .filter(k => process.env[k])
+    .join(', ');
   console.log(`[ssm] loaded from ${base} -> ${got || 'none'}`);
 }
 
@@ -42,11 +48,20 @@ async function loadSSMIntoEnv(pathPrefix) {
 
   const PORT = process.env.PORT || 5050;
 
-  // HTTPS (your existing cert paths)
-  const keyFile  = process.env.SSL_KEY_FILE  || path.resolve(__dirname, '../https-on-localhost/key.pem');
-  const certFile = process.env.SSL_CERT_FILE || path.resolve(__dirname, '../https-on-localhost/cert.pem');
-  const key  = fs.readFileSync(keyFile);
-  const cert = fs.readFileSync(certFile);
+  const keyPath = process.env.SSL_KEY || path.resolve(__dirname, '../https-on-localhost/localhost.key');
+  const certPath = process.env.SSL_CERT || path.resolve(__dirname, '../https-on-localhost/localhost.crt');
+
+  // Verify they exist
+  if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
+    console.warn('⚠️  SSL key/cert not found, falling back to HTTP.');
+    app.listen(PORT, () => {
+      console.log(`🚀 HTTP server running on http://localhost:${PORT}`);
+    });
+    return;
+  }
+
+  const key = fs.readFileSync(keyPath);
+  const cert = fs.readFileSync(certPath);
 
   https.createServer({ key, cert }, app).listen(PORT, () => {
     console.log(`🚀 HTTPS server running on ${base}`);

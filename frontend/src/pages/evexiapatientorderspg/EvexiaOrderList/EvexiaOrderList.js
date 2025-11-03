@@ -73,7 +73,7 @@ export default function EvexiaOrderList({
     row: null
   });
   const [actionError, setActionError] = useState('');
-
+  const [statusFilter, setStatusFilter] = useState('');
   const abortRef = useRef(null);
   const searchDebounceRef = useRef(null);
 
@@ -111,6 +111,7 @@ export default function EvexiaOrderList({
     return undefined;
   }, []);
 
+
   const fullName = useCallback(
     (r) => {
       const fn = get(r, 'FirstName', 'first_name', 'firstName', 'first');
@@ -146,18 +147,6 @@ export default function EvexiaOrderList({
     }),
     [get]
   );
-
-  const parseDate = (v) => {
-    if (!v) return undefined;
-    const d = new Date(v);
-    if (!isNaN(d.getTime())) return d;
-    try {
-      return new Date(Date.parse(v));
-    } catch {
-      return undefined;
-    }
-  };
-
   const normalize = useCallback(
     (rows) =>
       rows.map((r) => ({
@@ -185,6 +174,52 @@ export default function EvexiaOrderList({
       })),
     [fields, fullName]
   );
+
+  const fetchOrdersByStatus = useCallback(
+    async (status = 'Open') => {
+      if (!clientID) return alert('No ExternalClientID found');
+      try {
+        setLoading(true);
+        setError('');
+        setStatusFilter(status);
+
+        const url = `/api/evexia/order-list-by-status?orderStatus=${encodeURIComponent(
+          status
+        )}&externalClientID=${encodeURIComponent(clientID)}`;
+
+        const res = await fetch(url, {
+          headers: { Accept: 'application/json' }
+        });
+        if (!res.ok) throw new Error(`Upstream error ${res.status}`);
+
+        const json = await res.json();
+        const list = Array.isArray(json)
+          ? json
+          : json.results || json.items || json.data || [];
+
+        setData(normalize(list));
+        setTotal(list.length);
+        console.log(`Fetched ${list.length} orders by status=${status}`);
+      } catch (err) {
+        console.error('OrderListByStatus failed:', err);
+        setError(err.message || 'Failed to load orders by status');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [clientID, normalize]
+  );
+
+  const parseDate = (v) => {
+    if (!v) return undefined;
+    const d = new Date(v);
+    if (!isNaN(d.getTime())) return d;
+    try {
+      return new Date(Date.parse(v));
+    } catch {
+      return undefined;
+    }
+  };
 
   // ----- build params & fetch --------------------------------------------
   const buildParams = useCallback(() => {
@@ -624,6 +659,30 @@ export default function EvexiaOrderList({
             {/* <Plus className="w-4 h-4 mr-1"  /> */}
             Add Order
           </PrimaryButton>{' '}
+          <PrimaryButton
+            className="row-action-btn bg-[#3498db] hover:bg-[#2980b9] text-white"
+            style={{ marginLeft: '10px' }}
+            onClick={() => fetchOrdersByStatus('Open')}
+          >
+            Show Open Orders
+          </PrimaryButton>
+          <PrimaryButton
+            className="row-action-btn bg-[#27ae60] hover:bg-[#1e874b] text-white"
+            style={{ marginLeft: '10px' }}
+            onClick={() => fetchOrdersByStatus('InProgress')}
+          >
+            Show In-Progress
+          </PrimaryButton>
+          <PrimaryButton
+            className="row-action-btn bg-[#9b59b6] hover:bg-[#8e44ad] text-white"
+            style={{ marginLeft: '10px' }}
+            onClick={() => {
+              setStatusFilter('');
+              fetchData(); // revert back to default behavior
+            }}
+          >
+            Clear Filter
+          </PrimaryButton>
         </h2>
       </div>
 
@@ -644,7 +703,11 @@ export default function EvexiaOrderList({
           customCssInput="search-input"
         />
       </div>
-
+      {statusFilter && (
+        <div className="text-sm text-gray-600 mb-2">
+          Showing orders with status: <strong>{statusFilter}</strong>
+        </div>
+      )}
       {actionError && <div className="text-sm text-red-600">{actionError}</div>}
       <Card className="rounded-2xl shadow-sm">
         {error ? (
