@@ -111,7 +111,6 @@ export default function EvexiaOrderList({
     return undefined;
   }, []);
 
-
   const fullName = useCallback(
     (r) => {
       const fn = get(r, 'FirstName', 'first_name', 'firstName', 'first');
@@ -176,30 +175,33 @@ export default function EvexiaOrderList({
   );
 
   const fetchOrdersByStatus = useCallback(
-    async (status = 'Open') => {
+    async (statusDescr = 'Open') => {
       if (!clientID) return alert('No ExternalClientID found');
       try {
         setLoading(true);
         setError('');
-        setStatusFilter(status);
+        setStatusFilter(statusDescr);
 
         const url = `/api/evexia/order-list-by-status?orderStatus=${encodeURIComponent(
-          status
+          statusDescr
         )}&externalClientID=${encodeURIComponent(clientID)}`;
 
         const res = await fetch(url, {
-          headers: { Accept: 'application/json' }
+          headers: { Accept: 'application/json' },
+          cache: 'no-store'
         });
         if (!res.ok) throw new Error(`Upstream error ${res.status}`);
 
-        const json = await res.json();
+        const text = await res.text();
+        const json = text ? JSON.parse(text) : [];
         const list = Array.isArray(json)
           ? json
           : json.results || json.items || json.data || [];
-
+        console.log(list);
+        console.log(json);
         setData(normalize(list));
         setTotal(list.length);
-        console.log(`Fetched ${list.length} orders by status=${status}`);
+        console.log(`Fetched ${list.length} orders by status=${statusDescr}`);
       } catch (err) {
         console.error('OrderListByStatus failed:', err);
         setError(err.message || 'Failed to load orders by status');
@@ -669,9 +671,9 @@ export default function EvexiaOrderList({
           <PrimaryButton
             className="row-action-btn bg-[#27ae60] hover:bg-[#1e874b] text-white"
             style={{ marginLeft: '10px' }}
-            onClick={() => fetchOrdersByStatus('InProgress')}
+            onClick={() => fetchOrdersByStatus('LabResultReady')}
           >
-            Show In-Progress
+            Show Lab Result Ready
           </PrimaryButton>
           <PrimaryButton
             className="row-action-btn bg-[#9b59b6] hover:bg-[#8e44ad] text-white"
