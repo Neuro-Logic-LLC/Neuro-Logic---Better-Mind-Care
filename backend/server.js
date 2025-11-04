@@ -48,8 +48,13 @@ async function loadSSMIntoEnv(pathPrefix) {
 
   const PORT = process.env.PORT || 5050;
 
-  const keyPath = process.env.SSL_KEY || path.resolve(__dirname, '../https-on-localhost/localhost.key');
-  const certPath = process.env.SSL_CERT || path.resolve(__dirname, '../https-on-localhost/localhost.crt');
+  const localKey = path.resolve(__dirname, '../https-on-localhost/localhost.key');
+  const localCert = path.resolve(__dirname, '../https-on-localhost/localhost.crt');
+  const prodKey = '/etc/letsencrypt/live/staging.bettermindcare.com/privkey.pem';
+  const prodCert = '/etc/letsencrypt/live/staging.bettermindcare.com/fullchain.pem';
+
+  const keyPath = fs.existsSync(prodKey) ? prodKey : localKey;
+  const certPath = fs.existsSync(prodCert) ? prodCert : localCert;
 
   // Verify they exist
   if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
