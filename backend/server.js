@@ -50,8 +50,8 @@ async function loadSSMIntoEnv(pathPrefix) {
 
   const localKey = path.resolve(__dirname, '../https-on-localhost/localhost.key');
   const localCert = path.resolve(__dirname, '../https-on-localhost/localhost.crt');
-  const prodKey = '/etc/letsencrypt/live/staging.bettermindcare.com/privkey.pem';
-  const prodCert = '/etc/letsencrypt/live/staging.bettermindcare.com/fullchain.pem';
+  const prodKey = '/etc/letsencrypt/archive/staging.bettermindcare.com/privkey3.pem';
+  const prodCert = '/etc/letsencrypt/archive/staging.bettermindcare.com/fullchain3.pem';
 
   const keyPath = fs.existsSync(prodKey) ? prodKey : localKey;
   const certPath = fs.existsSync(prodCert) ? prodCert : localCert;
