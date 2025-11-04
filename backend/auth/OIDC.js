@@ -1,61 +1,14 @@
-const { SSMClient, GetParametersByPathCommand } = require('@aws-sdk/client-ssm');
-
-async function loadSSMIntoEnv(path = process.env.SSM_PARAMS_PATH || '/bmc/dev') {
-  const region = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'us-east-2';
-  const ssm = new SSMClient({ region });
-  let nextToken;
-
-  // normalize to trailing slash
-  const base = path.endsWith('/') ? path : path + '/';
-
-  do {
-    const out = await ssm.send(new GetParametersByPathCommand({
-      Path: base,
-      Recursive: true,
-      WithDecryption: true,
-      NextToken: nextToken
-    }));
-    for (const p of out.Parameters || []) {
-      const k = p.Name.replace(base, ''); // strip prefix
-      if (!(k in process.env)) process.env[k] = p.Value ?? '';
-    }
-    nextToken = out.NextToken;
-  } while (nextToken);
-
-  // sanity log
-  const got = ['SESSION_SECRET','JWT_SECRET','GOOGLE_CLIENT_ID','GOOGLE_CLIENT_SECRET']
-    .filter(k => process.env[k]).join(', ');
-  console.log(`[ssm] loaded from ${base} -> ${got || 'none'}`);
-}
-
-
-// block startup until SSM is in env
-(async () => {
-  await loadSSMIntoEnv('/bmc/dev'); // force dev path
-  if (!process.env.SESSION_SECRET) {
-    console.warn('SESSION_SECRET missing from env. using dev fallback');
-    process.env.SESSION_SECRET = 'dev-only-secret-change-me';
-  }
-
-  // now require app AFTER env is ready
-  // require('./app'); // or require('./server-app')
-})();
-
-
 // auth/OIDC.js
 const crypto = require('crypto');
 const getOauth4w = require('../lib/oauth4w');
-// const loadSSMParams = require('../utils/loadSSMParams');
-// (async () => await loadSSMParams())(); / / ensure envs are loaded
-const FRONTEND_URL_DEV='https://localhost:3000';
-const FRONTEND_URL_STAGING='https://staging.bettermindcare.com';
-const FRONTEND_URL_PROD='https://bettermindcare.com';
 
 let as, client, redirectUri;
 let initPromise = null; // <-- single-flight
 
 const b64url = buf =>
   buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+const trimTrailingSlash = value => (value || '').replace(/\/+$/, '');
 
 function buildPkce() {
   const code_verifier = b64url(crypto.randomBytes(32));
@@ -68,15 +21,26 @@ async function initGoogle({ base, redirectUri: ru } = {}) {
   initPromise = (async () => {
     const o = await getOauth4w();
 
-    const baseEnv = (process.env.BACKEND_PUBLIC_URL || '').replace(/\/+$/, '');
-    const baseFinal =
-      process.env.NODE_ENV === 'development'
-        ? 'https://localhost:5050'
-        : 'https://staging.bettermindcare.com';
+    const envBase = trimTrailingSlash(
+      process.env.BACKEND_PUBLIC_URL
+      || process.env.GOOGLE_REDIRECT_BASE
+      || ''
+    );
+    const fallbackBase = process.env.NODE_ENV === 'production'
+      ? 'https://staging.bettermindcare.com'
+      : 'https://localhost:5050';
+    const baseForUri = trimTrailingSlash(base || envBase || fallbackBase);
 
-    redirectUri = (baseFinal ? `${baseFinal}/api/oauth/google/callback` : null);
+    const explicitRedirect = ru || process.env.GOOGLE_REDIRECT_URI;
+    redirectUri = explicitRedirect
+      ? explicitRedirect
+      : (baseForUri ? `${baseForUri}/api/oauth/google/callback` : null);
 
-    if (!redirectUri) throw new Error('BACKEND_PUBLIC_URL or GOOGLE_REDIRECT_URI must be set');
+    if (!redirectUri) throw new Error('GOOGLE_REDIRECT_URI or BACKEND_PUBLIC_URL must be set');
+
+    if (!process.env.GOOGLE_REDIRECT_URI) {
+      process.env.GOOGLE_REDIRECT_URI = redirectUri;
+    }
 
     console.log('[OIDC] redirectUri:', redirectUri);
 
