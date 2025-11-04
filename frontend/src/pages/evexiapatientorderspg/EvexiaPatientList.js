@@ -117,24 +117,13 @@ export default function EvexiaPatientList({
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={fetchPatients}
-            style={{
-              padding: '8px 12px',
-              borderRadius: 8,
-              border: '1px solid #cbd5e1',
-              background: 'white'
-            }}
+            className="btn btn-outline-teal"
           >
             Refresh
           </button>
           <button
             onClick={() => setShowAdd(true)}
-            style={{
-              padding: '8px 12px',
-              borderRadius: 8,
-              border: '1px solid #0ea5e9',
-              background: '#0ea5e9',
-              color: 'white'
-            }}
+            className="btn btn-primary"
           >
             Add Patient
           </button>
@@ -186,7 +175,7 @@ export default function EvexiaPatientList({
                       <td style={td}>
                         <button
                           onClick={() => handleSelect(p)}
-                          style={btn(selected === p.id)}
+                          className={selected === p.id ? 'btn btn-secondary' : 'btn btn-outline-teal'}
                         >
                           {selected === p.id ? 'Selected' : 'Select'}
                         </button>
@@ -370,12 +359,7 @@ function AddPatientDialog({ onClose, onCreated }) {
           <div style={{ fontWeight: 600 }}>Add Patient</div>
           <button
             onClick={onClose}
-            style={{
-              padding: '6px 10px',
-              border: '1px solid #cbd5e1',
-              borderRadius: 8,
-              background: 'white'
-            }}
+            className="btn btn-outline-teal"
           >
             Close
           </button>
@@ -584,25 +568,14 @@ function AddPatientDialog({ onClose, onCreated }) {
             <button
               type="button"
               onClick={onClose}
-              style={{
-                padding: '8px 12px',
-                borderRadius: 8,
-                border: '1px solid #cbd5e1',
-                background: 'white'
-              }}
+              className="btn btn-outline-teal"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting || !externalClientID}
-              style={{
-                padding: '8px 12px',
-                borderRadius: 8,
-                border: '1px solid #0ea5e9',
-                background: '#0ea5e9',
-                color: 'white'
-              }}
+              className="btn btn-primary"
             >
               {submitting ? 'Saving...' : 'Save Patient'}
             </button>

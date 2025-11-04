@@ -5,7 +5,6 @@ import React, {
   useRef,
   useState
 } from 'react';
-import { PrimaryButton } from '../../components/button/Buttons';
 import Card from '../../components/cards/Card';
 import EvexiaPatientList from './EvexiaPatientList';
 import EvexiaOrderList from './EvexiaOrderList/EvexiaOrderList';

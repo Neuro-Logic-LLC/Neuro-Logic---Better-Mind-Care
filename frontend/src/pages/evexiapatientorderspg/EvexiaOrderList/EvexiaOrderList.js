@@ -9,7 +9,6 @@ import React, {
   useState
 } from 'react';
 import { motion } from 'framer-motion';
-import { PrimaryButton } from '../../../components/button/Buttons';
 import Card from '../../../components/cards/Card';
 import TextInput from '../../../components/inputs/InputText';
 import {
@@ -653,30 +652,29 @@ export default function EvexiaOrderList({
           className="text-lg font-semibold orders-header"
         >
           Orders for {user.first_name} {user.last_name}
-          <PrimaryButton
-            className="row-action-btn bg-[#f39c3f] hover:bg-[#e68a2f] text-white"
+          <button
+            className="btn btn-primary"
             onClick={() => setShowAddOrder(true)}
             style={{ marginLeft: '50px' }}
           >
-            {/* <Plus className="w-4 h-4 mr-1"  /> */}
             Add Order
-          </PrimaryButton>{' '}
-          <PrimaryButton
-            className="row-action-btn bg-[#3498db] hover:bg-[#2980b9] text-white"
+          </button>{' '}
+          <button
+            className="btn btn-secondary"
             style={{ marginLeft: '10px' }}
             onClick={() => fetchOrdersByStatus('Open')}
           >
             Show Open Orders
-          </PrimaryButton>
-          <PrimaryButton
-            className="row-action-btn bg-[#27ae60] hover:bg-[#1e874b] text-white"
+          </button>
+          <button
+            className="btn btn-outline-teal"
             style={{ marginLeft: '10px' }}
             onClick={() => fetchOrdersByStatus('LabResultReady')}
           >
             Show Lab Result Ready
-          </PrimaryButton>
-          <PrimaryButton
-            className="row-action-btn bg-[#9b59b6] hover:bg-[#8e44ad] text-white"
+          </button>
+          <button
+            className="btn btn-outline-teal"
             style={{ marginLeft: '10px' }}
             onClick={() => {
               setStatusFilter('');
@@ -684,7 +682,7 @@ export default function EvexiaOrderList({
             }}
           >
             Clear Filter
-          </PrimaryButton>
+          </button>
         </h2>
       </div>
 
@@ -749,9 +747,9 @@ export default function EvexiaOrderList({
                           }
                         : {})}
                     >
-                      <PrimaryButton
+                      <button
                         onClick={() => setSortKey(c.key)}
-                        className="inline-flex items-center gap-1"
+                        className="btn btn-outline-teal inline-flex items-center gap-1"
                         aria-label={`Sort by ${c.label}`}
                       >
                         {c.label}
@@ -762,7 +760,7 @@ export default function EvexiaOrderList({
                             <ChevronDown className="h-3 w-3" />
                           )
                         ) : null}
-                      </PrimaryButton>
+                      </button>
                     </th>
                   ))}
                 </tr>
@@ -821,38 +819,34 @@ export default function EvexiaOrderList({
             Page {page + 1} / {totalPages} · {total || sorted.length} total
           </div>
           <div className="flex items-center gap-1">
-            <PrimaryButton
-              variant="outline"
-              size="sm"
+            <button
+              className="btn btn-outline-teal"
               onClick={() => setPage(0)}
               disabled={page === 0}
             >
               First
-            </PrimaryButton>
-            <PrimaryButton
-              variant="outline"
-              size="sm"
+            </button>
+            <button
+              className="btn btn-outline-teal"
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
             >
               Prev
-            </PrimaryButton>
-            <PrimaryButton
-              variant="outline"
-              size="sm"
+            </button>
+            <button
+              className="btn btn-outline-teal"
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
             >
               Next
-            </PrimaryButton>
-            <PrimaryButton
-              variant="outline"
-              size="sm"
+            </button>
+            <button
+              className="btn btn-outline-teal"
               onClick={() => setPage(totalPages - 1)}
               disabled={page >= totalPages - 1}
             >
               Last
-            </PrimaryButton>
+            </button>
           </div>
         </div>
       </Card>
@@ -897,19 +891,20 @@ export default function EvexiaOrderList({
             </div>
 
             <div className="flex items-center justify-end gap-3 mt-4">
-              <PrimaryButton
-                variant="outline"
+              <button
+                className="btn btn-outline-teal"
                 onClick={() => setShowDeleteOrder({ open: false, row: null })}
               >
                 Cancel
-              </PrimaryButton>
-              <PrimaryButton
+              </button>
+              <button
+                className="btn btn-danger"
                 onClick={() =>
                   handleDeleteOrderItem(showDeleteOrder.row, externalClientID)
                 }
               >
                 Delete Item
-              </PrimaryButton>
+              </button>
             </div>
           </div>
         </div>
@@ -1014,7 +1009,7 @@ function AddOrderDialog({
           <div className="flex justify-end gap-2 mt-2">
             <button
               type="button"
-              className="px-3 py-1 border rounded"
+              className="btn btn-outline-teal"
               onClick={onClose}
               disabled={busy}
             >
@@ -1022,7 +1017,7 @@ function AddOrderDialog({
             </button>
             <button
               type="submit"
-              className="px-3 py-1 rounded bg-blue-600 text-white"
+              className="btn btn-primary"
               disabled={busy}
             >
               {busy ? 'Saving…' : 'Save Order'}
@@ -1275,14 +1270,13 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
       {/* Table Row */}
       <tr className="border-b hover:bg-gray-50">
         <td className="px-3 py-3">
-          <PrimaryButton
-            variant="outline"
-            className="inline-flex items-center"
+          <button
+            className="btn btn-outline-teal inline-flex items-center"
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
           >
             {open ? <ChevronUp /> : <ChevronDown />}
-          </PrimaryButton>
+          </button>
           <span className="ml-3 font-medium">{row.name || '—'}</span>
         </td>
         <td className="px-3 py-3">{row.patientId}</td>
@@ -1307,9 +1301,9 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
               <div className="font-semibold">
                 🛒 Order Cart — {items.length} item{items.length !== 1 && 's'}
               </div>
-              <PrimaryButton variant="outline" onClick={fetchItems}>
+              <button className="btn btn-outline-teal" onClick={fetchItems}>
                 <RefreshCcw className="h-4 w-4 mr-1" /> Refresh
-              </PrimaryButton>
+              </button>
             </div>
 
             {/* Item List */}
@@ -1333,14 +1327,13 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
                         <span className="font-medium">{pname}</span>{' '}
                         <span className="text-xs opacity-60">({pid})</span>
                       </div>
-                      <PrimaryButton
-                        variant="outline"
-                        size="sm"
+                      <button
+                        className="btn btn-outline-teal"
                         disabled={busy}
                         onClick={() => setPendingDelete(pid)}
                       >
                         Remove
-                      </PrimaryButton>
+                      </button>
                     </li>
                   );
                 })}
@@ -1372,27 +1365,27 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
             <div className="mt-6 border-t pt-3 space-y-3">
               <div className="font-semibold mb-2">⚙️ Order Actions</div>
               <div className="flex flex-wrap gap-2">
-                <PrimaryButton
-                  variant="outline"
+                <button
+                  className="btn btn-outline-teal"
                   disabled={busy}
                   onClick={handleEmptyOrder}
                 >
                   🧹 Empty Order
-                </PrimaryButton>
-                <PrimaryButton
-                  variant="outline"
+                </button>
+                <button
+                  className="btn btn-outline-teal"
                   disabled={busy}
                   onClick={() => handleSubmitOrder(false, false)}
                 >
                   ✅ Submit Order
-                </PrimaryButton>
-                <PrimaryButton
-                  variant="outline"
+                </button>
+                <button
+                  className="btn btn-outline-teal"
                   disabled={busy}
                   onClick={handleCancelOrder}
                 >
                   ❌ Cancel Order
-                </PrimaryButton>
+                </button>
               </div>
             </div>
 
@@ -1406,20 +1399,21 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
                     order?
                   </div>
                   <div className="flex justify-end gap-2">
-                    <PrimaryButton
-                      variant="outline"
+                    <button
+                      className="btn btn-outline-teal"
                       onClick={() => setPendingDelete(null)}
                     >
                       Cancel
-                    </PrimaryButton>
-                    <PrimaryButton
+                    </button>
+                    <button
+                      className="btn btn-danger"
                       onClick={() => {
                         handleDeleteItem(pendingDelete);
                         setPendingDelete(null);
                       }}
                     >
                       Delete
-                    </PrimaryButton>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1467,13 +1461,13 @@ function ProductButton({
   };
 
   return (
-    <PrimaryButton
+    <button
       disabled={busy}
       onClick={handleAdd}
-      className="flex flex-col items-start text-left h-full w-full rounded-xl border bg-white hover:bg-blue-50 transition-all duration-150 p-3 shadow-sm"
+      className="btn btn-outline-teal flex flex-col items-start text-left h-full w-full rounded-xl border bg-white hover:bg-blue-50 transition-all duration-150 p-3 shadow-sm"
     >
       <div className="font-medium text-sm">{name}</div>
       <div className="text-xs opacity-60">Product ID: {productID}</div>
-    </PrimaryButton>
+    </button>
   );
 }
