@@ -1,4 +1,4 @@
-// backend/utils/mailer-oauth.js
+// backend/auth/mailer-oauth.js
 const nodemailer = require('nodemailer');
 const { google } = require('googleapis');
 
@@ -21,13 +21,19 @@ async function getTransporter() {
   oAuth2.setCredentials({ refresh_token: refreshToken });
   const accessToken = await oAuth2.getAccessToken().then(r => r?.token);
 
-  const t = nodemailer.createTransport({
+  const t = nodemailer.createTransporter({
     service: 'gmail',
     auth: { type: 'OAuth2', user, clientId, clientSecret, refreshToken, accessToken },
   });
 
   cached = t;
   return cached;
+}
+
+function fromAddr() {
+  const from = (process.env.SMTP_FROM || process.env.SMTP_USER || '').trim();
+  if (!from) throw new Error('No FROM address: set SMTP_USER (and optionally SMTP_FROM)');
+  return `"BetterMindCare" <${from}>`;
 }
 
 function fromAddr() {

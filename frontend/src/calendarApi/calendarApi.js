@@ -1,11 +1,16 @@
 // calendarApi.ts
-export async function fetchEvents(startISO, endISO) {
-  const res = await fetch(
-    `/api/calendar/events?start=${encodeURIComponent(startISO)}&end=${encodeURIComponent(endISO)}`,
-    {
-      credentials: 'include'
-    }
-  );
+const BASE = '/api/google-calendar';
+
+export async function fetchEvents(startISO, endISO, calendarId, includePastDays) {
+  const params = new URLSearchParams({
+    start: startISO,
+    end: endISO,
+    calendarId: calendarId || 'primary',
+    includePastDays: includePastDays || 60
+  });
+  const res = await fetch(`${BASE}/events?${params}`, {
+    credentials: 'include'
+  });
   if (res.status === 401) throw new Error('google_reauth');
   if (!res.ok) throw new Error(await res.text());
   return (await res.json()).events;
@@ -32,7 +37,7 @@ export async function createMeeting({
     patient_name
   };
 
-  const res = await fetch('/api/calendar/create-meeting', {
+  const res = await fetch(`${BASE}/create-meeting`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -43,8 +48,6 @@ export async function createMeeting({
   if (!res.ok) throw new Error(data.error || 'create_failed');
   return data;
 }
-
-const BASE = '/api/calendar';
 
 export async function updateEvent(calendarId, id, payload) {
   const res = await fetch(
@@ -92,7 +95,7 @@ export async function fetchPaidCalendarAccess(
   if (patient_name) params.append('patient_name', patient_name);
 
   const res = await fetch(
-    `/api/calendar/calendar-access?${params.toString()}`,
+    `${BASE}/calendar-access?${params.toString()}`,
     {
       credentials: 'include'
     }

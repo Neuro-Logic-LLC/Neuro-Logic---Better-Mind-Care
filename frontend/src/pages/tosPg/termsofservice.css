@@ -18,11 +18,11 @@
 
 .legal-callout p {
   margin: 0;
-  color: var(--soft-white);
+  color: var(--teal);
 }
 
 .legal-callout a {
-  color: var(--soft-white);
+  color: var(--teal);
   text-decoration: underline;
 }
 

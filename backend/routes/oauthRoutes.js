@@ -186,6 +186,15 @@ router.get('/google/callback', async (req, res, next) => {
       return res.redirect(`${feBase}/sign-up`);
     }
 
+    // Store Google tokens in session for calendar access
+    req.session.googleTokens = {
+      access_token: tokenSet.access_token,
+      refresh_token: tokenSet.refresh_token,
+      expires_in: tokenSet.expires_in,
+      obtained_at: Date.now(),
+      id_token: tokenSet.id_token
+    };
+
     // Set the ONE auth cookie (7d) and clear legacy junk
     issueSessionCookie(res, {
       id: user.id,

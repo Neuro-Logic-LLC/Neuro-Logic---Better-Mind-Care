@@ -59,20 +59,21 @@ function isGoogleAuthError(e) {
 router.post('/create-meeting', async (req, res) => {
   try {
     const {
-    summary,
-    description,
-    start_time,
-    end_time,
-    time_zone,
-    calendarId,
-    patient_email,
-    patient_name
+      summary,
+      description,
+      start_time,
+      end_time,
+      time_zone,
+      calendarId,
+      patient_email,
+      patient_name
     } = req.body;
 
     if (!summary || !start_time) {
       return res.status(400).json({ error: 'summary and start_time required' });
     }
 
+    console.log('Session googleTokens:', !!req.session?.googleTokens); // Debug
     const oauth2 = getOAuth2ForSession(req.session);
     if (!oauth2) {
       return res
@@ -95,7 +96,7 @@ router.post('/create-meeting', async (req, res) => {
       requestBody: {
         timeMin: startISO,
         timeMax: endISO,
-        items: [{ id: 'jim@bettermindcare.com' }]
+        items: [{ id: 'primary' }]
       }
     });
 
@@ -114,8 +115,9 @@ router.post('/create-meeting', async (req, res) => {
     }
 
 
+    console.log('Creating event on calendar:', calendarId); // Debug
     const { data: ev } = await calendar.events.insert({
-      calendarId: calendarId,
+      calendarId: 'primary', // Use primary for now
       conferenceDataVersion: 1,
       sendUpdates: 'all',
       requestBody: {
@@ -126,7 +128,7 @@ router.post('/create-meeting', async (req, res) => {
         attendees: patient_email
           ? [{ email: patient_email, displayName: patient_name || undefined }]
           : [],
-        reminders: { useDefault: true },
+
         conferenceData: {
           createRequest: {
             requestId: crypto.randomUUID(),
@@ -136,6 +138,7 @@ router.post('/create-meeting', async (req, res) => {
         guestsCanSeeOtherGuests: false
       }
     });
+    console.log('Event created:', ev.id); // Debug
 
     return res.json({
       success: true,
@@ -240,6 +243,7 @@ router.get('/events', async (req, res) => {
     const timeMin = startQ.toISOString();
     const timeMax = new Date(endQ.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
+    console.log('Listing events on calendar:', calendarId); // Debug
     const { data } = await calendar.events.list({
       calendarId,
       timeMin,
@@ -301,7 +305,7 @@ router.patch('/events/:id', async (req, res) => {
     if (!oauth2) return res.status(401).json({ error: 'signin_required' });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2 });
-    const calendarId = "jim@bettermindcare.com";
+    const calendarId = req.query.calendarId || 'primary';
     const eventId = req.params.id;
 
     const { summary, start_time, end_time, time_zone = 'UTC' } = req.body || {};
@@ -369,7 +373,7 @@ router.delete('/events/:id', async (req, res) => {
     if (!oauth2) return res.status(401).json({ error: 'signin_required' });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2 });
-    const calendarId = req.query.calendarId || 'jim@bettermindcare.com';
+    const calendarId = req.query.calendarId || 'primary';
     const eventId = req.params.id;
 
     await calendar.events.delete({ calendarId, eventId, sendUpdates: 'all' });
