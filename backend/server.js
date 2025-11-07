@@ -48,13 +48,26 @@ async function loadSSMIntoEnv(pathPrefix) {
 
   const PORT = process.env.PORT || 5050;
 
-  const localKey = path.resolve(__dirname, '../https-on-localhost/localhost.key');
-  const localCert = path.resolve(__dirname, '../https-on-localhost/localhost.crt');
-  const prodKey = '/etc/letsencrypt/archive/staging.bettermindcare.com/privkey3.pem';
-  const prodCert = '/etc/letsencrypt/archive/staging.bettermindcare.com/fullchain3.pem';
+  let keyPath, certPath;
 
-  const keyPath = fs.existsSync(prodKey) ? prodKey : localKey;
-  const certPath = fs.existsSync(prodCert) ? prodCert : localCert;
+  // Prefer env vars
+  if (process.env.SSL_KEY && process.env.SSL_CERT) {
+    keyPath = process.env.SSL_KEY;
+    certPath = process.env.SSL_CERT;
+  } else {
+    // Check production certs first
+    const prodKey = '/etc/letsencrypt/live/staging.bettermindcare.com/privkey.pem';
+    const prodCert = '/etc/letsencrypt/live/staging.bettermindcare.com/fullchain.pem';
+
+    if (fs.existsSync(prodKey) && fs.existsSync(prodCert)) {
+      keyPath = prodKey;
+      certPath = prodCert;
+    } else {
+      // Local dev fallback
+      keyPath = path.resolve(__dirname, '../https-on-localhost/localhost.key');
+      certPath = path.resolve(__dirname, '../https-on-localhost/localhost.crt');
+    }
+  }
 
   // Verify they exist
   if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
