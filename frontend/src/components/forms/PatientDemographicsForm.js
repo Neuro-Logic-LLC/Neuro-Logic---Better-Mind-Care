@@ -25,7 +25,7 @@ function PatientDemographicsForm(props) {
   });
 
   const handleChange = (e) => {
-    const { id, value, type, checked } = e.target;
+    const { id, value, checked } = e.target;
 
     if (id === 'ethnicity') {
       const updated = checked

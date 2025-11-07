@@ -22,9 +22,6 @@ function Navbar() {
   );
   const isProd = process.env.NODE_ENV === 'production';
 
-  const base = isProd
-    ? 'https://staging.bettermindcare.com'
-    : 'https://localhost:5050';
   const handleLogout = async () => {
     try {
       const res = await fetch('/api/auth/logout', {
@@ -47,10 +44,6 @@ function Navbar() {
       navigate('/login', { replace: true });
     }
   };
-
-  const wpBase = isProd
-    ? 'https://bettermindcare.com'
-    : 'https://staging.bettermindcare.com';
 
   return (
     <nav className="navbar" aria-label="Main navigation">

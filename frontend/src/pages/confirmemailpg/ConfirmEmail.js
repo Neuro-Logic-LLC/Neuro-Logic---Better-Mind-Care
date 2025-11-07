@@ -29,8 +29,8 @@ export default function ConfirmEmail() {
           setStatus('❌ ' + (data.error || 'Unknown error'));
         }
       })
-      .catch(() => setStatus('❌ Server error. Please try again later.'));
-  }, []);
+       .catch(() => setStatus('❌ Server error. Please try again later.'));
+   }, [navigate]);
 
   return (
     <div

@@ -1,4 +1,4 @@
-export async function up(knex) {
+module.exports.up = async function(knex) {
   await knex.raw(`
     ALTER TABLE public.evexia_webhook_events
       ADD COLUMN IF NOT EXISTS headers_json jsonb,
@@ -7,7 +7,7 @@ export async function up(knex) {
   `);
 }
 
-export async function down(knex) {
+module.exports.down = async function(knex) {
   await knex.raw(`
     ALTER TABLE public.evexia_webhook_events
       DROP COLUMN IF EXISTS headers_json,

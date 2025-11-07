@@ -76,6 +76,7 @@ const S = {
 
 export default function CheckoutStep() {
   const { state, setField } = useSignup();
+  const { user } = useAuth();
   const [form, setForm] = useState({
     first_name: state.first_name || '',
     last_name: state.last_name || '',
@@ -86,7 +87,6 @@ export default function CheckoutStep() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [existingAccount, setExistingAccount] = useState(false);
-  const [user, setUser] = useState(useAuth()) || '';
   const [resent, setResent] = useState(false);
   const navigate = useNavigate();
 

@@ -12,7 +12,7 @@ const {
   sendEmailConfirmation,
   sendMfaCode,
   sendPasswordResetEmail
-} = require('../auth/mailer-oauth');
+} = require('../utils/email');
 
 const key = process.env.PGPCRYPTO_KEY;
 const utc = require('dayjs/plugin/utc');

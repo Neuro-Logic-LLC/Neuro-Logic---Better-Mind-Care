@@ -1,6 +1,6 @@
 const loadSSMParams = require('../utils/loadSSMParams');
-
-const nodemailer = require('nodemailer');
+const FormData = require('form-data');
+const Mailgun = require('mailgun.js');
 
 let transporter = null;
 
@@ -11,13 +11,24 @@ async function getTransporter() {
       process.env.NODE_ENV === 'production' ? '/bmc/prod/' : '/bmc/dev/'
     ]);
 
-    transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE, // e.g., 'gmail'
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
+    const mailgun = new Mailgun(FormData);
+    const mg = mailgun.client({
+      username: 'api',
+      key: process.env.MAILGUN_API_KEY,
+      url: process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net'
     });
+
+    transporter = {
+      sendMail: async (mailOptions) => {
+        return await mg.messages.create(process.env.MAILGUN_DOMAIN, {
+          from: mailOptions.from,
+          to: mailOptions.to,
+          subject: mailOptions.subject,
+          text: mailOptions.text,
+          html: mailOptions.html
+        });
+      }
+    };
   }
   return transporter;
 }
@@ -26,8 +37,8 @@ async function getTransporter() {
 exports.sendMfaCode = async (to, code) => {
   const transporter = await getTransporter();
 
-  const fromAddr = (process.env.SMTP_USER || '').trim();
-  if (!fromAddr) throw new Error('No FROM address: set SMTP_USER (and optionally SMTP_FROM)');
+  const fromAddr = (process.env.MAILGUN_FROM || '').trim();
+  if (!fromAddr) throw new Error('No FROM address: set MAILGUN_FROM');
 
   const mailOptions = {
     from: `"BetterMindCare" <${fromAddr}>`,
@@ -51,7 +62,7 @@ exports.sendPasswordResetEmail = async (to, resetLink) => {
   const transporter = await getTransporter();
 
   const mailOptions = {
-    from: `"BetterMindCare" <${process.env.SMTP_USER}>`,
+    from: `"BetterMindCare" <${process.env.MAILGUN_FROM}>`,
     to,
     subject: 'Reset Your Password',
     text: `You requested to reset your password.\n\nClick below:\n${resetLink}`,
@@ -74,7 +85,7 @@ exports.sendEmailConfirmation = async (to, token) => {
 
   const confirmLink = `${process.env.FRONTEND_URL}/confirm-email?token=${token}`;
   const mailOptions = {
-    from: `"BetterMindCare" <${process.env.EMAIL_USER}>`,
+    from: `"BetterMindCare" <${process.env.MAILGUN_FROM}>`,
     to,
     subject: 'Confirm Your Email Address',
     text: `Thank you for signing up!\n\nPlease confirm your email address:\n${confirmLink}`,
@@ -98,7 +109,7 @@ exports.sendUsernameReminder = async (to, username) => {
   const loginUrl = `${(process.env.FRONTEND_URL || '').replace(/\/$/, '')}/login`;
 
   const mailOptions = {
-    from: `"BetterMindCare" <${process.env.EMAIL_USER}>`,
+    from: `"BetterMindCare" <${process.env.MAILGUN_FROM}>`,
     to,
     subject: 'Your Username Reminder',
     text: `You requested a reminder of your username.

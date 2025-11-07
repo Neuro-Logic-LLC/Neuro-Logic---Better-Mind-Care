@@ -2,14 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSignup } from './SignupContext';
 import { useAuth } from '../../auth/AuthContext';
-import {
-  PrimaryButton,
-  SecondaryButton
-} from '../../components/button/Buttons';
+import { PrimaryButton } from '../../components/button/Buttons';
 
 export default function EmailStep() {
-  const { user, loading } = useAuth();
-  const { state, setField } = useSignup();
+  const { setField } = useSignup();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();

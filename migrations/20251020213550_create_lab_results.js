@@ -2,7 +2,7 @@
 /**
  * @param { import('knex').Knex } knex
  */
-export async function up(knex) {
+module.exports.up = async function(knex) {
   await knex.schema.createTable('lab_results', (t) => {
     t.increments('id').primary();
 
@@ -33,6 +33,6 @@ export async function up(knex) {
 /**
  * @param { import('knex').Knex } knex
  */
-export async function down(knex) {
+module.exports.down = async function(knex) {
   await knex.schema.dropTableIfExists('lab_results');
 }

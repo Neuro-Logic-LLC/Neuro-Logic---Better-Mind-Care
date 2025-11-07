@@ -30,6 +30,7 @@ coverage/
 *.local
 *.ecosystem.config.js
 *.development
+*.env
 https-on-localhost/fullchain.pem
 https-on-localhost/privkey.pem
 https-on-localhost/key.pem

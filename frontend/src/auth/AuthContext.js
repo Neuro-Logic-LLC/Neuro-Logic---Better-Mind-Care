@@ -8,14 +8,6 @@ import {
 } from 'react';
 
 // ---- shared API base detection (same as your login file) ----
-function normalizeBase(raw) {
-  const b = (raw || '').trim();
-  return b ? b.replace(/\/+$/, '') : '';
-}
-function readMeta(name) {
-  const el = document.querySelector(`meta[name="${name}"]`);
-  return el ? el.getAttribute('content') : '';
-}
 const API_BASE = (() => {
   const injected = (
     (window.__APP_CONFIG__ && window.__APP_CONFIG__.API_BASE) ||
@@ -110,7 +102,7 @@ export function AuthProvider({ children }) {
       // use replace so Back doesn’t resurrect dashboard
       window.location.replace('/login');
     }
-  }, [req, setUser]);
+  }, [setUser]);
 
   return (
     <AuthContext.Provider value={{ user, setUser, loading, logout }}>

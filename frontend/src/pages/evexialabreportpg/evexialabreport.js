@@ -20,12 +20,9 @@ export default function EvexiaLabReport() {
     qp('ExternalClientID') ||
     qp('externalClientId') ||
     ''
-  ).trim();
+   ).trim();
 
-  const API_BASE =
-    process.env.NODE_ENV === 'production' ? '' : 'https://localhost:5050';
-
-  const [status, setStatus] = useState('idle'); // idle | loading | done | error
+   const [status, setStatus] = useState('idle'); // idle | loading | done | error
   const [error, setError] = useState(null);
   const [blobUrl, setBlobUrl] = useState(null);
   const [fileName, setFileName] = useState(

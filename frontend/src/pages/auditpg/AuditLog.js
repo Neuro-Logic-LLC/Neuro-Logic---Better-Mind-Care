@@ -7,11 +7,8 @@ export default function AuditLog() {
   const navigate = useNavigate();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userTimeZone, setUserTimeZone] = useState('');
 
   useEffect(() => {
-    const detectedTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    setUserTimeZone(detectedTZ);
 
     if (!user || !['admin', 'superadmin'].includes(user.role.toLowerCase())) {
       alert('Access denied: Admins only');

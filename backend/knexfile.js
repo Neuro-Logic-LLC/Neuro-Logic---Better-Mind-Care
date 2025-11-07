@@ -8,7 +8,7 @@ async function getConnection() {
     cached = true;
   }
 
-  const sslRequired = process.env.DB_SSL ===   'true';
+  const sslRequired = process.env.DB_SSL === 'true' && process.env.NODE_ENV === 'production';
 
   return {
     host: process.env.DB_HOST,
@@ -16,18 +16,19 @@ async function getConnection() {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    ...(sslRequired && {
-      ssl: {
-        rejectUnauthorized: false, // disable cert verification for self-signed or default RDS certs
-      },
-    }),
+    ssl: sslRequired ? {
+      rejectUnauthorized: false, // disable cert verification for self-signed or default RDS certs
+    } : false,
   };
 }
 
 module.exports = {
   development: {
     client: 'pg',
-    connection: getConnection,
+    connection: async () => {
+      const conn = await getConnection();
+      return { ...conn, ssl: false }; // Force no SSL for local dev
+    },
     migrations: {
       directory: '../migrations',
     },
