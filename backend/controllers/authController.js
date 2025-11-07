@@ -113,8 +113,21 @@ exports.login = async (req, res) => {
     // ---- FIX: derive a valid recipient ----
     const candidate1 = normalizeEmail(user?.email_canon);
     const candidate2 = normalizeEmail(email);
-    const toAddress = isEmail(candidate1) ? candidate1 : isEmail(candidate2) ? candidate2 : '';
+    const toAddress = candidate2 || candidate1;
+    
+      console.log('DEBUG MFA email:', {
+  email: user.email,
+  email_canon: user.email_canon,
+  candidate1,
+  candidate2,
+  reqEmail: email
+});
 
+console.log('MAILGUN DEBUG', {
+  DOMAIN: process.env.MAILGUN_DOMAIN,
+  FROM: process.env.MAILGUN_FROM,
+  API_KEY: process.env.MAILGUN_API_KEY ? '✅ set' : '❌ missing'
+});
     if (!toAddress) {
       // log sanitized details for debugging
       console.error('MFA send aborted: no valid recipient email', { candidate1, candidate2 });
