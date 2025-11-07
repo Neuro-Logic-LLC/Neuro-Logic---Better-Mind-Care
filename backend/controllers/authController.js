@@ -8,11 +8,9 @@ const dayjs = require('dayjs');
 const { info } = require('console');
 const { v4: uuidv4 } = require('uuid');
 
-const {
-  sendEmailConfirmation,
-  sendMfaCode,
-  sendPasswordResetEmail
-} = require('../auth/mailer-oauth');
+// const { sendMfaCode, sendPasswordResetEmail, sendEmailConfirmation } = require ('../auth/mailer-oauth'); 
+
+const { sendMfaCode, sendPasswordResetEmail, sendEmailConfirmation } = require('../utils/email')
 
 const key = process.env.PGPCRYPTO_KEY;
 const utc = require('dayjs/plugin/utc');
