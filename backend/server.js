@@ -39,9 +39,9 @@ async function loadSSMIntoEnv(pathPrefix) {
 
 (async () => {
   const isProd = process.env.NODE_ENV === 'production';
-  const port = Number(process.env.PORT) || 5050;
+  const ssmPath = isProd ? '/bmc/prod' : '/bmc/dev';
+  await loadSSMIntoEnv(ssmPath);
 
-<<<<<<< HEAD
   if (!process.env.SESSION_SECRET) throw new Error('SESSION_SECRET missing after SSM load');
 
   const app = require('./app'); // env is ready now
@@ -80,67 +80,12 @@ async function loadSSMIntoEnv(pathPrefix) {
       console.log(`🚀 HTTP server running on http://localhost:${PORT}`);
     });
     return;
-=======
-  const ssmPath = process.env.SSM_PARAMS_PATH || (isProd ? '/bmc/prod' : '/bmc/dev');
-  if (process.env.DISABLE_SSM === 'true') {
-    console.log('[ssm] Skipping SSM parameter load (DISABLE_SSM=true)');
-  } else if (ssmPath) {
-    try {
-      await loadSSMIntoEnv(ssmPath);
-    } catch (err) {
-      if (isProd) throw err;
-      console.warn(`[ssm] Failed to load ${ssmPath}: ${err.message}. Using existing env vars.`);
-    }
->>>>>>> d547ae3 (server.js and OIDC js changed)
   }
 
-  if (!process.env.SESSION_SECRET) {
-    if (isProd) throw new Error('SESSION_SECRET missing after env bootstrap');
-    console.warn('[env] SESSION_SECRET missing, using dev fallback. Do not use in production.');
-    process.env.SESSION_SECRET = process.env.SESSION_SECRET || 'dev-only-secret-change-me';
-  }
+  const key = fs.readFileSync(keyPath);
+  const cert = fs.readFileSync(certPath);
 
-  const wantsHttpsLocal = !isProd && process.env.LOCAL_HTTPS !== 'false';
-  const keyPath = process.env.LOCAL_HTTPS_KEY || path.join(LOCAL_CERT_DIR, 'privkey.pem');
-  const certPath = process.env.LOCAL_HTTPS_CERT || path.join(LOCAL_CERT_DIR, 'fullchain.pem');
-  const haveCerts = fs.existsSync(keyPath) && fs.existsSync(certPath);
-  const useHttps = wantsHttpsLocal && haveCerts;
-  if (wantsHttpsLocal && !haveCerts) {
-    console.warn('[https] Local TLS certs not found, falling back to HTTP.');
-  }
-
-  const envBase = trimTrailingSlash(
-    process.env.BACKEND_PUBLIC_URL
-    || process.env.GOOGLE_REDIRECT_BASE
-    || ''
-  );
-  const fallbackBase = isProd
-    ? 'https://staging.bettermindcare.com'
-    : `${useHttps ? 'https' : 'http'}://localhost:${port}`;
-  const base = trimTrailingSlash(envBase || fallbackBase);
-
-  if (!process.env.BACKEND_PUBLIC_URL && base) {
-    process.env.BACKEND_PUBLIC_URL = base;
-  }
-
-  const app = require('./app');
-
-  await initGoogle({ base });
-
-  const onListen = () => {
-    console.log(`🚀 Server running on ${base}`);
-  };
-
-  if (useHttps) {
-    const credentials = {
-      key: fs.readFileSync(keyPath),
-      cert: fs.readFileSync(certPath),
-    };
-    https.createServer(credentials, app).listen(port, onListen);
-  } else {
-    app.listen(port, onListen);
-  }
-})().catch(err => {
-  console.error('[server] fatal startup error:', err);
-  process.exit(1);
-});
+  https.createServer({ key, cert }, app).listen(PORT, () => {
+    console.log(`🚀 HTTPS server running on ${base}`);
+  });
+})();
