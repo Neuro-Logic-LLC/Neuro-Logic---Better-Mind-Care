@@ -8,7 +8,7 @@ async function getConnection() {
     cached = true;
   }
 
-  const sslRequired = process.env.DB_SSL === 'true' && process.env.NODE_ENV === 'production';
+  const sslRequired = process.env.NODE_ENV === 'production';
 
   return {
     host: process.env.DB_HOST,
