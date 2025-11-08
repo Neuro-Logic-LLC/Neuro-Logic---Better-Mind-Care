@@ -30,6 +30,7 @@ import ForgotPassword from './pages/forgotpasswordpg/ForgotPassword';
 import ResetPassword from './pages/resetpasswordpg/ResetPassword';
 import ConfirmEmail from './pages/confirmemailpg/ConfirmEmail';
 import GoogleCalendar from './pages/calendarpg/GoogleCalendar';
+import DoctorScheduler from './pages/doctorschedulerpg/doctorscheduler';
 import SuccessPage from './pages/successpg/Success';
 import CancelPage from './pages/cancelpg/Cancel';
 import CheckoutPage from './pages/checkoutpg/Checkout';
@@ -65,7 +66,8 @@ function App() {
                   path="/evexia-lab-results"
                   element={<EvexiaLabReport />}
                 />
-                <Route path="/google-calendar" element={<GoogleCalendar />} />
+                 <Route path="/google-calendar" element={<GoogleCalendar />} />
+                 <Route path="/doctor-scheduler" element={<DoctorScheduler />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/success" element={<SuccessPage />} />
                 <Route path="/cancel-order" element={<CancelPage />} />
