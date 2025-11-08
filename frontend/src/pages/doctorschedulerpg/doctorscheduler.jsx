@@ -35,6 +35,9 @@ const SLOT_MINUTES = 30; // bookable slot length
 const MIN_NOTICE_HOURS = 2; // no booking within next X hours
 const PADDING_MINUTES = 10; // gap after each appointment
 
+// Demo mode for Google verification video
+const MOCK_CALENDAR = true;
+
 export default function DoctorScheduler() {
   // state
   const [date, setDate] = useState(new Date());
@@ -137,6 +140,18 @@ export default function DoctorScheduler() {
   const book = async () => {
     try {
       if (!patientEmail) throw new Error('Patient email is required');
+
+      if (MOCK_CALENDAR) {
+        // Mock success for demo
+        alert(
+          `✅ Appointment added to Google Calendar (demo mode)\n\nMock Meet link: https://meet.google.com/mock-link\n\nA mock email invite was simulated to ${patientEmail}.\n\nDemo Mode: Simulated Calendar Event.`
+        );
+        setModal(null);
+        // refresh availability so we don’t show the just-booked slot
+        setDate(new Date(date));
+        return;
+      }
+
       const res = await fetch(`${API}/api/googleCalendar/create-meeting`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -181,6 +196,11 @@ export default function DoctorScheduler() {
 
   return (
     <div className="p-4" style={{ maxWidth: 1000, margin: '24px auto' }}>
+      {MOCK_CALENDAR && (
+        <div style={{ background: '#fef3c7', color: '#92400e', padding: 8, borderRadius: 8, marginBottom: 12 }}>
+          ⚠️ Demo Mode: Simulated Calendar Event Creation
+        </div>
+      )}
       <h1 style={{ fontSize: 28, marginBottom: 12 }}>Calendar Meeting</h1>
       <div style={{ marginBottom: 8, color: '#475569' }}>
         Your timezone: <strong>{tz}</strong> · Slot:{' '}
