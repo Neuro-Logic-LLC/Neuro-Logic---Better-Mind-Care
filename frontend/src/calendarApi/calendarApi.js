@@ -24,11 +24,6 @@ export async function fetchEvents(startISO, endISO) {
   if (!res.ok) throw new Error(await res.text());
   return (await res.json()).events;
 }
-  );
-  if (res.status === 401) throw new Error('google_reauth');
-  if (!res.ok) throw new Error(await res.text());
-  return (await res.json()).events;
-}
 
 export async function createMeeting({
   summary,
