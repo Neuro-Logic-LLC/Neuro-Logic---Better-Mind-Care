@@ -21,6 +21,16 @@ export async function createMeeting({
   patient_email,
   patient_name
 }) {
+  if (process.env.REACT_APP_MOCK_CALENDAR === 'true') {
+    console.log('[Mock] Simulating createMeeting');
+    // Mock response
+    return {
+      join_url: 'https://meet.google.com/mock-link',
+      html_link: 'https://calendar.google.com/mock-event',
+      id: 'mock-event-id'
+    };
+  }
+
   const payload = {
     summary,
     description,
