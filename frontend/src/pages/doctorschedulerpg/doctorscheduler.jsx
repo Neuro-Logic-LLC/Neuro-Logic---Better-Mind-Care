@@ -39,11 +39,12 @@ const PADDING_MINUTES = 10; // gap after each appointment
 // This simulates calendar event creation without real API calls,
 // since unverified apps are blocked by Google. Shows the UI flow
 // for scheduling meetings with Meet links using calendar.events scope.
-// Set to false after verification to use real Google Calendar API.
+// Controlled by REACT_APP_MOCK_CALENDAR env var.
+// Set REACT_APP_MOCK_CALENDAR=true for demo, false for prod.
 // Jerod: This is for the OAuth verification video submission.
 // Google requires showing how we use the scope, but blocks real calls
 // for unverified apps, so we mock the success response.
-const MOCK_CALENDAR = true;
+const MOCK_CALENDAR = process.env.REACT_APP_MOCK_CALENDAR === 'true';
 
 export default function DoctorScheduler() {
   // state
@@ -149,6 +150,7 @@ export default function DoctorScheduler() {
       if (!patientEmail) throw new Error('Patient email is required');
 
       if (MOCK_CALENDAR) {
+        console.log('[Mock] Simulating calendar event creation');
         // Mock success for demo: Simulates creating a Google Calendar event
         // with Meet conference data, as if calling calendar.events.insert API.
         // This demonstrates the app's functionality for Google verification,
