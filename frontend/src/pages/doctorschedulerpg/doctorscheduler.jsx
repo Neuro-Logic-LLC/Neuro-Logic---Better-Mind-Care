@@ -36,6 +36,13 @@ const MIN_NOTICE_HOURS = 2; // no booking within next X hours
 const PADDING_MINUTES = 10; // gap after each appointment
 
 // Demo mode for Google verification video
+// This simulates calendar event creation without real API calls,
+// since unverified apps are blocked by Google. Shows the UI flow
+// for scheduling meetings with Meet links using calendar.events scope.
+// Set to false after verification to use real Google Calendar API.
+// Jerod: This is for the OAuth verification video submission.
+// Google requires showing how we use the scope, but blocks real calls
+// for unverified apps, so we mock the success response.
 const MOCK_CALENDAR = true;
 
 export default function DoctorScheduler() {
@@ -142,7 +149,11 @@ export default function DoctorScheduler() {
       if (!patientEmail) throw new Error('Patient email is required');
 
       if (MOCK_CALENDAR) {
-        // Mock success for demo
+        // Mock success for demo: Simulates creating a Google Calendar event
+        // with Meet conference data, as if calling calendar.events.insert API.
+        // This demonstrates the app's functionality for Google verification,
+        // showing how calendar.events scope enables event creation with Meet links.
+        // In production, this would be a real API call to Google Calendar.
         alert(
           `✅ Appointment added to Google Calendar (demo mode)\n\nMock Meet link: https://meet.google.com/mock-link\n\nA mock email invite was simulated to ${patientEmail}.\n\nDemo Mode: Simulated Calendar Event.`
         );
@@ -197,6 +208,7 @@ export default function DoctorScheduler() {
   return (
     <div className="p-4" style={{ maxWidth: 1000, margin: '24px auto' }}>
       {MOCK_CALENDAR && (
+        // Banner to indicate demo mode for the verification video
         <div style={{ background: '#fef3c7', color: '#92400e', padding: 8, borderRadius: 8, marginBottom: 12 }}>
           ⚠️ Demo Mode: Simulated Calendar Event Creation
         </div>
