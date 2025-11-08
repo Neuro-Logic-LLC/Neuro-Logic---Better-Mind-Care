@@ -1,10 +1,29 @@
 // calendarApi.ts
 export async function fetchEvents(startISO, endISO) {
+  if (process.env.REACT_APP_MOCK_CALENDAR === 'true') {
+    console.log('[Mock] Simulating fetchEvents');
+    // Mock events
+    return [
+      {
+        id: 'mock-event-1',
+        summary: 'Mock Telehealth Visit',
+        start: { dateTime: new Date(Date.now() + 3600000).toISOString() },
+        end: { dateTime: new Date(Date.now() + 7200000).toISOString() },
+        htmlLink: 'https://calendar.google.com/mock-event'
+      }
+    ];
+  }
+
   const res = await fetch(
-    `/api/calendar/events?start=${encodeURIComponent(startISO)}&end=${encodeURIComponent(endISO)}`,
+    `/api/googleCalendar/events?start=${encodeURIComponent(startISO)}&end=${encodeURIComponent(endISO)}`,
     {
       credentials: 'include'
     }
+  );
+  if (res.status === 401) throw new Error('google_reauth');
+  if (!res.ok) throw new Error(await res.text());
+  return (await res.json()).events;
+}
   );
   if (res.status === 401) throw new Error('google_reauth');
   if (!res.ok) throw new Error(await res.text());
@@ -57,6 +76,12 @@ export async function createMeeting({
 const BASE = '/api/googleCalendar';
 
 export async function updateEvent(calendarId, id, payload) {
+  if (process.env.REACT_APP_MOCK_CALENDAR === 'true') {
+    console.log('[Mock] Simulating updateEvent');
+    // Mock success
+    return { id, ...payload };
+  }
+
   const res = await fetch(
     `${BASE}/events/${encodeURIComponent(id)}?calendarId=${encodeURIComponent(calendarId)}`,
     {
@@ -74,6 +99,12 @@ export async function updateEvent(calendarId, id, payload) {
 }
 
 export async function deleteEvent(calendarId, id) {
+  if (process.env.REACT_APP_MOCK_CALENDAR === 'true') {
+    console.log('[Mock] Simulating deleteEvent');
+    // Mock success
+    return {};
+  }
+
   const res = await fetch(
     `${BASE}/events/${encodeURIComponent(id)}?calendarId=${encodeURIComponent(calendarId)}`,
     {
