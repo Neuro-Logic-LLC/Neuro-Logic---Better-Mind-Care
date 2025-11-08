@@ -188,6 +188,7 @@ function parseProviderId(id) {
 
 // 🔐 Session check: uses `req.user` from middleware
 exports.getMe = async (req, res) => {
+  console.log('getMe called');
   const knex = await initKnex();
   const key = process.env.PGPCRYPTO_KEY;
   if (!key) return res.status(500).json({ error: 'Encryption key not found' });
