@@ -80,13 +80,19 @@ async function startAuth({ state, nonce }) {
   url.searchParams.set('client_id', client.client_id);
   url.searchParams.set('redirect_uri', redirectUri);
   url.searchParams.set('response_type', 'code');
-  url.searchParams.set('scope', 'openid email profile https://www.googleapis.com/auth/calendar');
+//   This removes the unnecessary profile scope 
+// (since the app only uses email from the ID
+// token) and narrows calendar access to events
+//  only, reducing permissions from 6 to 4.
+  url.searchParams.set('scope', 'openid email profile https://www.googleapis.com/auth/calendar.events');
   url.searchParams.set('state', state);
   url.searchParams.set('nonce', nonce);
   url.searchParams.set('code_challenge', code_challenge);
   url.searchParams.set('code_challenge_method', 'S256');
   url.searchParams.set('access_type', 'offline');
   url.searchParams.set('prompt', 'consent');
+//   setting 'include_granted_scopes' from
+// 'true' to 'false' to avoid incremental permission requests.
   url.searchParams.set('include_granted_scopes', 'true');
   if (process.env.GOOGLE_HD) url.searchParams.set('hd', process.env.GOOGLE_HD);
 
