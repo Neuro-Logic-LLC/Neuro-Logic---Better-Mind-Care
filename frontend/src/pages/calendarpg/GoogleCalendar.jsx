@@ -33,7 +33,7 @@ const localizer = dateFnsLocalizer({
   locales
 });
 
-const USE_MOCK_CALENDAR = process.env.REACT_APP_CALENDAR_MOCK === '1';
+const USE_MOCK_CALENDAR = process.env.REACT_APP_MOCK_CALENDAR === 'true';
 
 const toolbarButtonStyle = {
   minWidth: 44,

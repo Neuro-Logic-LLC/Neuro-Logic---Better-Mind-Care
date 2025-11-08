@@ -25,7 +25,7 @@ const localizer = dateFnsLocalizer({
 const isLocal =
   window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1';
-const API = isLocal ? 'https://localhost:5050' : '';
+const API = isLocal ? 'http://localhost:5050' : '';
 const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const toISO = (s) => (s ? new Date(s).toISOString() : undefined);
 const yyyy_mm_dd = (d) => format(d, 'yyyy-MM-dd');
