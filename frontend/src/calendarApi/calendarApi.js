@@ -32,7 +32,7 @@ export async function createMeeting({
     patient_name
   };
 
-  const res = await fetch('/api/calendar/create-meeting', {
+  const res = await fetch('/api/googleCalendar/create-meeting', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -44,7 +44,7 @@ export async function createMeeting({
   return data;
 }
 
-const BASE = '/api/calendar';
+const BASE = '/api/googleCalendar';
 
 export async function updateEvent(calendarId, id, payload) {
   const res = await fetch(
@@ -92,7 +92,7 @@ export async function fetchPaidCalendarAccess(
   if (patient_name) params.append('patient_name', patient_name);
 
   const res = await fetch(
-    `/api/calendar/calendar-access?${params.toString()}`,
+    `/api/googleCalendar/calendar-access?${params.toString()}`,
     {
       credentials: 'include'
     }
