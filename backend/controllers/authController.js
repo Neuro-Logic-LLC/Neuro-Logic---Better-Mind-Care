@@ -8,9 +8,9 @@ const dayjs = require('dayjs');
 const { info } = require('console');
 const { v4: uuidv4 } = require('uuid');
 
-// const { sendMfaCode, sendPasswordResetEmail, sendEmailConfirmation } = require ('../auth/mailer-oauth'); 
+// const { sendMfaCode, sendPasswordResetEmail, sendEmailConfirmation } = require ('../auth/mailer-oauth');
 
-const { sendMfaCode, sendPasswordResetEmail, sendEmailConfirmation } = require('../utils/email')
+const { sendMfaCode, sendPasswordResetEmail, sendEmailConfirmation } = require('../utils/email');
 
 const key = process.env.PGPCRYPTO_KEY;
 const utc = require('dayjs/plugin/utc');
@@ -114,20 +114,20 @@ exports.login = async (req, res) => {
     const candidate1 = normalizeEmail(user?.email_canon);
     const candidate2 = normalizeEmail(email);
     const toAddress = candidate2 || candidate1;
-    
-      console.log('DEBUG MFA email:', {
-  email: user.email,
-  email_canon: user.email_canon,
-  candidate1,
-  candidate2,
-  reqEmail: email
-});
 
-console.log('MAILGUN DEBUG', {
-  DOMAIN: process.env.MAILGUN_DOMAIN,
-  FROM: process.env.MAILGUN_FROM,
-  API_KEY: process.env.MAILGUN_API_KEY ? '✅ set' : '❌ missing'
-});
+    console.log('DEBUG MFA email:', {
+      email: user.email,
+      email_canon: user.email_canon,
+      candidate1,
+      candidate2,
+      reqEmail: email
+    });
+
+    console.log('MAILGUN DEBUG', {
+      DOMAIN: process.env.MAILGUN_DOMAIN,
+      FROM: process.env.MAILGUN_FROM,
+      API_KEY: process.env.MAILGUN_API_KEY ? '✅ set' : '❌ missing'
+    });
     if (!toAddress) {
       // log sanitized details for debugging
       console.error('MFA send aborted: no valid recipient email', { candidate1, candidate2 });
@@ -155,21 +155,20 @@ exports.logout = async (req, res) => {
   await new Promise(r => (req.session?.destroy ? req.session.destroy(() => r()) : r()));
 
   const isProd = process.env.NODE_ENV === 'production';
-  const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https' || isProd;
+  const isHttps =
+    req.secure || (req.headers['x-forwarded-proto'] || '').includes('https') || isProd;
 
-  // EXACT match for how issueSessionCookie() sets it in prod: sameSite:'lax', domain apex, path '/'
-  const prodOpts = { httpOnly: true, secure: true, sameSite: 'lax', path: '/', domain: APEX };
-  const hostOnly = { ...prodOpts, domain: undefined };
+  // These must match issueSessionCookie() exactly
+  const commonOpts = {
+    httpOnly: true,
+    secure: isHttps,
+    sameSite: isProd ? 'none' : 'lax',
+    path: '/',
+    domain: isProd ? '.bettermindcare.com' : undefined
+  };
 
   for (const n of NAMES) {
-    if (isProd) {
-      res.clearCookie(n, prodOpts); // apex-domain cookie
-      res.clearCookie(n, hostOnly); // host-only variant
-    } else {
-      // dev: issuer uses sameSite:'none' and no domain; still path:'/'
-      res.clearCookie(n, { httpOnly: true, secure: isHttps, sameSite: 'none', path: '/' });
-      res.clearCookie(n, { httpOnly: true, secure: isHttps, sameSite: 'none', path: '/api' });
-    }
+    res.clearCookie(n, commonOpts);
   }
 
   res.set('Cache-Control', 'no-store');
@@ -426,20 +425,22 @@ exports.resetPassword = async (req, res) => {
   if (!token || !newPassword) return res.status(400).json({ error: 'Missing token or password' });
 
   // 1) Basic password policy (tune as needed)
-const strongEnough =
-  typeof newPassword === 'string' &&
-  newPassword.length >= 8 &&
-  /[A-Z]/.test(newPassword) &&
-  /[a-z]/.test(newPassword) &&
-  /[0-9]/.test(newPassword) &&
-  /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
+  const strongEnough =
+    typeof newPassword === 'string' &&
+    newPassword.length >= 8 &&
+    /[A-Z]/.test(newPassword) &&
+    /[a-z]/.test(newPassword) &&
+    /[0-9]/.test(newPassword) &&
+    /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
 
-if (!strongEnough) {
-  return res.status(400).json({
-    error: 'Weak password: Password must be at least 8 characters long and include uppercase, lowercase, number, and one special character.',
-    detail: 'Password must be at least 8 characters long and include uppercase, lowercase, number, and one special character.'
-  });
-}
+  if (!strongEnough) {
+    return res.status(400).json({
+      error:
+        'Weak password: Password must be at least 8 characters long and include uppercase, lowercase, number, and one special character.',
+      detail:
+        'Password must be at least 8 characters long and include uppercase, lowercase, number, and one special character.'
+    });
+  }
 
   // Best-effort client IP (behind proxy aware)
   const xf = req.headers['x-forwarded-for'];
@@ -986,7 +987,8 @@ exports.publicSignup = async (req, res) => {
       !/[!@#$%^&*(),.?":{}|<>]/.test(password)
     ) {
       return res.status(400).json({
-        error: 'Weak password: Password must be at least 8 characters long and include uppercase, lowercase, number, and one special character.',
+        error:
+          'Weak password: Password must be at least 8 characters long and include uppercase, lowercase, number, and one special character.',
         detail: 'Password must be at least 8 characters and include one special character.'
       });
     }

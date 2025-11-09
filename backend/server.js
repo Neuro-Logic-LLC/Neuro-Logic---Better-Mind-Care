@@ -1,8 +1,7 @@
-// server.js
 require('dotenv').config();
 const fs = require('fs');
-const path = require('path');
 const https = require('https');
+const path = require('path');
 const { SSMClient, GetParametersByPathCommand } = require('@aws-sdk/client-ssm');
 const { initGoogle } = require('./auth/OIDC');
 
@@ -11,6 +10,7 @@ async function loadSSMIntoEnv(pathPrefix) {
   const ssm = new SSMClient({ region });
   const base = pathPrefix.endsWith('/') ? pathPrefix : pathPrefix + '/';
   let nextToken;
+
   do {
     const out = await ssm.send(
       new GetParametersByPathCommand({
@@ -24,6 +24,7 @@ async function loadSSMIntoEnv(pathPrefix) {
       const k = p.Name.replace(base, '');
       if (!(k in process.env)) process.env[k] = p.Value ?? '';
     }
+
     nextToken = out.NextToken;
   } while (nextToken);
 

@@ -7,14 +7,19 @@ function issueSessionCookie(arg1, arg2, arg3) {
   // Accept both signatures:
   //   issueSessionCookie(req, res, payload)
   //   issueSessionCookie(res, payload)
-  let req = null, res = null, payload = null;
+  let req = null,
+    res = null,
+    payload = null;
 
   if (arg3 !== undefined) {
     // 3-arg form
-    req = arg1; res = arg2; payload = arg3;
+    req = arg1;
+    res = arg2;
+    payload = arg3;
   } else {
     // 2-arg form
-    res = arg1; payload = arg2;
+    res = arg1;
+    payload = arg2;
   }
 
   if (!payload || typeof payload !== 'object') {
@@ -29,25 +34,24 @@ function issueSessionCookie(arg1, arg2, arg3) {
     {
       sub: String(sub),
       email: payload.email || '',
-      role: payload.role || 'user',
+      role: payload.role || 'user'
     },
     secret,
     { expiresIn: '7d', issuer: 'bettermindcare' }
   );
 
   const isProd = process.env.NODE_ENV === 'production';
-  const isSecure =
-    req
-      ? (req.secure || (req.headers['x-forwarded-proto'] || '').includes('https'))
-      : isProd; // no req in 2-arg form
+  const isHttps = req
+    ? req.secure || (req.headers['x-forwarded-proto'] || '').includes('https')
+    : isProd;
 
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: true,
-    sameSite: isProd ? 'lax' : 'none',
+    secure: isHttps, // ✅ only secure over HTTPS
+    sameSite: isProd ? 'none' : 'lax', // ✅ none for prod HTTPS, lax for localhost
     path: '/',
     domain: isProd ? '.bettermindcare.com' : undefined,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    maxAge: 7 * 24 * 60 * 60 * 1000
   });
 
   return token;

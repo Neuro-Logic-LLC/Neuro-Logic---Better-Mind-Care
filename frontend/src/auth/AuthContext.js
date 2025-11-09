@@ -29,7 +29,7 @@ const API_BASE = (() => {
 
   const host = window.location.hostname;
   if (host === 'localhost' || host === '127.0.0.1')
-    return 'https://localhost:5050';
+    return 'http://localhost:5050';
 
   if (host.includes('staging.bettermindcare.com'))
     return 'https://staging.bettermindcare.com';
