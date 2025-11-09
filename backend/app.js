@@ -58,37 +58,41 @@ app.get('/', (_req, res) => res.send('Hello HTTPS!'));
 app.get('/api/health', (_req, res) => res.send('ok'));
 
 // ---- ✅ Stripe webhook FIRST (raw body, isolated) ----
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+const stripe =   process.env.NODE_ENV === 'production'
+    ? process.env.STRIPE_SECRET_KEY_LIVE
+    : process.env.STRIPE_WEBHOOK_SECRET_LOCAL;
+app.post('/api/stripe/webhook', express.raw({ type: '*/*' }), async (req, res) => {
   try {
     const event = stripe.webhooks.constructEvent(
       req.body,
       req.headers['stripe-signature'],
       process.env.STRIPE_WEBHOOK_SECRET
     );
-    console.log('[webhook] Verified event:', event.type);
+    console.log('[webhook] ✅ Verified event:', event.type);
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
-      console.log('[webhook] checkout.session.completed for', session.id);
+      console.log('[webhook] checkout.session.completed fired:', session.id);
+      console.log('[webhook] metadata:', session.metadata);
 
-      const patientData = session.metadata || {};
-
-      await knex('stripe_payments').insert({
-        stripe_session_id: session.id,
-        stripe_payment_intent_id: session.payment_intent || null,
-        user_id: session.metadata?.user_id || null,
-        product_key: session.metadata?.productKey || '',
-        amount: session.amount_total / 100,
-        currency: session.currency,
-        status: session.payment_status || 'unknown',
-        metadata: JSON.stringify(patientData),
-        evexia_processed: false,
-        created_at: new Date(),
-        updated_at: new Date()
-      });
-
-      console.log('[webhook] ✅ Saved payment for session', session.id);
+      try {
+        await knex('stripe_payments').insert({
+          stripe_session_id: session.id,
+          stripe_payment_intent_id: session.payment_intent || null,
+          user_id: session.metadata?.user_id || null,
+          product_key: session.metadata?.productKey || '',
+          amount: session.amount_total / 100,
+          currency: session.currency,
+          status: session.payment_status || 'unknown',
+          metadata: JSON.stringify(session.metadata || {}),
+          evexia_processed: false,
+          created_at: new Date(),
+          updated_at: new Date()
+        });
+        console.log('[webhook] ✅ Inserted payment into DB for session', session.id);
+      } catch (dbErr) {
+        console.error('[webhook] ❌ DB insert failed:', dbErr);
+      }
     }
 
     res.sendStatus(200);
