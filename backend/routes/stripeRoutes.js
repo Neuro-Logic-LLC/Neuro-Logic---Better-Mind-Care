@@ -176,7 +176,6 @@ router.post('/checkout', express.json(), async (req, res) => {
     res.status(400).json({ error: err.message || 'Stripe error' });
   }
 });
-
 // ---- Webhook (must use raw body) ----
 // router.post('/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
 //   let event;
@@ -281,33 +280,74 @@ router.post('/checkout', express.json(), async (req, res) => {
 //     res.status(200).end();
 //   }
 // );
-router.post("/webhook", async (req, res) => {
-  try {
-    console.log("🔔 Webhook hit");
-    console.log("Body:", req.body);
+// router.post(
+//   "/webhook",
+//   express.raw({ type: "application/json" }),
+//   async (req, res) => {
+//     let event;
+//     try {
+//       const sig = req.headers["stripe-signature"];
+//       const whSecret = process.env.STRIPE_WEBHOOK_SECRET;
+//       const s = getStripe();
+//       event = s.webhooks.constructEvent(req.body, sig, whSecret);
+//     } catch (err) {
+//       console.error("[stripe] bad webhook signature:", err.message);
+//       return res.status(400).send(`Webhook Error: ${err.message}`);
+//     }
 
-    const event = req.body;
-    console.log("Event type:", event?.type);
+//     console.log("[stripe] webhook event:", event.type);
 
-    // Handle a couple event types
-    switch (event.type) {
-      case "checkout.session.completed":
-        console.log("✅ Checkout completed:", event.data.object.id);
-        break;
-      case "payment_intent.succeeded":
-        console.log("💰 Payment succeeded:", event.data.object.id);
-        break;
-      default:
-        console.log("Unhandled event:", event.type);
-    }
+//     try {
+//       if (event.type === "checkout.session.completed") {
+//         const session = event.data.object;
+//         const s = getStripe();
 
-    // Must always send a response
-    return res.sendStatus(200);
-  } catch (err) {
-    console.error("💥 Webhook error:", err);
-    // make sure Stripe gets a response even on crash
-    if (!res.headersSent) res.status(400).send("Webhook handler failed");
-  }
-});
+//         const customer = await s.customers.retrieve(session.customer, {
+//           expand: ["address"],
+//         });
+
+//         const patientData = {
+//           FirstName: customer.name?.split(" ")[0] || "",
+//           LastName: customer.name?.split(" ").slice(1).join(" ") || "",
+//           EmailAddress: customer.email || "",
+//           Phone: customer.phone || "",
+//           StreetAddress: customer.address?.line1 || "",
+//           City: customer.address?.city || "",
+//           State: customer.address?.state || "",
+//           PostalCode: customer.address?.postal_code || "",
+//           DOB: session.metadata?.DOB || "",
+//           Gender: session.metadata?.Gender || "",
+//         };
+
+//         console.log("[stripe webhook] Patient data from Stripe:", patientData);
+
+//         // ✅ Save to DB
+//         try {
+//           const knex = require("../db/knex");
+//           const stripePayments = await knex("stripe_payments").insert({
+//             stripe_session_id: session.id,
+//             stripe_payment_intent_id: session.payment_intent || null,
+//             user_id: session.metadata?.user_id || null,
+//             product_key: session.metadata?.productKey || "",
+//             amount: session.amount_total / 100,
+//             currency: session.currency,
+//             status: session.payment_status || "unknown",
+//             metadata: JSON.stringify(patientData),
+//             evexia_processed: false,
+//             created_at: new Date(),
+//             updated_at: new Date(),
+//           });
+//           console.log("[stripe webhook] Saved payment in DB");
+//         } catch (dbErr) {
+//           console.error("[stripe webhook] DB insert failed:", dbErr);
+//         }
+//       }
+//     } catch (err) {
+//       console.error("[stripe webhook] error:", err);
+//     }
+
+//     res.status(200).end();
+//   }
+// );
 
 module.exports = router;
