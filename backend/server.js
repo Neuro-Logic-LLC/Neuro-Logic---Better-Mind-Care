@@ -1,10 +1,15 @@
+process.env.OAUTH4WEBAPI_ALLOW_HTTP = 'true';
+console.log('ALLOW_HTTP:', process.env.OAUTH4WEBAPI_ALLOW_HTTP);
+
 require('dotenv').config();
+
 const fs = require('fs');
 const https = require('https');
 const path = require('path');
 const { SSMClient, GetParametersByPathCommand } = require('@aws-sdk/client-ssm');
 const { initGoogle } = require('./auth/OIDC');
 
+// === Load AWS SSM Parameters ===
 async function loadSSMIntoEnv(pathPrefix) {
   const region = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'us-east-2';
   const ssm = new SSMClient({ region });

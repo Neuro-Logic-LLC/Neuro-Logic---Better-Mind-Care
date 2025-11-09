@@ -59,14 +59,14 @@ function isGoogleAuthError(e) {
 router.post('/create-meeting', async (req, res) => {
   try {
     const {
-    summary,
-    description,
-    start_time,
-    end_time,
-    time_zone,
-    calendarId,
-    patient_email,
-    patient_name
+      summary,
+      description,
+      start_time,
+      end_time,
+      time_zone,
+      calendarId,
+      patient_email,
+      patient_name
     } = req.body;
 
     if (!summary || !start_time) {
@@ -91,15 +91,14 @@ router.post('/create-meeting', async (req, res) => {
     const { endISO } = clampDuration(startISO, end_time && asISO(end_time), 30);
 
     // availability check
-    const fb = await calendar.freebusy.query({
+    const { data: fbData } = await calendar.freebusy.query({
       requestBody: {
-        timeMin: startISO,
-        timeMax: endISO,
+        timeMin: dayStart.toISOString(),
+        timeMax: dayEnd.toISOString(),
         items: [{ id: 'jim@bettermindcare.com' }]
       }
     });
-
-    const busy = fb.data?.calendars?.primary?.busy || [];
+    const busy = fbData?.calendars?.['jim@bettermindcare.com']?.busy || [];
     const slotTaken = busy.some(b => {
       const b0 = new Date(b.start).getTime();
       const b1 = new Date(b.end).getTime();
@@ -112,7 +111,6 @@ router.post('/create-meeting', async (req, res) => {
     if (slotTaken) {
       return res.status(409).json({ error: 'slot_unavailable' });
     }
-
 
     const { data: ev } = await calendar.events.insert({
       calendarId: calendarId,
@@ -188,7 +186,7 @@ router.get('/availability', async (req, res) => {
         items: [{ id: 'jim@bettermindcare.com' }]
       }
     });
-    const calendarId = "jim@bettermindcare.com"
+    const calendarId = 'jim@bettermindcare.com';
     const calKey = calendarId || 'primary';
     const busy = fb.data?.calendars?.['jim@bettermindcare.com']?.busy || [];
     // const busy = (data.calendars?.primary?.busy || []).map(b => [
@@ -294,22 +292,23 @@ router.get('/events', async (req, res) => {
   }
 });
 
-// PATCH /api/calendar/events/:id  (update title/time)
+// PATCH /api/google-calendar/events/:id
 router.patch('/events/:id', async (req, res) => {
   try {
     const oauth2 = getOAuth2ForSession(req.session);
     if (!oauth2) return res.status(401).json({ error: 'signin_required' });
 
-    const calendar = google.calendar({ version: 'v3', auth: oauth2 });
-    const calendarId = "jim@bettermindcare.com";
-    const eventId = req.params.id;
+    await oauth2.getAccessToken().catch(() => {}); // ensure fresh token
 
+    const calendar = google.calendar({ version: 'v3', auth: oauth2 });
+    const calendarId = req.query.calendarId || process.env.GOOGLE_CALENDAR_ID || 'jim@bettermindcare.com';
+    const eventId = req.params.id;
     const { summary, start_time, end_time, time_zone = 'UTC' } = req.body || {};
 
-    // optional conflict check (ignore the same event)
     if (start_time && end_time) {
       const timeMin = new Date(start_time).toISOString();
       const timeMax = new Date(end_time).toISOString();
+
       const { data } = await calendar.events.list({
         calendarId,
         timeMin,
@@ -319,20 +318,20 @@ router.patch('/events/:id', async (req, res) => {
         showDeleted: false,
         maxResults: 50
       });
+
       const collision = (data.items || []).some(ev => {
         if (ev.id === eventId) return false;
-        const s = new Date(ev.start.dateTime || `${ev.start.date}T10:00:00Z`);
-        const e = new Date(ev.end.dateTime || `${ev.end.date}T12:59:59Z`);
+        const s = new Date(ev.start.dateTime || `${ev.start.date}T00:00:00Z`);
+        const e = new Date(ev.end.dateTime || `${ev.end.date}T23:59:59Z`);
         return overlaps(new Date(start_time), new Date(end_time), s, e);
       });
+
       if (collision) return res.status(409).json({ error: 'slot_unavailable' });
     }
 
     const requestBody = {};
     if (summary) requestBody.summary = summary;
-    if (start_time || end_time) {
-      if (!start_time || !end_time)
-        return res.status(400).json({ error: 'start_time and end_time required together' });
+    if (start_time && end_time) {
       requestBody.start = { dateTime: new Date(start_time).toISOString(), timeZone: time_zone };
       requestBody.end = { dateTime: new Date(end_time).toISOString(), timeZone: time_zone };
     }
@@ -340,7 +339,7 @@ router.patch('/events/:id', async (req, res) => {
     const { data: ev } = await calendar.events.patch({
       calendarId,
       eventId,
-      sendUpdates: 'all',
+      sendUpdates: process.env.NODE_ENV === 'production' ? 'all' : 'none',
       requestBody
     });
 
@@ -386,7 +385,8 @@ router.delete('/events/:id', async (req, res) => {
 });
 
 router.get('/calendar-access', async (req, res) => {
-  const { userId, productKey, start_time, end_time, summary, patient_email, patient_name } = req.query;
+  const { userId, productKey, start_time, end_time, summary, patient_email, patient_name } =
+    req.query;
 
   if (!userId) return res.status(400).json({ error: 'Missing userId' });
 
@@ -412,7 +412,7 @@ router.get('/calendar-access', async (req, res) => {
 
     return res.json({
       success: true,
-      join_url: eventData.join_url,   // Google Meet link
+      join_url: eventData.join_url, // Google Meet link
       html_link: eventData.html_link, // Google Calendar event link
       start: eventData.start,
       end: eventData.end

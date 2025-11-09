@@ -5,7 +5,7 @@ module.exports = function (app) {
 
   const target = isProd
     ? 'https://staging.bettermindcare.com'
-    : 'http://localhost:5050';
+    : 'https://localhost:5050';
 
   const common = {
     target,

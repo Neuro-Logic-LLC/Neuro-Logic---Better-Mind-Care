@@ -86,38 +86,6 @@ const OPTIONAL_ADDONS = [
 const usd = (cents) =>
   (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
-async function createCheckout(flags) {
-  const baseUrl = window.location.origin;
-  const success_url = `${baseUrl}/success`;
-  const cancel_url = `${baseUrl}/cancel-order`;
-
-  // If you have an email/user/order in app state, add it to metadata here
-  const meta = { source: 'ProductsPage' };
-
-  const res = await fetch('api/stripe/checkout', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      // flags map directly to your backend expected keys
-      ...flags,
-      success_url,
-      cancel_url,
-      // Provide customer_email if you have it; otherwise omit
-      customer_email: undefined,
-      meta
-    })
-  });
-
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || `Checkout failed with ${res.status}`);
-  }
-
-  const data = await res.json();
-  if (!data?.url) throw new Error('No redirect URL from server');
-  window.location.href = data.url;
-}
-
 export default function ProductsPage() {
   const [loadingKey, setLoadingKey] = useState('');
   const [expandedKey, setExpandedKey] = useState(null);
@@ -125,7 +93,79 @@ export default function ProductsPage() {
     apoe: false,
     ptau: false
   });
+  const [formData, setFormData] = useState({
+    FirstName: '',
+    LastName: '',
+    DOB: '',
+    Gender: '',
+    EmailAddress: '',
+    StreetAddress: '',
+    City: '',
+    State: '',
+    PostalCode: '',
+    Phone: ''
+  });
 
+  async function createCheckout(flags, product) {
+    const baseUrl = window.location.origin;
+    const success_url = `${baseUrl}/success`;
+    const cancel_url = `${baseUrl}/cancel-order`;
+
+    // If you have an email/user/order in app state, add it to metadata here
+    const meta = {
+      source: 'ProductsPage',
+      app: 'BetterMindCare',
+      env: process.env.NODE_ENV === 'production' ? 'prod' : 'dev',
+
+      // Patient details
+      FirstName: formData.FirstName,
+      LastName: formData.LastName,
+      DOB: formData.DOB,
+      Gender: formData.Gender,
+      EmailAddress: formData.EmailAddress,
+      StreetAddress: formData.StreetAddress,
+      City: formData.City,
+      State: formData.State,
+      PostalCode: formData.PostalCode,
+      Phone: formData.Phone,
+
+      // Product details
+      productKey: product.key,
+      productName: product.name,
+      productAmount: product.amount,
+      apoeAddon: selectedAddons.apoe ? 'true' : 'false',
+      ptauAddon: selectedAddons.ptau ? 'true' : 'false',
+
+      // System/debug info
+      timestamp: new Date().toISOString(),
+      browser: navigator.userAgent,
+      referrer: document.referrer || '',
+      campaign: localStorage.getItem('campaign') || ''
+    };
+
+    const res = await fetch('api/stripe/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        // flags map directly to your backend expected keys
+        ...flags,
+        success_url,
+        cancel_url,
+        // Provide customer_email if you have it; otherwise omit
+        customer_email: undefined,
+        meta
+      })
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || `Checkout failed with ${res.status}`);
+    }
+
+    const data = await res.json();
+    if (!data?.url) throw new Error('No redirect URL from server');
+    window.location.href = data.url;
+  }
   const toggleDetails = (productKey) => {
     setExpandedKey((current) => (current === productKey ? null : productKey));
   };
@@ -139,25 +179,21 @@ export default function ProductsPage() {
     try {
       setLoadingKey(productKey);
 
-      // Flags expected by your /api/stripe/checkout route
-      // CORE, NEURO, APOE, PTAU, BUNDLE_CORE_APOE
-      switch (productKey) {
-        case 'BRAINHEALTH':
-          await createCheckout({
-            brainhealth: true,
-            ...(selectedAddons.apoe ? { apoe: true } : {}),
-            ...(selectedAddons.ptau ? { ptau: true } : {})
-          });
-          break;
-        case 'APOE':
-          await createCheckout({ apoe: true });
-          break;
-        case 'PTAU':
-          await createCheckout({ ptau: true });
-          break;
-        default:
-          throw new Error('Unknown product');
+      // Find the product object by key
+      const product = PRODUCTS.find((p) => p.key === productKey);
+      if (!product) {
+        throw new Error(`Product not found for key: ${productKey}`);
       }
+
+      // Define flags based on what was selected
+      const flags = {
+        brainhealth: product.key === 'BRAINHEALTH',
+        ...(selectedAddons.apoe ? { apoe: true } : {}),
+        ...(selectedAddons.ptau ? { ptau: true } : {})
+      };
+
+      // Pass both flags and product into createCheckout
+      await createCheckout(flags, product);
     } catch (e) {
       alert(e.message || 'Something went wrong');
       setLoadingKey('');
