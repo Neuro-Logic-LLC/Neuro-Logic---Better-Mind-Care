@@ -1,3 +1,4 @@
+process.env.OAUTH4WEBAPI_ALLOW_HTTP = 'true';
 const crypto = require('crypto');
 const getOauth4w = require('../lib/oauth4w');
 
@@ -27,7 +28,7 @@ async function initGoogle({ base, redirectUri: ru } = {}) {
     const port = 5050;
     const fallbackBase = isProd
       ? 'https://staging.bettermindcare.com'
-      : `http://localhost:${port}`;
+      : `https://localhost:${port}`;
 
     const baseForUri = trimTrailingSlash(base || fallbackBase);
     const explicitRedirect = ru;

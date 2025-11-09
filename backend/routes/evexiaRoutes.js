@@ -2,21 +2,15 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
-
 const pdfParse = require('pdf-parse');
 const { parseEvexiaPdfText } = require('../utils/parseEvexiaPdfText');
 const knex = require('../');
 const initKnex = require('../db/initKnex');
-/**
- * Hardcoded fallbacks only if env is empty (blocked in production below).
- */
 const HARD_DEFAULT_AUTH_KEY = process.env.EVEXIA_BEARER_TOKEN;
 const HARD_DEFAULT_CLIENT_ID = process.env.EVEXIA_EXTERNAL_CLIENT_ID;
-
 const LOG_SLICE = Number(process.env.EVEXIA_LOG_SLICE || 1200);
 const DEBUG = /^(1|true)$/i.test(process.env.EVEXIA_DEBUG || '');
 const IS_PROD = process.env.NODE_ENV === 'production';
-
 const dlog = (...a) => DEBUG && console.log('[Evexia]', ...a);
 const makeFilename = (pid, poid) => `lab-${pid}-${poid}.pdf`;
 
@@ -69,9 +63,6 @@ const pickPatientAddV2Path = () =>
 
 const pickOrderItemDeletePath = () =>
   pickEnv('EVEXIA_ORDER_ITEM_DELETE') || '/api/EDIPlatform/OrderItemDelete';
-
-// const pickPatientDeletePath = () =>
-//   pickEnv('EVEXIA_PATIENT_DELETE_URL') || '/api/EDIPlatform/PatientDelete';
 
 const pickOrderItemAddPath = () =>
   pickEnv('EVEXIA_ORDER_ITEM_ADD') || '/API/EDIPlatform/OrderItemAdd';
@@ -1604,130 +1595,157 @@ async function callEvexia(url, options) {
   }
 }
 
-async function patientAddV2(req, res) {
-  try {
-    const q = { ...(req.query || {}), ...(req.body || {}) };
+// async function patientAddV2(req, res) {
+//   try {
+//     const q = { ...(req.query || {}), ...(req.body || {}) };
 
-    const ExternalClientID = process.env.EVEXIA_EXTERNAL_CLIENT_ID;
-    const AUTH = pickAuthKey();
-    const BASE = pickBaseUrl();
-    const PATH = pickPatientAddV2Path(); // implement like pickPatientListDetailsPath()
+//     const ExternalClientID = process.env.EVEXIA_EXTERNAL_CLIENT_ID;
+//     const AUTH = pickAuthKey();
+//     const BASE = pickBaseUrl();
+//     const PATH = pickPatientAddV2Path(); // implement like pickPatientListDetailsPath()
 
-    if (!ExternalClientID) {
-      return res.status(400).json({ error: 'Missing ExternalClientID' });
-    }
-    if (!AUTH || (IS_PROD && AUTH === HARD_DEFAULT_AUTH_KEY)) {
-      return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
-    }
-    if (IS_PROD && ExternalClientID === HARD_DEFAULT_CLIENT_ID) {
-      return res.status(500).json({ error: 'Server missing EVEXIA client id env' });
-    }
+//     if (!ExternalClientID) {
+//       return res.status(400).json({ error: 'Missing ExternalClientID' });
+//     }
+//     if (!AUTH || (IS_PROD && AUTH === HARD_DEFAULT_AUTH_KEY)) {
+//       return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
+//     }
+//     if (IS_PROD && ExternalClientID === HARD_DEFAULT_CLIENT_ID) {
+//       return res.status(500).json({ error: 'Server missing EVEXIA client id env' });
+//     }
 
-    // Build URL with the same pattern as listAllPatients
-    const url = new URL(PATH, BASE);
+//     // Build URL with the same pattern as listAllPatients
+//     const url = new URL(PATH, BASE);
 
-    // Minimal log without PHI
-    const maskedClient = ExternalClientID ? ExternalClientID.slice(0, 6) + '…' : '(none)';
-    dlog(
-      'Upstream POST',
-      url.toString().replace(ExternalClientID, maskedClient),
-      'keys:',
-      Object.keys(q)
-    );
+//     // Minimal log without PHI
+//     const maskedClient = ExternalClientID ? ExternalClientID.slice(0, 6) + '…' : '(none)';
+//     dlog(
+//       'Upstream POST',
+//       url.toString().replace(ExternalClientID, maskedClient),
+//       'keys:',
+//       Object.keys(q)
+//     );
 
-    const controller = new AbortController();
-    const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
-    const to = setTimeout(() => controller.abort(), timeoutMs);
+//     const controller = new AbortController();
+//     const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
+//     const to = setTimeout(() => controller.abort(), timeoutMs);
 
-    // Map to upstream schema exactly as they expect
-    const payload = {
-      EmailAddress: String(q.EmailAddress || '').trim(),
-      FirstName: String(q.FirstName || '').trim(),
-      LastName: String(q.LastName || '').trim(),
-      StreetAddress: String(q.StreetAddress || '').trim(),
-      StreetAddress2: String(q.StreetAddress2 || '').trim(),
-      City: String(q.City || '').trim(),
-      State: String(q.State || '').trim(),
-      PostalCode: String(q.PostalCode || '').trim(),
-      Phone: String(q.Phone || '').trim(),
-      DOB: String(q.DOB || '').trim(), // convert to vendor-required format if needed
-      Gender: String(q.Gender || '').trim(),
-      Guardian: String(q.Guardian || '').trim(),
-      GuardianRelationship: String(q.GuardianRelationship || '').trim(),
-      GuardianAddress: String(q.GuardianAddress || '').trim(),
-      GuardianAddress2: String(q.GuardianAddress2 || '').trim(),
-      GuardianCity: String(q.GuardianCity || '').trim(),
-      GuardianPostalCode: String(q.GuardianPostalCode || '').trim(),
-      GuardianState: String(q.GuardianState || '').trim(),
-      GuardianPhone: String(q.GuardianPhone || '').trim(),
-      ExternalClientID // always from server env, like your GET route
-    };
+//     // Map to upstream schema exactly as they expect
+//     const payload = {
+//       EmailAddress: String(q.EmailAddress || '').trim(),
+//       FirstName: String(q.FirstName || '').trim(),
+//       LastName: String(q.LastName || '').trim(),
+//       StreetAddress: String(q.StreetAddress || '').trim(),
+//       StreetAddress2: String(q.StreetAddress2 || '').trim(),
+//       City: String(q.City || '').trim(),
+//       State: String(q.State || '').trim(),
+//       PostalCode: String(q.PostalCode || '').trim(),
+//       Phone: String(q.Phone || '').trim(),
+//       DOB: String(q.DOB || '').trim(), // convert to vendor-required format if needed
+//       Gender: String(q.Gender || '').trim(),
+//       Guardian: String(q.Guardian || '').trim(),
+//       GuardianRelationship: String(q.GuardianRelationship || '').trim(),
+//       GuardianAddress: String(q.GuardianAddress || '').trim(),
+//       GuardianAddress2: String(q.GuardianAddress2 || '').trim(),
+//       GuardianCity: String(q.GuardianCity || '').trim(),
+//       GuardianPostalCode: String(q.GuardianPostalCode || '').trim(),
+//       GuardianState: String(q.GuardianState || '').trim(),
+//       GuardianPhone: String(q.GuardianPhone || '').trim(),
+//       ExternalClientID // always from server env, like your GET route
+//     };
 
-    // Required field check to match your earlier validator
-    const required = [
-      'EmailAddress',
-      'FirstName',
-      'LastName',
-      'StreetAddress',
-      'City',
-      'State',
-      'PostalCode',
-      'Phone',
-      'DOB',
-      'Gender',
-      'ExternalClientID'
-    ];
-    for (const k of required) {
-      const v = payload[k];
-      if (!v || String(v).trim() === '') {
-        clearTimeout(to);
-        return res.status(400).json({ error: `Missing required field: ${k}` });
-      }
-    }
+//     // Required field check to match your earlier validator
+//     const required = [
+//       'EmailAddress',
+//       'FirstName',
+//       'LastName',
+//       'StreetAddress',
+//       'City',
+//       'State',
+//       'PostalCode',
+//       'Phone',
+//       'DOB',
+//       'Gender',
+//       'ExternalClientID'
+//     ];
+//     for (const k of required) {
+//       const v = payload[k];
+//       if (!v || String(v).trim() === '') {
+//         clearTimeout(to);
+//         return res.status(400).json({ error: `Missing required field: ${k}` });
+//       }
+//     }
 
-    const r = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: AUTH, // use the same AUTH you already have working
-        Accept: 'application/json, */*',
-        'Content-Type': 'application/json',
-        'User-Agent': 'BetterMindCare-EvexiaProxy/1.0'
-      },
-      body: JSON.stringify(payload),
-      signal: controller.signal
-    }).finally(() => clearTimeout(to));
+//     const r = await fetch(url, {
+//       method: 'POST',
+//       headers: {
+//         Authorization: AUTH, // use the same AUTH you already have working
+//         Accept: 'application/json, */*',
+//         'Content-Type': 'application/json',
+//         'User-Agent': 'BetterMindCare-EvexiaProxy/1.0'
+//       },
+//       body: JSON.stringify(payload),
+//       signal: controller.signal
+//     }).finally(() => clearTimeout(to));
 
-    if (r.status === 204) return res.status(204).send();
+//     if (r.status === 204) return res.status(204).send();
 
-    const text = await r.text();
-    if (r.status >= 400) {
-      // surface upstream for debugging
-      return res.status(r.status).json({
-        error: 'Upstream error',
-        status: r.status,
-        body: text.slice(0, 1000),
-        url: url.toString()
-      });
-    }
+//     const text = await r.text();
+//     if (r.status >= 400) {
+//       // surface upstream for debugging
+//       return res.status(r.status).json({
+//         error: 'Upstream error',
+//         status: r.status,
+//         body: text.slice(0, 1000),
+//         url: url.toString()
+//       });
+//     }
 
-    // try JSON parse, else return raw
-    try {
-      const data = JSON.parse(text);
-      res.setHeader('Cache-Control', 'no-store');
-      return res.status(200).json(data);
-    } catch {
-      res.setHeader('Cache-Control', 'no-store');
-      return res.status(200).send(text);
-    }
-  } catch (e) {
-    const code = e.name === 'AbortError' ? 504 : 500;
-    dlog('patientAddV2 failed:', e);
-    return res.status(code).json({ error: 'Proxy failure', detail: String(e) });
-  }
-}
+//     // try JSON parse, else return raw
+//     try {
+//       const data = JSON.parse(text);
+//       res.setHeader('Cache-Control', 'no-store');
+//       return res.status(200).json(data);
+//     } catch {
+//       res.setHeader('Cache-Control', 'no-store');
+//       return res.status(200).send(text);
+//     }
+//   } catch (e) {
+//     const code = e.name === 'AbortError' ? 504 : 500;
+//     dlog('patientAddV2 failed:', e);
+//     return res.status(code).json({ error: 'Proxy failure', detail: String(e) });
+//   }
+// }
 
 // GET /api/evexia/patient-list -> forwards to PatientList
 // Required params: externalClientID (string), patientID (int)
+
+// Reuse your existing patientAddV2 logic
+async function patientAddV2(req, res) {
+  const data = req.body || {};
+
+  const ExternalClientID = process.env.EVEXIA_EXTERNAL_CLIENT_ID;
+  const AUTH = pickAuthKey();
+  const BASE = pickBaseUrl();
+  const PATH = pickPatientAddV2Path();
+
+  const url = new URL(PATH, BASE);
+  const payload = { ...data, ExternalClientID }; // ✅ fixed here
+
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: AUTH,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!r.ok) throw new Error(`Evexia patientAddV2 failed: ${r.status}`);
+  return r.json();
+}
+
+
 async function patientListHandler(req, res) {
   try {
     const externalClientID = trimOrNull(req.query.externalClientID || req.body?.externalClientID);
