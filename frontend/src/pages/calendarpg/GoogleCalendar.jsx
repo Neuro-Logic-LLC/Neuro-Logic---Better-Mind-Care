@@ -216,8 +216,8 @@ export default function GoogleCalendar() {
   const { user, loading } = useContext(AuthContext);
 
   if (loading) return <div>Loading...</div>;
-  if (!user || user.role_name !== 'doctor') {
-    return <div>Calendar access is restricted to doctors.</div>;
+  if (!user) {
+    return <div>Please log in to access the calendar.</div>;
   }
 
   const [events, setEvents] = useState([]);
@@ -302,6 +302,8 @@ export default function GoogleCalendar() {
 
   // open Create modal for week/day. For month, switch to day.
   function handleSelectSlot({ start, end, action }) {
+    if (user.role_name !== 'doctor') return; // Only doctors can create meetings
+
     // Always open Create on first click, no auto view switch
     // If Month view gives you a full-day block, pick a sensible default window
     const day = start ? new Date(start) : new Date();
@@ -652,93 +654,97 @@ export default function GoogleCalendar() {
                   )}
                 </div>
 
-                <div style={rowStyle}>
-                  {selected.meetUrl && (
-                    <>
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        onClick={() => window.open(selected.meetUrl, '_blank')}
-                        style={{ width: '100%' }}
-                      >
-                        Join Google Meet
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-outline-teal"
-                        onClick={() =>
-                          navigator.clipboard.writeText(selected.meetUrl)
-                        }
-                        style={{ width: '100%' }}
-                      >
-                        Copy Meet Link
-                      </button>
-                    </>
-                  )}
-                  {selected.htmlLink && (
-                    <button
-                      type="button"
-                      className="btn btn-outline-teal"
-                      onClick={() => window.open(selected.htmlLink, '_blank')}
-                      style={{ width: '100%' }}
-                    >
-                      Open in Google Calendar
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    className="btn btn-outline-teal"
-                    onClick={() => setIsEditing(true)}
-                    style={{ width: '100%' }}
-                  >
-                    Update
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn btn-danger"
-                    onClick={async () => {
-                      if (!window.confirm('Delete this meeting?')) return;
-                      try {
-                        if (USE_MOCK_CALENDAR && selected) {
-                          setEvents((prev) =>
-                            prev.filter((ev) => ev.id !== selected.id)
-                          );
-                          setSelected(null);
-                          return;
-                        }
-                        await deleteEvent(calendarId, selected.id);
-                        setSelected(null);
-                        await load(range);
-                       } catch (e) {
-                         const msg = String(e?.message || '');
-                         if (msg.includes('google_reauth') || msg.includes('signin_required'))
-                           window.location.href = '/api/oauth/google';
-                         else if (msg.includes('forbidden_delete'))
-                           alert(
-                             "You don't have permission to delete this event."
-                           );
-                         else {
-                           console.error(e);
-                           alert('Could not delete event.');
+        <div style={rowStyle}>
+                   {selected.meetUrl && (
+                     <>
+                       <button
+                         type="button"
+                         className="btn btn-secondary"
+                         onClick={() => window.open(selected.meetUrl, '_blank')}
+                         style={{ width: '100%' }}
+                       >
+                         Join Google Meet
+                       </button>
+                       <button
+                         type="button"
+                         className="btn btn-outline-teal"
+                         onClick={() =>
+                           navigator.clipboard.writeText(selected.meetUrl)
                          }
-                       }
-                    }}
-                    style={{ width: '100%' }}
-                  >
-                    Delete
-                  </button>
+                         style={{ width: '100%' }}
+                       >
+                         Copy Meet Link
+                       </button>
+                     </>
+                   )}
+                   {selected.htmlLink && (
+                     <button
+                       type="button"
+                       className="btn btn-outline-teal"
+                       onClick={() => window.open(selected.htmlLink, '_blank')}
+                       style={{ width: '100%' }}
+                     >
+                       Open in Google Calendar
+                     </button>
+                   )}
 
-                  <button
-                    type="button"
-                    className="btn btn-outline-teal"
-                    onClick={() => setSelected(null)}
-                    style={{ width: '100%' }}
-                  >
-                    Close
-                  </button>
-                </div>
+                   {(user.role_name === 'doctor' || (selected.attendees && selected.attendees.some(a => a.email === user.email))) && (
+                     <button
+                       type="button"
+                       className="btn btn-outline-teal"
+                       onClick={() => setIsEditing(true)}
+                       style={{ width: '100%' }}
+                     >
+                       Update
+                     </button>
+                   )}
+
+                   {user.role_name === 'doctor' && (
+                     <button
+                       type="button"
+                       className="btn btn-danger"
+                       onClick={async () => {
+                         if (!window.confirm('Delete this meeting?')) return;
+                         try {
+                           if (USE_MOCK_CALENDAR && selected) {
+                             setEvents((prev) =>
+                               prev.filter((ev) => ev.id !== selected.id)
+                             );
+                             setSelected(null);
+                             return;
+                           }
+                           await deleteEvent(calendarId, selected.id);
+                           setSelected(null);
+                           await load(range);
+                         } catch (e) {
+                           const msg = String(e?.message || '');
+                           if (msg.includes('google_reauth') || msg.includes('signin_required'))
+                             window.location.href = '/api/oauth/google';
+                           else if (msg.includes('forbidden_delete'))
+                             alert(
+                               "You don't have permission to delete this event."
+                             );
+                           else {
+                             console.error(e);
+                             alert('Could not delete event.');
+                           }
+                         }
+                       }}
+                       style={{ width: '100%' }}
+                     >
+                       Delete
+                     </button>
+                   )}
+
+                   <button
+                     type="button"
+                     className="btn btn-outline-teal"
+                     onClick={() => setSelected(null)}
+                     style={{ width: '100%' }}
+                   >
+                     Close
+                   </button>
+                 </div>
               </>
             ) : (
               <>
