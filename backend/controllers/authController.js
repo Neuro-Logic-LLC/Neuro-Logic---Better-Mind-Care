@@ -136,6 +136,13 @@ exports.login = async (req, res) => {
 
     await sendMfaCode(toAddress, code);
 
+    req.session.user = {
+      id: user.id,
+      email: user.email,
+      role_name: user.role_name,
+      is_email_confirmed: user.is_email_confirmed
+    };
+
     const body = { message: 'MFA code sent' };
     if (process.env.NODE_ENV !== 'production') {
       body.dev_mfa = { code, expires };
