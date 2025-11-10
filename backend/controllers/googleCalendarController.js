@@ -1,23 +1,19 @@
 const { google } = require('googleapis');
 const crypto = require('crypto');
-const { getServiceAccountClient } = require('../lib/googleServiceAccount');
-
-// --- no need for TokenExpiredError, loadSSMParams, or OAuth flow here ---
+const { getGoogleCalendar: getHybridCalendar } = require('../lib/googleCalendarClient');
 
 function overlaps(aStart, aEnd, bStart, bEnd) {
   return Math.max(+aStart, +bStart) < Math.min(+aEnd, +bEnd);
 }
 
-// simplified: directly return a service account calendar client
-function getGoogleCalendar() {
-  return getServiceAccountClient('jim@bettermindcare.com');
-}
-
+// ---------- List Events ----------
 async function listGoogleEvents(
-  session,
-  { calendarId = 'jim@bettermindcare.com', timeMin, timeMax, includePastDays = 0 } = {}
+  req,
+  { calendarId, timeMin, timeMax, includePastDays = 0 } = {}
 ) {
-  const calendar = getGoogleCalendar();
+  const calendar = await getHybridCalendar(req);
+  const userEmail = req.session?.user?.email;
+  const targetCalendar = calendarId || userEmail || 'jim@bettermindcare.com';
 
   const startQ = timeMin ? new Date(timeMin) : new Date();
   const endQ = timeMax ? new Date(timeMax) : new Date(Date.now() + 7 * 86400000);
@@ -27,7 +23,7 @@ async function listGoogleEvents(
   const apiTimeMax = new Date(endQ.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
   const { data } = await calendar.events.list({
-    calendarId,
+    calendarId: targetCalendar,
     timeMin: apiTimeMin,
     timeMax: apiTimeMax,
     singleEvents: true,
@@ -43,6 +39,7 @@ async function listGoogleEvents(
       : ev.end?.date
       ? new Date(new Date(`${ev.end.date}T00:00:00`).getTime() - 1).toISOString()
       : startISO;
+
     const meetUrl =
       ev.hangoutLink ||
       ev.conferenceData?.entryPoints?.find(p => p.entryPointType === 'video')?.uri ||
@@ -62,8 +59,10 @@ async function listGoogleEvents(
   });
 }
 
-async function createGoogleMeet(summary, startTime, endTime, timeZone = 'UTC') {
-  const calendar = getGoogleCalendar();
+// ---------- Create Meeting ----------
+async function createGoogleMeet(req, summary, startTime, endTime, timeZone = 'UTC') {
+  const calendar = await getHybridCalendar(req);
+  const userEmail = req.session?.user?.email || 'jim@bettermindcare.com';
 
   const startISO = new Date(startTime).toISOString();
   const endISO = endTime
@@ -71,7 +70,7 @@ async function createGoogleMeet(summary, startTime, endTime, timeZone = 'UTC') {
     : new Date(new Date(startTime).getTime() + 30 * 60000).toISOString();
 
   const { data: ev } = await calendar.events.insert({
-    calendarId: 'jim@bettermindcare.com',
+    calendarId: userEmail,
     conferenceDataVersion: 1,
     requestBody: {
       summary,
@@ -89,16 +88,17 @@ async function createGoogleMeet(summary, startTime, endTime, timeZone = 'UTC') {
   return { join_url: ev.hangoutLink, start: ev.start, end: ev.end };
 }
 
-async function scheduleMeeting(platform, session, summary, startTime, endTime, timeZone = 'UTC') {
+// ---------- Scheduler ----------
+async function scheduleMeeting(platform, req, summary, startTime, endTime, timeZone = 'UTC') {
   if (platform === 'google') {
-    const event = await createGoogleMeet(summary, startTime, endTime, timeZone);
+    const event = await createGoogleMeet(req, summary, startTime, endTime, timeZone);
     return { ...event, platform: 'google' };
   }
   if (platform === 'zoom') throw new Error('Zoom not implemented');
   throw new Error('Unsupported platform');
 }
 
+// ---------- Exports ----------
 exports.scheduleMeeting = scheduleMeeting;
 exports.listGoogleEvents = listGoogleEvents;
-exports.getGoogleCalendar = getGoogleCalendar;
 exports.createGoogleMeet = createGoogleMeet;

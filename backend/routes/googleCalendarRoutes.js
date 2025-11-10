@@ -46,9 +46,17 @@ async function refreshGoogleToken(knex, userId, clientId, clientSecret) {
     })
   });
 
-  if (!res.ok) throw new Error('token_refresh_failed');
-  const newTokens = await res.json();
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error('[refreshGoogleToken] Token refresh failed:', errText);
+    if (res.status === 400 && errText.includes('invalid_grant')) {
+      await knex('user_google_tokens').where({ user_id: userId }).del();
+      throw new Error('refresh_token_revoked');
+    }
+    throw new Error('token_refresh_failed');
+  }
 
+  const newTokens = await res.json();
   const newExpiry = new Date(Date.now() + (newTokens.expires_in || 3600) * 1000);
 
   await knex('user_google_tokens').where({ user_id: userId }).update({
