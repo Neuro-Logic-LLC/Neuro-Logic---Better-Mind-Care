@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 import Card from '../../components/cards/Card';
+import { useAuth } from '../../auth/AuthContext';
 import './productsPage.css';
 
 const PRODUCTS = [
@@ -87,6 +89,7 @@ const usd = (cents) =>
   (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
 export default function ProductsPage() {
+  const { user } = useAuth();
   const [loadingKey, setLoadingKey] = useState('');
   const [expandedKey, setExpandedKey] = useState(null);
   const [selectedAddons, setSelectedAddons] = useState({
@@ -105,6 +108,18 @@ export default function ProductsPage() {
     PostalCode: '',
     Phone: ''
   });
+
+  // Populate formData from user profile
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        FirstName: user.first_name || '',
+        LastName: user.last_name || '',
+        EmailAddress: user.email || ''
+      }));
+    }
+  }, [user]);
 
   async function createCheckout(flags, product) {
     const baseUrl = window.location.origin;
