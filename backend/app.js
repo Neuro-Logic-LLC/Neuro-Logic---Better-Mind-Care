@@ -3,7 +3,7 @@ const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const knex = require('../backend/db/initKnex');
+const initKnex = require('../backend/db/initKnex');
 const Stripe = require('stripe');
 const stripeRoutes = require('./routes/stripeRoutes');
 const evexiaWebhookRoutes = require('./routes/evexiaWebhookRoutes');
@@ -58,18 +58,34 @@ app.get('/', (_req, res) => res.send('Hello HTTPS!'));
 app.get('/api/health', (_req, res) => res.send('ok'));
 
 // ---- ✅ Stripe webhook FIRST (raw body, isolated) ----
-const stripe =   process.env.NODE_ENV === 'production'
+const stripeKey =
+  process.env.NODE_ENV === 'production'
     ? process.env.STRIPE_SECRET_KEY_LIVE
-    : process.env.STRIPE_WEBHOOK_SECRET_LOCAL;
-app.post('/api/stripe/webhook', express.raw({ type: '*/*' }), async (req, res) => {
+    : process.env.STRIPE_SECRET_KEY_LOCAL;
+
+console.log('[stripe] NODE_ENV:', process.env.NODE_ENV);
+console.log('[stripe] STRIPE_SECRET_KEY_LOCAL:', process.env.STRIPE_SECRET_KEY_LOCAL ? '✅ set' : '❌ missing');
+console.log('[stripe] STRIPE_SECRET_KEY_LIVE:', process.env.STRIPE_SECRET_KEY_LIVE ? '✅ set' : '❌ missing');
+console.log('[stripe] Using key:', stripeKey ? stripeKey.slice(0, 8) + '...' : '❌ undefined');
+
+if (!stripeKey) {
+  throw new Error('Stripe secret key missing — check STRIPE_SECRET_KEY_LOCAL / STRIPE_SECRET_KEY_LIVE');
+}
+
+const stripe = new Stripe(stripeKey);
+
+// ✅ Webhook route — must come BEFORE express.json()
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   try {
-    const event = stripe.webhooks.constructEvent(
-      req.body,
-      req.headers['stripe-signature'],
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
+    const knex = await initKnex();
+    const sig = req.headers['stripe-signature'];
+    const whSecret = process.env.STRIPE_WEBHOOK_SECRET; // use correct one for the environment
+
+    // ✅ Verify the webhook signature using the raw body
+    const event = stripe.webhooks.constructEvent(req.body, sig, whSecret);
     console.log('[webhook] ✅ Verified event:', event.type);
 
+    // ✅ Only act on checkout.session.completed
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
       console.log('[webhook] checkout.session.completed fired:', session.id);
