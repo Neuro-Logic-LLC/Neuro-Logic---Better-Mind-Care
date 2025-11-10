@@ -7,13 +7,16 @@ function overlaps(aStart, aEnd, bStart, bEnd) {
 }
 
 // ---------- List Events ----------
-async function listGoogleEvents(
-  req,
-  { calendarId, timeMin, timeMax, includePastDays = 0 } = {}
-) {
+async function listGoogleEvents(req, { calendarId, timeMin, timeMax, includePastDays = 0 } = {}) {
   const calendar = await getHybridCalendar(req);
   const userEmail = req.session?.user?.email;
-  const targetCalendar = calendarId || userEmail || 'jim@bettermindcare.com';
+  console.log(userEmail);
+  const targetCalendar =
+    calendarId && calendarId !== 'primary'
+      ? calendarId
+      : userEmail?.endsWith('@bettermindcare.com')
+      ? userEmail
+      : 'primary';
 
   const startQ = timeMin ? new Date(timeMin) : new Date();
   const endQ = timeMax ? new Date(timeMax) : new Date(Date.now() + 7 * 86400000);
@@ -29,7 +32,7 @@ async function listGoogleEvents(
     singleEvents: true,
     orderBy: 'startTime',
     showDeleted: false,
-    maxResults: 2500,
+    maxResults: 2500
   });
 
   return (data.items || []).map(ev => {
@@ -54,7 +57,7 @@ async function listGoogleEvents(
       location: ev.location,
       attendees: ev.attendees || [],
       meetUrl,
-      isAllDay: Boolean(ev.start?.date && !ev.start?.dateTime),
+      isAllDay: Boolean(ev.start?.date && !ev.start?.dateTime)
     };
   });
 }
@@ -79,10 +82,10 @@ async function createGoogleMeet(req, summary, startTime, endTime, timeZone = 'UT
       conferenceData: {
         createRequest: {
           requestId: crypto.randomUUID(),
-          conferenceSolutionKey: { type: 'hangoutsMeet' },
-        },
-      },
-    },
+          conferenceSolutionKey: { type: 'hangoutsMeet' }
+        }
+      }
+    }
   });
 
   return { join_url: ev.hangoutLink, start: ev.start, end: ev.end };
