@@ -65,7 +65,7 @@ async function getOAuth2ForSession(req) {
     const now = Date.now();
     const tokenExpiry = token.expiry ? new Date(token.expiry).getTime() : 0;
 
-    // If token is expired or missing expiry, refresh
+    // If token is expired or missing expiry, refresh it
     if (tokenExpiry <= now) {
       console.log('[getOAuth2ForSession] Access token expired, refreshing...');
       const accessToken = await refreshGoogleToken(
@@ -75,20 +75,29 @@ async function getOAuth2ForSession(req) {
         process.env.GOOGLE_CLIENT_SECRET
       );
       token.access_token = accessToken; // Update token with new access token
+
+      // Update the token in the database
+      const newExpiry = new Date(now + (token.expires_in || 3600) * 1000); // Assuming token.expires_in is available
+      await knex('user_google_tokens')
+        .where({ user_id: userId })
+        .update({
+          access_token: accessToken,
+          expiry: newExpiry,
+          updated_at: knex.fn.now(),
+        });
     }
 
-    // Set up OAuth2 client
+    // Set up OAuth2 client with the fresh or existing token
     const oauth2 = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
       process.env.GOOGLE_REDIRECT_URI
     );
 
-    // Set credentials
     oauth2.setCredentials({
       access_token: token.access_token,
       refresh_token: token.refresh_token,
-      expiry_date: tokenExpiry
+      expiry_date: token.expiry ? new Date(token.expiry).getTime() : null,
     });
 
     return oauth2;
