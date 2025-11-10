@@ -223,3 +223,21 @@ exports.sendUsernameReminder = async (to, username) => {
     console.error('❌ Username reminder email failed:', err);
   }
 };
+
+exports.sendLabResultsNotification = async (to, patientName, resultsLink) => {
+  const mg = await getMailgunClient();
+  try {
+    await mg.messages.create(DOMAIN, {
+      from: FROM,
+      to,
+      subject: 'Lab Results Available',
+      html: `
+        <p>Lab results for ${patientName} are now available.</p>
+        <p><a href="${resultsLink}" style="background:#007bff;color:#fff;padding:10px 15px;text-decoration:none;border-radius:4px;">View Results</a></p>
+        <p>Please review them in your dashboard.</p>
+      `
+    });
+  } catch (err) {
+    console.error('❌ Lab results notification failed:', err);
+  }
+};
