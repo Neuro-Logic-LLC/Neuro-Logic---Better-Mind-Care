@@ -1,4 +1,6 @@
 // backend/utils/mailer-oauth.js
+const loadSSMParams = require('../utils/loadSSMParams');
+await loadSSMParams(); // load common params first
 const nodemailer = require('nodemailer');
 const { google } = require('googleapis');
 

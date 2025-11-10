@@ -44,8 +44,8 @@ async function initGoogle({ base, redirectUri: ru } = {}) {
 
     // Hardcode the known client values here (no process.env)
     client = {
-      client_id: 'YOUR_GOOGLE_CLIENT_ID',
-      client_secret: 'YOUR_GOOGLE_CLIENT_SECRET',
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
       redirect_uris: [redirectUri],
       token_endpoint_auth_method: 'client_secret_post'
     };

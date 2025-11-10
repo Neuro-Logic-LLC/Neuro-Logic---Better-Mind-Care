@@ -41,7 +41,7 @@ app.use((_, res, next) => {
   res.setHeader('Vary', 'Origin');
   next();
 });
-const DEV_FRONTEND_ORIGIN = process.env.DEV_FRONTEND_ORIGIN || 'http://localhost:3000';
+const DEV_FRONTEND_ORIGIN = process.env.DEV_FRONTEND_ORIGIN || 'https://localhost:3000';
 app.use(
   cors({
     origin: DEV_FRONTEND_ORIGIN,
