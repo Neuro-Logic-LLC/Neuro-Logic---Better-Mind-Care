@@ -2,7 +2,7 @@
 const { google } = require('googleapis');
 const crypto = require('crypto');
 
-const { TokenExpiredError } = require('../auth/OIDC');  // Adjusted path as needed
+const { TokenExpiredError } = require('google-auth-library');   // Adjusted path as needed
 
 // Run startup initializers inside an async IIFE (avoids top-level await in CommonJS)
 (async () => {

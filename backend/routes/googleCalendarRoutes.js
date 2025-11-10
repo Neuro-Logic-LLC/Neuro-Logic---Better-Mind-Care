@@ -8,7 +8,7 @@ const loadSSMParams = require('../utils/loadSSMParams');
 const initKnex = require('../db/initKnex');
 const getOauth4w = require('../lib/oauth4w');
 const initGoogle = require('../auth/OIDC').initGoogle;
-const { TokenExpiredError } = require('../auth/OIDC'); // may be used in error handling
+const { TokenExpiredError } = require('google-auth-library'); // may be used in error handling
 
 // Initialize services (best-effort)
 (async () => {
