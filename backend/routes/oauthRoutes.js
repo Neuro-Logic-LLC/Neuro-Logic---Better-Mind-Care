@@ -1,4 +1,3 @@
-
 // backend/routes/oauthRoutes.js
 const router = require('express').Router();
 const jwt = require('jsonwebtoken');
@@ -14,7 +13,7 @@ const ORIGIN_WHITELIST = [
   'https://staging.bettermindcare.com',
   'https://bettermindcare.com',
   'https://www.staging.bettermindcare.com',
-  'https://www.bettermindcare.com',
+  'https://www.bettermindcare.com'
 ];
 
 function pickFrontendBase(req) {
@@ -22,10 +21,10 @@ function pickFrontendBase(req) {
   if (origin && ORIGIN_WHITELIST.includes(origin)) return origin;
 
   const env = (process.env.NODE_ENV || 'development').toLowerCase();
-  const envBase = (env === 'production'
-    ? process.env.FRONTEND_URL
-    : process.env.FRONTEND_URL_DEV || 'https://localhost:3000'
-  ) || '';
+  const envBase =
+    (env === 'production'
+      ? process.env.FRONTEND_URL
+      : process.env.FRONTEND_URL_DEV || 'https://localhost:3000') || '';
   const trimmed = envBase.replace(/\/+$/, '');
   if (trimmed) return trimmed;
 
@@ -46,7 +45,11 @@ function sanitizeReturnTo(raw, feBase) {
 
     const u = new URL(r);
     const fe = new URL(feBase);
-    if (u.protocol === fe.protocol && u.hostname === fe.hostname && (u.port || '') === (fe.port || '')) {
+    if (
+      u.protocol === fe.protocol &&
+      u.hostname === fe.hostname &&
+      (u.port || '') === (fe.port || '')
+    ) {
       const norm = (u.pathname || '/') + (u.search || '') + (u.hash || '');
       return norm || defaultReturnPath();
     }
@@ -67,9 +70,10 @@ router.get('/google', async (req, res, next) => {
     // Let OIDC prep PKCE, we’ll replace "state" with our signed JWT
     const { url, code_verifier } = await startAuth({ state: 'placeholder', nonce });
 
-    const feBase = (process.env.NODE_ENV === 'production')
-      ? (process.env.FRONTEND_URL || pickFrontendBase(req))
-      : (process.env.FRONTEND_URL_DEV || 'https://localhost:3000');
+    const feBase =
+      process.env.NODE_ENV === 'production'
+        ? process.env.FRONTEND_URL || pickFrontendBase(req)
+        : process.env.FRONTEND_URL_DEV || 'https://localhost:3000';
 
     const returnTo = sanitizeReturnTo(req.query.returnTo, feBase);
 
@@ -134,7 +138,9 @@ router.get('/google/callback', async (req, res, next) => {
 
     const raw = await tRes.text();
     let tokenSet = null;
-    try { tokenSet = JSON.parse(raw); } catch {}
+    try {
+      tokenSet = JSON.parse(raw);
+    } catch {}
     if (!tRes.ok) {
       const msg = tokenSet?.error_description || tokenSet?.error || `HTTP ${tRes.status}`;
       return res.status(400).send(`Token error: ${msg}`);
@@ -145,7 +151,9 @@ router.get('/google/callback', async (req, res, next) => {
     let payload;
     try {
       payload = JSON.parse(
-        Buffer.from(idt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')
+        Buffer.from(idt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString(
+          'utf8'
+        )
       );
     } catch {
       return res.status(400).send('Invalid id_token');
@@ -158,8 +166,11 @@ router.get('/google/callback', async (req, res, next) => {
     // Lookup user (no auto insert)
     let knex;
     try {
-      try { knex = await require('../db/initKnex')(); }
-      catch { knex = await require('../db/knex')(); }
+      try {
+        knex = await require('../db/initKnex')();
+      } catch {
+        knex = await require('../db/knex')();
+      }
     } catch (dbInitErr) {
       console.error('[oauth] DB init failed:', dbInitErr);
       return res.status(500).send('Database unavailable');
@@ -178,20 +189,48 @@ router.get('/google/callback', async (req, res, next) => {
       .andWhere(q => q.where('users.is_deleted', false).orWhereNull('users.is_deleted'))
       .first();
 
+    // Save or update Google tokens
+    const now = new Date();
+    const expiry = new Date(now.getTime() + (tokenSet.expires_in || 3600) * 1000);
+
     if (!user || user.is_deleted) {
       const feBase =
-        (process.env.NODE_ENV === 'production')
-          ? (process.env.FRONTEND_URL || pickFrontendBase(req))
-          : (process.env.FRONTEND_URL_DEV || 'http://localhost:3000');
+        process.env.NODE_ENV === 'production'
+          ? process.env.FRONTEND_URL || pickFrontendBase(req)
+          : process.env.FRONTEND_URL_DEV || 'http://localhost:3000';
       const qs = new URLSearchParams({ email, reason: 'oauth_no_account' });
       return res.redirect(`${feBase}/sign-up`);
     }
 
+    // --- Save or update Google tokens (preserve existing refresh_token if none returned)
+    const insertData = {
+      user_id: user.id,
+      access_token: tokenSet.access_token,
+      scope: tokenSet.scope,
+      token_type: tokenSet.token_type,
+      expiry,
+      created_at: now,
+      updated_at: now
+    };
+
+    if (tokenSet.refresh_token) insertData.refresh_token = tokenSet.refresh_token;
+
+    await knex('user_google_tokens')
+      .insert(insertData)
+      .onConflict('user_id')
+      .merge({
+        access_token: tokenSet.access_token,
+        scope: tokenSet.scope,
+        token_type: tokenSet.token_type,
+        expiry,
+        updated_at: now,
+        ...(tokenSet.refresh_token ? { refresh_token: tokenSet.refresh_token } : {})
+      });
     // Set the ONE auth cookie (7d) and clear legacy junk
     issueSessionCookie(res, {
       id: user.id,
       email,
-      role: user.role_name || 'User',
+      role: user.role_name || 'User'
     });
     res.set('Cache-Control', 'no-store');
 
@@ -201,9 +240,10 @@ router.get('/google/callback', async (req, res, next) => {
     if (badSid) res.clearCookie('bmc.sid', clear);
 
     // FE base from env (prod or dev), no “staging” env concept here
-    let feBase = (process.env.NODE_ENV === 'production')
-      ? (process.env.FRONTEND_URL || 'https://bettermindcare.com')
-      : (process.env.FRONTEND_URL_DEV || 'http://localhost:3000');
+    let feBase =
+      process.env.NODE_ENV === 'production'
+        ? process.env.FRONTEND_URL || 'https://bettermindcare.com'
+        : process.env.FRONTEND_URL_DEV || 'http://localhost:3000';
     feBase = feBase.replace(/\/+$/, '');
 
     const dest = feBase + sanitizeReturnTo(st.rt, feBase);

@@ -11,47 +11,92 @@ const { scheduleMeeting, TokenExpiredError } = require('../controllers/googleCal
 function overlaps(aStart, aEnd, bStart, bEnd) {
   return Math.max(+aStart, +bStart) < Math.min(+aEnd, +bEnd);
 }
+// Refresh expired access token using stored refresh token
+async function refreshGoogleToken(knex, userId, clientId, clientSecret) {
+  const token = await knex('user_google_tokens').where({ user_id: userId }).first();
+  if (!token || !token.refresh_token) throw new Error('no_refresh_token');
 
-async function getOAuth2ForSession(req) {
-  const session = req?.session;
-  const t = session?.googleTokens;
-  if (!t?.access_token) return null;
+  const now = new Date();
+  if (token.expiry > now) return token.access_token; // still valid
 
-  const oauth2 = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI
-  );
-
-  oauth2.setCredentials({
-    access_token: t.access_token,
-    refresh_token: t.refresh_token,
-    expiry_date: (t.obtained_at || Date.now()) + (t.expires_in || 3600) * 1000
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      grant_type: 'refresh_token',
+      refresh_token: token.refresh_token
+    })
   });
 
-  // Try to refresh if expired
+  if (!res.ok) throw new Error('token_refresh_failed');
+  const newTokens = await res.json();
+
+  const newExpiry = new Date(Date.now() + (newTokens.expires_in || 3600) * 1000);
+
+  await knex('user_google_tokens').where({ user_id: userId }).update({
+    access_token: newTokens.access_token,
+    expiry: newExpiry,
+    updated_at: knex.fn.now()
+  });
+
+  return newTokens.access_token;
+}
+
+// Build OAuth2 client using DB-stored Google tokens
+async function getOAuth2ForSession(req) {
   try {
-    const now = Date.now();
-    if (oauth2.credentials.expiry_date && oauth2.credentials.expiry_date <= now) {
-      console.log('[googleCalendarRoutes] Access token expired, refreshing...');
-      const res = await oauth2.refreshAccessToken();
-      const newTokens = res.credentials;
-
-      // Save back to session
-      session.googleTokens = {
-        ...t,
-        access_token: newTokens.access_token,
-        expires_in: newTokens.expiry_date ? (newTokens.expiry_date - now) / 1000 : 3600,
-        obtained_at: now
-      };
-      await new Promise(resolve => session.save(resolve));
+    const userId = req?.session?.user?.id;
+    if (!userId) {
+      console.error('[getOAuth2ForSession] No userId in session');
+      return null;
     }
-  } catch (err) {
-    console.error('[googleCalendarRoutes] Failed to refresh Google token:', err);
-    throw new Error('google_reauth'); // frontend should redirect user to /api/oauth/google
-  }
 
-  return oauth2;
+    const knex = await require('../db/initKnex')();
+    const token = await knex('user_google_tokens').where({ user_id: userId }).first();
+
+    if (!token) {
+      console.error('[getOAuth2ForSession] No Google token found for userId:', userId);
+      return null;
+    }
+
+    // Ensure the token is fresh — refresh if expired
+    const now = Date.now();
+    const tokenExpiry = token.expiry ? new Date(token.expiry).getTime() : 0;
+
+    // If token is expired or missing expiry, refresh
+    if (tokenExpiry <= now) {
+      console.log('[getOAuth2ForSession] Access token expired, refreshing...');
+      const accessToken = await refreshGoogleToken(
+        knex,
+        userId,
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET
+      );
+      token.access_token = accessToken; // Update token with new access token
+    }
+
+    // Set up OAuth2 client
+    const oauth2 = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
+
+    // Set credentials
+    oauth2.setCredentials({
+      access_token: token.access_token,
+      refresh_token: token.refresh_token,
+      expiry_date: tokenExpiry
+    });
+
+    return oauth2;
+
+  } catch (err) {
+    console.error('[getOAuth2ForSession] Error:', err);
+    return null;
+  }
 }
 
 function asISO(dt) {
