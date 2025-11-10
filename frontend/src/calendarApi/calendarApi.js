@@ -2,11 +2,20 @@
 export async function fetchEvents(startISO, endISO) {
   const res = await fetch(
     `/api/google-calendar/events?start=${encodeURIComponent(startISO)}&end=${encodeURIComponent(endISO)}`,
-    {
-      credentials: 'include'
-    }
+    { credentials: 'include' }
   );
-  if (res.status === 401) throw new Error('google_reauth');
+
+  if (res.status === 401) {
+    try {
+      const data = await res.json();
+      if (data.error === 'google_reauth' || data.error === 'signin_required') {
+        throw new Error('google_reauth');
+      }
+    } catch {
+      throw new Error('unauthorized');
+    }
+  }
+
   if (!res.ok) throw new Error(await res.text());
   return (await res.json()).events;
 }
