@@ -143,6 +143,15 @@ export default function ProductsPage() {
       campaign: localStorage.getItem('campaign') || ''
     };
 
+    console.log('[checkout] formData before submit:', formData);
+    console.log('[checkout] meta about to send:', meta);
+
+    if (!formData.FirstName || !formData.LastName || !formData.EmailAddress) {
+      alert(
+        'Please fill in your name and email before proceeding to checkout.'
+      );
+      return;
+    }
     const res = await fetch('/api/stripe/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
