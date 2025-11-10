@@ -1,5 +1,5 @@
 // GoogleCalendar.jsx
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useContext } from 'react';
 import { Calendar, dateFnsLocalizer, Views } from 'react-big-calendar';
 import {
   format,
@@ -21,6 +21,7 @@ import {
   updateEvent,
   deleteEvent
 } from '../../calendarApi/calendarApi';
+import { AuthContext } from '../../auth/AuthContext';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 // date-fns localizer
@@ -212,6 +213,13 @@ const rowStyle = {
 };
 
 export default function GoogleCalendar() {
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) return <div>Loading...</div>;
+  if (!user || user.role_name !== 'doctor') {
+    return <div>Calendar access is restricted to doctors.</div>;
+  }
+
   const [events, setEvents] = useState([]);
   const [view, setView] = useState(Views.MONTH);
   const [date, setDate] = useState(new Date());
