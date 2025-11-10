@@ -87,17 +87,30 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
   try {
     const knex = await initKnex();
     const sig = req.headers['stripe-signature'];
-    const whSecret = process.env.STRIPE_WEBHOOK_SECRET; // use correct one for the environment
+    const whSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-    // ✅ Verify the webhook signature using the raw body
+    // ✅ Verify signature with raw body
     const event = stripe.webhooks.constructEvent(req.body, sig, whSecret);
     console.log('[webhook] ✅ Verified event:', event.type);
 
-    // ✅ Only act on checkout.session.completed
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
+      const customer = session.customer_details || {};
+
       console.log('[webhook] checkout.session.completed fired:', session.id);
       console.log('[webhook] metadata:', session.metadata);
+      console.log('[webhook] customer_details:', customer);
+
+      // ✅ Merge Stripe-collected customer info with your own metadata
+      const mergedMeta = {
+        ...session.metadata,
+        customer: {
+          name: customer.name || '',
+          email: customer.email || '',
+          phone: customer.phone || '',
+          address: customer.address || {}
+        }
+      };
 
       try {
         const insertData = {
@@ -107,13 +120,13 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
           amount: session.amount_total / 100,
           currency: session.currency,
           status: session.payment_status || 'unknown',
-          metadata: JSON.stringify(session.metadata || {}),
+          metadata: JSON.stringify(mergedMeta),
           evexia_processed: false,
           created_at: new Date(),
           updated_at: new Date()
         };
 
-        // Only include user_id if it’s valid
+        // Optional: include user_id if present
         if (session.metadata?.user_id && session.metadata.user_id !== 'null') {
           insertData.user_id = session.metadata.user_id;
         }
