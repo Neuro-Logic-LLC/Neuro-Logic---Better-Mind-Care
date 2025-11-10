@@ -25,37 +25,28 @@ fetch('/api/google-calendar/check-session', {
   });
 }
 
-export async function createMeeting({
-  summary,
-  description,
-  start_time,
-  end_time,
-  time_zone,
-  calendarId,
-  patient_email,
-  patient_name
-}) {
-  const payload = {
-    summary,
-    description,
-    start_time,
-    end_time,
-    time_zone,
-    calendarId,
-    patient_email,
-    patient_name
-  };
-
+export async function createMeeting(payload) {
   const res = await fetch('/api/google-calendar/create-meeting', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify(payload)
   });
-  const data = await res.json();
-  if (res.status === 401) throw new Error(data.error || 'google_reauth');
-  if (!res.ok) throw new Error(data.error || 'create_failed');
-  return data;
+
+  // If not authorized for Google, trigger OAuth
+  if (res.status === 401) {
+    const data = await res.json();
+    if (data.error?.includes('signin_required')) {
+      window.location.href = '/api/oauth/google?returnTo=/google-calendar';
+      return;
+    }
+  }
+
+  if (!res.ok) {
+    throw new Error(`Failed to create meeting: ${res.status}`);
+  }
+
+  return await res.json();
 }
 
 const BASE = '/api/google-calendar';

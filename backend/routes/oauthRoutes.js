@@ -226,11 +226,20 @@ router.get('/google/callback', async (req, res, next) => {
         updated_at: now,
         ...(tokenSet.refresh_token ? { refresh_token: tokenSet.refresh_token } : {})
       });
+
+    req.session.user = {
+      id: user.id,
+      email: user.email_canon,
+      role_name: user.role_id,
+      is_email_confirmed: user.is_active
+    };
+
     // Set the ONE auth cookie (7d) and clear legacy junk
     issueSessionCookie(res, {
       id: user.id,
-      email,
-      role: user.role_name || 'User'
+      email: user.email_canon,
+      role: user.role_id || 'User',
+      is_email_confirmed: user.is_active
     });
     res.set('Cache-Control', 'no-store');
 
