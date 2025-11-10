@@ -1,13 +1,25 @@
+// backend/lib/googleServiceAccount.js
+const { GoogleAuth } = require('google-auth-library');
 const { google } = require('googleapis');
 
-function getServiceAccountClient(impersonateEmail = 'jim@bettermindcare.com') {
-  const auth = new google.auth.JWT({
-    email: 'bmc-calendar-access@tactical-prism-468521-f6.iam.gserviceaccount.com',
-    scopes: ['openid', 'email', 'profile', 'https://www.googleapis.com/auth/calendar.events'],
-    subject: impersonateEmail // ← use the function argument!
+async function getServiceAccountClient(impersonateEmail = 'jim@bettermindcare.com') {
+  // This tells Google to use the federated credentials from AWS → WIF
+  const auth = new GoogleAuth({
+    scopes: ['https://www.googleapis.com/auth/calendar.events'],
+    // Impersonate the actual service account (the one you granted token creator to)
+    clientOptions: {
+      subject: impersonateEmail,
+    },
   });
 
-  return google.calendar({ version: 'v3', auth });
+  // Authenticate automatically using federation
+  const client = await auth.getClient();
+
+  // Now return a usable Calendar API client
+  return google.calendar({
+    version: 'v3',
+    auth: client,
+  });
 }
 
 module.exports = { getServiceAccountClient };

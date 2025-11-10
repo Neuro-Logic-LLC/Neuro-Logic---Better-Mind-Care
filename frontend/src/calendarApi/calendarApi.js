@@ -1,32 +1,34 @@
 // calendarApi.ts
 
-
 export async function fetchEvents(startISO, endISO) {
-
-
-fetch('/api/google-calendar/check-session', {
-  method: 'GET',
-  credentials: 'include'  // Ensures cookies (session data) are sent along with the request
-})
-  .then(response => response.json()) // Parse the response as JSON
-  .then(data => {
-    console.log('Session Data:', data);  // Logs the session data received from the backend
+  fetch('/api/google-calendar/check-session', {
+    method: 'GET',
+    credentials: 'include' // Ensures cookies (session data) are sent along with the request
   })
-  .catch(error => console.error('Error fetching session:', error));
+    .then((response) => response.json()) // Parse the response as JSON
+    .then((data) => {
+      console.log('Session Data:', data); // Logs the session data received from the backend
+    })
+    .catch((error) => console.error('Error fetching session:', error));
 
   const res = await fetch('/api/google-calendar/check-session')
-  .then(response => {
-    if (response.status === 401) {
-      // Redirect to Google login or show re-authentication prompt
-    }
-  })
-  .catch(error => {
-    console.error('Error checking session:', error);
-  });
+    .then((response) => {
+      if (response.status === 401) {
+        // Redirect to Google login or show re-authentication prompt
+      }
+    })
+    .catch((error) => {
+      console.error('Error checking session:', error);
+    });
 }
 
+const isLocal =
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1';
+
+const API = isLocal ? 'https://localhost:5050' : '';
 export async function createMeeting(payload) {
-  const res = await fetch('/api/google-calendar/create-meeting', {
+  const res = await fetch(`${API}/api/google-calendar/create-meeting`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
