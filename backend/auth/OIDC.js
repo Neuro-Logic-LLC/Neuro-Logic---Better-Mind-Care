@@ -1,4 +1,4 @@
-process.env.OAUTH4WEBAPI_ALLOW_HTTP = 'true';
+
 const crypto = require('crypto');
 const getOauth4w = require('../lib/oauth4w');
 

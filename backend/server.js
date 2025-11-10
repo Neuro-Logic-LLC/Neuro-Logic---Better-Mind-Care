@@ -1,5 +1,4 @@
-process.env.OAUTH4WEBAPI_ALLOW_HTTP = 'true';
-console.log('ALLOW_HTTP:', process.env.OAUTH4WEBAPI_ALLOW_HTTP);
+
 
 require('dotenv').config();
 
@@ -50,7 +49,7 @@ async function loadSSMIntoEnv(pathPrefix) {
 
   // Init OIDC AFTER env is present. Base is just for redirectUri construction.
   const base = isProd ? 'https://staging.bettermindcare.com' : 'https://localhost:5050';
-  await initGoogle({ base });
+
 
   const PORT = process.env.PORT || 5050;
 

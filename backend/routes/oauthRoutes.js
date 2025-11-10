@@ -1,4 +1,4 @@
-process.env.OAUTH4WEBAPI_ALLOW_HTTP = 'true';
+
 // backend/routes/oauthRoutes.js
 const router = require('express').Router();
 const jwt = require('jsonwebtoken');

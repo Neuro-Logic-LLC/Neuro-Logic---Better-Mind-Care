@@ -173,11 +173,17 @@ app.use('/api/oauth', require('./routes/oauthRoutes'));
 app.use('/api/evexia-import', require('./routes/evexiaImportRoutes'));
 
 // ---- Static files ----
-const path = require('path');
-app.use(express.static(path.join(__dirname, 'dist')));
-app.get(/^(?!\/api\/).*/, (_req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
+
+if (process.env.NODE_ENV === 'production') {
+  const path = require('path');
+  app.use(express.static(path.join(__dirname, 'dist')));
+  app.get(/^(?!\/api\/).*/, (_req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  });
+} else {
+  // In development, just skip static serving
+  app.get('/', (_req, res) => res.send('API running in development mode'));
+}
 
 // ---- Error handler ----
 app.use((err, _req, res, _next) => {
