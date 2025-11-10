@@ -363,17 +363,18 @@ export default function GoogleCalendar() {
 
       setShowCreate(false);
       await load(range);
-    } catch (e) {
-      const msg = String(e?.message || '');
-      if (msg.includes('google_reauth'))
-        window.location.href = '/api/oauth/google';
-      else if (msg.includes('slot_unavailable'))
-        alert('That time was just taken. Pick another.');
-      else {
-        console.error(e);
-        alert('Could not create meeting.');
-      }
-    }
+                       } catch (e) {
+                         const msg = String(e?.message || '');
+                         if (msg.includes('google_reauth') || msg.includes('signin_required'))
+                           window.location.href = '/api/oauth/google';
+                         else if (msg.includes('slot_unavailable'))
+                           alert('That time conflicts with another event.');
+                         else {
+                           console.error(err);
+                           alert('Update failed.');
+                         }
+                       }
+     }
   }
 
   return (
@@ -702,19 +703,19 @@ export default function GoogleCalendar() {
                         await deleteEvent(calendarId, selected.id);
                         setSelected(null);
                         await load(range);
-                      } catch (e) {
-                        const msg = String(e?.message || '');
-                        if (msg.includes('google_reauth'))
-                          window.location.href = '/api/oauth/google';
-                        else if (msg.includes('forbidden_delete'))
-                          alert(
-                            "You don't have permission to delete this event."
-                          );
-                        else {
-                          console.error(e);
-                          alert('Could not delete event.');
-                        }
-                      }
+                       } catch (e) {
+                         const msg = String(e?.message || '');
+                         if (msg.includes('google_reauth') || msg.includes('signin_required'))
+                           window.location.href = '/api/oauth/google';
+                         else if (msg.includes('forbidden_delete'))
+                           alert(
+                             "You don't have permission to delete this event."
+                           );
+                         else {
+                           console.error(e);
+                           alert('Could not delete event.');
+                         }
+                       }
                     }}
                     style={{ width: '100%' }}
                   >
@@ -823,17 +824,17 @@ export default function GoogleCalendar() {
                         setIsEditing(false);
                         setSelected(null);
                         await load(range);
-                      } catch (err) {
-                        const msg = String(err?.message || '');
-                        if (msg.includes('google_reauth'))
-                          window.location.href = '/api/oauth/google';
-                        else if (msg.includes('slot_unavailable'))
-                          alert('That time conflicts with another event.');
-                        else {
-                          console.error(err);
-                          alert('Update failed.');
-                        }
-                      }
+                       } catch (err) {
+                         const msg = String(err?.message || '');
+                         if (msg.includes('google_reauth') || msg.includes('signin_required'))
+                           window.location.href = '/api/oauth/google';
+                         else if (msg.includes('slot_unavailable'))
+                           alert('That time conflicts with another event.');
+                         else {
+                           console.error(err);
+                           alert('Update failed.');
+                         }
+                       }
                     }}
                     style={{ width: '100%' }}
                   >
