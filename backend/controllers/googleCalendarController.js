@@ -2,7 +2,7 @@
 const { google } = require('googleapis');
 const crypto = require('crypto');
 
-
+const { TokenExpiredError } = require('google-auth-library');   // Adjusted path as needed
 
 // Run startup initializers inside an async IIFE (avoids top-level await in CommonJS)
 (async () => {
@@ -91,7 +91,7 @@ async function listGoogleEvents(
   const apiTimeMax = new Date(endQ.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
   const { data } = await calendar.events.list({
-    calendarId,
+    calendarId: "jim@bettermindcare.com",
     timeMin: apiTimeMin,
     timeMax: apiTimeMax,
     singleEvents: true,

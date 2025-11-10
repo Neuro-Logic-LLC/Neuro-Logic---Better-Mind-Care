@@ -9,7 +9,6 @@ const initKnex = require('../db/initKnex');
 const getOauth4w = require('../lib/oauth4w');
 const initGoogle = require('../auth/OIDC').initGoogle;
 
-
 // Initialize services (best-effort)
 (async () => {
   try {
@@ -136,7 +135,6 @@ function isGoogleAuthError(e) {
   );
 }
 
-
 router.get('/check-session', (req, res) => {
   res.json({ session: req.session || null });
 });
@@ -160,15 +158,8 @@ router.post('/create-meeting', async (req, res) => {
       return res.status(400).json({ error: 'summary and start_time required' });
     }
 
-try {
-  await oauth2.getAccessToken();
-} catch (err) {
-  console.error('[create-meeting] Token refresh failed:', err);
-  throw new Error('google_reauth'); // trigger reauth if token refresh fails
-}
-
-    // ensure fresh token (no-op if valid)
-    await oauth2.getAccessToken().catch(() => {});
+    const oauth2 = await getOAuth2ForSession(req);
+    if (!oauth2) return res.status(401).json({ error: 'signin_required' });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2 });
 
@@ -239,28 +230,28 @@ try {
       html_link: ev.htmlLink
     });
   } catch (e) {
-  console.error('[create-meeting] Error:', e?.message || e, e?.response?.data || '');
+    console.error('[create-meeting] Error:', e?.message || e, e?.response?.data || '');
 
-  // Handle token expiration errors based on error message
-  if (e.message && (e.message.includes('invalid_grant') || e.message.includes('expired_token'))) {
-    return res.status(401).json({ error: 'token_invalid_or_revoked: re-auth required' });
+    // Handle token expiration errors based on error message
+    if (e.message && (e.message.includes('invalid_grant') || e.message.includes('expired_token'))) {
+      return res.status(401).json({ error: 'token_invalid_or_revoked: re-auth required' });
+    }
+
+    // Handle "google_reauth" errors specifically
+    if (e.message === 'google_reauth') {
+      return res.status(401).json({ error: 'google_reauth' });
+    }
+
+    // If no valid token is found, request the user to reauthenticate
+    if (String(e?.message || '').includes('signin_required')) {
+      return res
+        .status(401)
+        .json({ error: 'signin_required: no Google token. Hit /api/oauth/google' });
+    }
+
+    // General error handling for other errors
+    return res.status(500).json({ error: 'Internal Server Error: ' + String(e?.message || e) });
   }
-
-  // Handle "google_reauth" errors specifically
-  if (e.message === 'google_reauth') {
-    return res.status(401).json({ error: 'google_reauth' });
-  }
-
-  // If no valid token is found, request the user to reauthenticate
-  if (String(e?.message || '').includes('signin_required')) {
-    return res
-      .status(401)
-      .json({ error: 'signin_required: no Google token. Hit /api/oauth/google' });
-  }
-
-  // General error handling for other errors
-  return res.status(500).json({ error: 'Internal Server Error: ' + String(e?.message || e) });
-}
 });
 
 /** ---------- Availability ---------- */
@@ -346,7 +337,7 @@ router.get('/events', async (req, res) => {
     const timeMax = new Date(endQ.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
     const { data } = await calendar.events.list({
-      calendarId,
+      calendarId: "jim@bettermindcare.com",
       timeMin,
       timeMax,
       singleEvents: true,
@@ -400,8 +391,7 @@ router.patch('/events/:id', async (req, res) => {
     await oauth2.getAccessToken().catch(() => {});
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2 });
-    const calendarId =
-      req.query.calendarId || process.env.GOOGLE_CALENDAR_ID || 'jim@bettermindcare.com';
+    const calendarId = 'jim@bettermindcare.com';
     const eventId = req.params.id;
     const { summary, start_time, end_time, time_zone = 'UTC' } = req.body || {};
 
@@ -410,7 +400,7 @@ router.patch('/events/:id', async (req, res) => {
       const timeMax = new Date(end_time).toISOString();
 
       const { data } = await calendar.events.list({
-        calendarId,
+        calendarId: calendarId,
         timeMin,
         timeMax,
         singleEvents: true,
