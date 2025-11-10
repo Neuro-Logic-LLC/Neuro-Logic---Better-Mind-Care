@@ -3,8 +3,18 @@ const loadssmparams = await require('../utils/loadssmparams')();
 await loadssmparams;
 const initKnex = await require('../db/initKnex')();
 await initKnex;
+
+const getOauth4w = require('../lib/oauth4w');
+await getOauth4w;
+
+const initGoogle = require('../auth/OIDC').initGoogle;
+await initGoogle();
+
 const { google } = require('googleapis');
 const crypto = require('crypto');
+
+const { TokenExpiredError } = require('../auth/OIDC');  // Adjusted path as needed
+const { scheduleMeeting, listGoogleEvents } = require('../auth/googleCalendarService'); // New service file
 
 
 function overlaps(aStart, aEnd, bStart, bEnd) {

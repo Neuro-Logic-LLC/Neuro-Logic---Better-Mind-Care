@@ -14,24 +14,15 @@ fetch('/check-session', {
   })
   .catch(error => console.error('Error fetching session:', error));
 
-  const res = await fetch(
-    `/api/google-calendar/events?start=${encodeURIComponent(startISO)}&end=${encodeURIComponent(endISO)}`,
-    { credentials: 'include' }
-  );
-
-  if (res.status === 401) {
-    try {
-      const data = await res.json();
-      if (data.error === 'google_reauth' || data.error === 'signin_required') {
-        throw new Error('google_reauth');
-      }
-    } catch {
-      throw new Error('unauthorized');
+  const res = await fetch('/api/check-session')
+  .then(response => {
+    if (response.status === 401) {
+      // Redirect to Google login or show re-authentication prompt
     }
-  }
-
-  if (!res.ok) throw new Error(await res.text());
-  return (await res.json()).events;
+  })
+  .catch(error => {
+    console.error('Error checking session:', error);
+  });
 }
 
 export async function createMeeting({

@@ -1,13 +1,27 @@
 // src/backend/routes/googleCalendarRoutes.js
 const express = require('express');
 const router = express.Router();
-const { google } = require('googleapis');
 const crypto = require('crypto');
-const getOauth4w = require('../lib/oauth4w');
 
+// src/backend/controllers/googleCalendarController.js
+const loadssmparams = await require('../utils/loadssmparams')();
+await loadssmparams;
+const initKnex = await require('../db/initKnex')();
+await initKnex;
+const getOauth4w = require('../lib/oauth4w');
+await getOauth4w;
+const initGoogle = require('../auth/OIDC').initGoogle;
+await initGoogle();
+const { google } = require('googleapis');
+const { TokenExpiredError } = require('../auth/OIDC');  // Adjusted path as needed
+const { scheduleMeeting, listGoogleEvents } = require('../auth/googleCalendarService'); // New service file
+const { google } = require('googleapis');
 
 // If you still use these elsewhere, keep them:
 const { scheduleMeeting, TokenExpiredError } = require('../controllers/googleCalendarController');
+
+
+
 
 /** ---------- Helpers ---------- */
 function overlaps(aStart, aEnd, bStart, bEnd) {
@@ -161,7 +175,8 @@ router.post('/create-meeting', async (req, res) => {
     });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2 });
-
+    const dayStart = new Date(startISO);
+    const dayEnd = new Date(endISO);
     const startISO = asISO(start_time);
     const { endISO } = clampDuration(startISO, end_time && asISO(end_time), 30);
 
