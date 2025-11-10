@@ -3,6 +3,8 @@ const express = require('express');
 const router = express.Router();
 const { google } = require('googleapis');
 const crypto = require('crypto');
+const getOauth4w = require('../lib/oauth4w');
+
 
 // If you still use these elsewhere, keep them:
 const { scheduleMeeting, TokenExpiredError } = require('../controllers/googleCalendarController');

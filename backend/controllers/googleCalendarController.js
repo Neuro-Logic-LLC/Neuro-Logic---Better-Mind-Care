@@ -1,6 +1,11 @@
 // src/backend/controllers/googleCalendarController.js
+const loadssmparams = await require('../utils/loadssmparams')();
+await loadssmparams;
+const initKnex = await require('../db/initKnex')();
+await initKnex;
 const { google } = require('googleapis');
 const crypto = require('crypto');
+
 
 function overlaps(aStart, aEnd, bStart, bEnd) {
   return Math.max(+aStart, +bStart) < Math.min(+aEnd, +bEnd);
