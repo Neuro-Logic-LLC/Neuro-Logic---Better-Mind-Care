@@ -95,10 +95,10 @@ router.post('/create-meeting', async (req, res) => {
       requestBody: {
         timeMin: dayStart.toISOString(),
         timeMax: dayEnd.toISOString(),
-        items: [{ id: 'jim@bettermindcare.com' }]
+        items: [{ id: targetCalendarId }]
       }
     });
-    const busy = fbData?.calendars?.['jim@bettermindcare.com']?.busy || [];
+    const busy = fbData?.calendars?.[targetCalendarId]?.busy || [];
     const slotTaken = busy.some(b => {
       const b0 = new Date(b.start).getTime();
       const b1 = new Date(b.end).getTime();
@@ -112,8 +112,10 @@ router.post('/create-meeting', async (req, res) => {
       return res.status(409).json({ error: 'slot_unavailable' });
     }
 
+    const targetCalendarId = 'jim@bettermindcare.com'; // Hardcode to Jim's calendar
+    console.log('[create-meeting] Creating event on calendar:', targetCalendarId);
     const { data: ev } = await calendar.events.insert({
-      calendarId: calendarId,
+      calendarId: targetCalendarId,
       conferenceDataVersion: 1,
       sendUpdates: 'all',
       requestBody: {
@@ -145,6 +147,7 @@ router.post('/create-meeting', async (req, res) => {
       html_link: ev.htmlLink
     });
   } catch (e) {
+    console.error('[create-meeting] Error:', e.message, e.response?.data || e);
     if (e instanceof TokenExpiredError || isGoogleAuthError(e)) {
       return res.status(401).json({ error: 'token_invalid_or_revoked: re-auth required' });
     }
@@ -153,7 +156,6 @@ router.post('/create-meeting', async (req, res) => {
         .status(401)
         .json({ error: 'signin_required: no Google token. Hit /api/oauth/google' });
     }
-    console.error('[create-meeting]', e);
     return res.status(500).json({ error: e.message });
   }
 });
