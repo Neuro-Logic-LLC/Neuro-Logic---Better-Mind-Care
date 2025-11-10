@@ -62,6 +62,19 @@ function sanitizeReturnTo(raw, feBase) {
 // GET /api/oauth/google (init)
 router.get('/google', async (req, res, next) => {
   try {
+    
+    let knex;
+    try {
+      try {
+        knex = await require('../db/initKnex')();
+      } catch {
+        knex = await require('../db/knex')();
+      }
+    } catch (dbInitErr) {
+      console.error('[oauth] DB init failed:', dbInitErr);
+      return res.status(500).send('Database unavailable');
+    }
+
     const base = `${req.protocol}://${req.get('host')}`;
     await initGoogle({ base });
 
@@ -76,6 +89,26 @@ router.get('/google', async (req, res, next) => {
         : process.env.FRONTEND_URL_DEV || 'https://localhost:3000';
 
     const returnTo = sanitizeReturnTo(req.query.returnTo, feBase);
+
+    const user = await knex('users')
+      .leftJoin('roles', 'users.role_id', 'roles.id')
+      .select(
+        'users.id',
+        'users.email_canon',
+        'roles.role_name',
+        'users.is_email_confirmed',
+        'users.is_deleted'
+      )
+      .where('users.email_canon', email)
+      .andWhere(q => q.where('users.is_deleted', false).orWhereNull('users.is_deleted'))
+      .first();
+
+    req.session.user = {
+      id: user.id,
+      email: user.email,
+      role_name: user.role_name,
+      is_email_confirmed: user.is_email_confirmed
+    };
 
     // Signed, short-lived state carrying PKCE + returnTo
     const stateJWT = jwt.sign(
