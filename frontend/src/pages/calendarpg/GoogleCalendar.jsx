@@ -223,7 +223,7 @@ export default function GoogleCalendar() {
   const [events, setEvents] = useState([]);
   const [view, setView] = useState(Views.MONTH);
   const [date, setDate] = useState(new Date());
-  const [calendarId, setCalendarId] = useState('jim@bettermindcare.com');
+  const [calendarId, setCalendarId] = useState('primary');
 
   // view range + tz
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
@@ -417,7 +417,7 @@ export default function GoogleCalendar() {
            value={calendarId}
            onChange={(e) => setCalendarId(e.target.value)}
          >
-           <option value="jim@bettermindcare.com">Primary</option>
+           <option value="primary">Primary</option>
          </select>
         <button
           type="button"

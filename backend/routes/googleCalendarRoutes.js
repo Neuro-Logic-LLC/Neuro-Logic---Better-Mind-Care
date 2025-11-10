@@ -303,7 +303,7 @@ router.get('/events', async (req, res) => {
     if (!oauth2) return res.status(401).json({ error: 'signin_required' });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2 });
-    const calendarId = req.query.calendarId || 'primary';
+    const calendarId = req.query.calendarId || 'jim@bettermindcare.com';
     const includePastDays = Math.max(0, Number(req.query.includePastDays || 60));
 
     // window
