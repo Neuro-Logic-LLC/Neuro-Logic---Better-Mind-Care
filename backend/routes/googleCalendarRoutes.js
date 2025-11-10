@@ -199,26 +199,17 @@ router.post('/create-meeting', async (req, res) => {
     });
   } catch (e) {
     console.error('[create-meeting] Error:', e?.message || e, e?.response?.data || '');
-
-    // Handle token expiration errors based on error message
-    if (e.message && (e.message.includes('invalid_grant') || e.message.includes('expired_token'))) {
+    // TokenExpiredError may not be exported from OIDC; guard instanceof check
+    if (isGoogleAuthError(e)) {
       return res.status(401).json({ error: 'token_invalid_or_revoked: re-auth required' });
     }
 
-    // Handle "google_reauth" errors specifically
-    if (e.message === 'google_reauth') {
-      return res.status(401).json({ error: 'google_reauth' });
-    }
-
-    // If no valid token is found, request the user to reauthenticate
     if (String(e?.message || '').includes('signin_required')) {
       return res
         .status(401)
         .json({ error: 'signin_required: no Google token. Hit /api/oauth/google' });
     }
-
-    // General error handling for other errors
-    return res.status(500).json({ error: 'Internal Server Error: ' + String(e?.message || e) });
+    return res.status(500).json({ error: String(e?.message || e) });
   }
 });
 

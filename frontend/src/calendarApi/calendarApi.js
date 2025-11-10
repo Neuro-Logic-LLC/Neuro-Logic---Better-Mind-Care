@@ -5,7 +5,7 @@ export async function fetchEvents(startISO, endISO) {
     method: 'GET',
     credentials: 'include' // Ensures cookies (session data) are sent along with the request
   })
-    .then((response) => response.json()) // Parse the response as JSON
+    .then((response) => response) // Parse the response as JSON
     .then((data) => {
       console.log('Session Data:', data); // Logs the session data received from the backend
     })
@@ -28,11 +28,11 @@ const isLocal =
 
 const API = isLocal ? 'https://localhost:5050' : '';
 export async function createMeeting(payload) {
-  const res = await fetch(`${API}/api/google-calendar/create-meeting`, {
+  const res = await fetch(`/api/google-calendar/create-meeting`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify(payload)
+    body: payload ? JSON.stringify(payload) : null,
   });
 
   // If not authorized for Google, trigger OAuth
