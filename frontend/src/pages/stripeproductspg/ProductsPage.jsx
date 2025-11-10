@@ -150,17 +150,16 @@ export default function ProductsPage() {
         ...flags,
         success_url,
         cancel_url,
-        customer_email: form.email, // optional
-        FirstName: form.firstName,
-        LastName: form.lastName,
-        DOB: form.dob,
-        Gender: form.gender,
-        EmailAddress: form.email,
-        StreetAddress: form.address,
-        City: form.city,
-        State: form.state,
-        PostalCode: form.zip,
-        Phone: form.phone
+        FirstName: formData.FirstName,
+        LastName: formData.LastName,
+        DOB: formData.DOB,
+        Gender: formData.Gender,
+        EmailAddress: formData.EmailAddress,
+        StreetAddress: formData.StreetAddress,
+        City: formData.City,
+        State: formData.State,
+        PostalCode: formData.PostalCode,
+        Phone: formData.Phonen
       })
     });
     if (!res.ok) {
