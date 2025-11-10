@@ -1,5 +1,9 @@
-// // queues/evexiaQueue.js
-// import { Queue } from 'bullmq';
-// import { redisConfig } from '../config.js';
+// queues/evexiaQueue.js
+const { Queue } = require('bullmq');
 
-// export const EvexiaQueue = new Queue('evexiaQueue', { connection: redisConfig });           
+const redisConfig = {
+  host: process.env.REDIS_HOST || '127.0.0.1',
+  port: process.env.REDIS_PORT || 6379,
+};
+
+export const EvexiaQueue = new Queue('evexiaQueue', { connection: redisConfig });           

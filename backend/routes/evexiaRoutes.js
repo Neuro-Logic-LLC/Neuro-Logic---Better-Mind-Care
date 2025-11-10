@@ -2317,4 +2317,19 @@ router.post('/requisition-get', getRequisition);
 
 router.get('/draw-center-locator', getDrawCenterLocator);
 router.post('/draw-center-locator', getDrawCenterLocator);
+
+// Function for the queue worker
+async function runEvexiaSequence(patientData) {
+  // TODO: Implement the Evexia sequence for the patient
+  // For example, place orders, handle payments, etc.
+  console.log('Running Evexia sequence for patient:', patientData.EmailAddress);
+
+  // Placeholder: perhaps call patientOrderCombinedPtauFirst with appropriate data
+  // But need to map patientData to the required format
+
+  // For now, just log
+  return { success: true };
+}
+
 module.exports = router;
+module.exports.runEvexiaSequence = runEvexiaSequence;
