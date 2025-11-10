@@ -223,7 +223,7 @@ export default function GoogleCalendar() {
   const [events, setEvents] = useState([]);
   const [view, setView] = useState(Views.MONTH);
   const [date, setDate] = useState(new Date());
-  const [calendarId, setCalendarId] = useState('primary');
+  const [calendarId, setCalendarId] = useState('jim@bettermindcare.com');
 
   // view range + tz
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
@@ -412,13 +412,13 @@ export default function GoogleCalendar() {
         }}
       >
         <span>Calendar:</span>
-        <select
-          style={{ cursor: 'pointer', fontSize: 18, fontWeight: 500 }}
-          value={calendarId}
-          onChange={(e) => setCalendarId(e.target.value)}
-        >
-          <option value="primary">Primary</option>
-        </select>
+         <select
+           style={{ cursor: 'pointer', fontSize: 18, fontWeight: 500 }}
+           value={calendarId}
+           onChange={(e) => setCalendarId(e.target.value)}
+         >
+           <option value="jim@bettermindcare.com">Primary</option>
+         </select>
         <button
           type="button"
           className="btn btn-outline-teal"
