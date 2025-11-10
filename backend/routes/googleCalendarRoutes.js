@@ -4,7 +4,7 @@ const router = express.Router();
 const crypto = require('crypto');
 const { google } = require('googleapis');
 
-const loadSSMParams = require('../utils/loadssmparams');
+const loadSSMParams = require('../utils/loadSSMParams');
 const initKnex = require('../db/initKnex');
 const getOauth4w = require('../lib/oauth4w');
 const initGoogle = require('../auth/OIDC').initGoogle;

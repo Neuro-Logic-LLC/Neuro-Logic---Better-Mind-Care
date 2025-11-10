@@ -7,10 +7,10 @@ const { TokenExpiredError } = require('../auth/OIDC');  // Adjusted path as need
 // Run startup initializers inside an async IIFE (avoids top-level await in CommonJS)
 (async () => {
   try {
-    if (typeof require('../utils/loadssmparams') === 'function') {
-      await require('../utils/loadssmparams')();
+    if (typeof require('../utils/loadSSMParams') === 'function') {
+      await require('../utils/loadSSMParams')();
     } else {
-      await require('../utils/loadssmparams');
+      await require('../utils/loadSSMParams');
     }
 
     if (typeof require('../db/initKnex') === 'function') {
