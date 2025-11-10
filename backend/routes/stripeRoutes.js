@@ -280,74 +280,89 @@ router.post('/checkout', express.json(), async (req, res) => {
 //     res.status(200).end();
 //   }
 // );
-// router.post(
-//   "/webhook",
-//   express.raw({ type: "application/json" }),
-//   async (req, res) => {
-//     let event;
-//     try {
-//       const sig = req.headers["stripe-signature"];
-//       const whSecret = process.env.STRIPE_WEBHOOK_SECRET;
-//       const s = getStripe();
-//       event = s.webhooks.constructEvent(req.body, sig, whSecret);
-//     } catch (err) {
-//       console.error("[stripe] bad webhook signature:", err.message);
-//       return res.status(400).send(`Webhook Error: ${err.message}`);
-//     }
+router.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }),
+  async (req, res) => {
+    let event;
 
-//     console.log("[stripe] webhook event:", event.type);
+    try {
+      const sig = req.headers['stripe-signature'];
+      const whSecret = reqEnv('STRIPE_WEBHOOK_SECRET');
+      const s = getStripe();
+      event = s.webhooks.constructEvent(req.body, sig, whSecret);
+    } catch (err) {
+      console.error('[stripe] bad webhook signature:', err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
 
-//     try {
-//       if (event.type === "checkout.session.completed") {
-//         const session = event.data.object;
-//         const s = getStripe();
+    if (!IS_PROD) console.log('[stripe] webhook event:', event.type);
 
-//         const customer = await s.customers.retrieve(session.customer, {
-//           expand: ["address"],
-//         });
+    try {
+      if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        const s = getStripe();
+        const customer = await s.customers.retrieve(session.customer, {
+          expand: ['address']
+        });
 
-//         const patientData = {
-//           FirstName: customer.name?.split(" ")[0] || "",
-//           LastName: customer.name?.split(" ").slice(1).join(" ") || "",
-//           EmailAddress: customer.email || "",
-//           Phone: customer.phone || "",
-//           StreetAddress: customer.address?.line1 || "",
-//           City: customer.address?.city || "",
-//           State: customer.address?.state || "",
-//           PostalCode: customer.address?.postal_code || "",
-//           DOB: session.metadata?.DOB || "",
-//           Gender: session.metadata?.Gender || "",
-//         };
+        const patientData = {
+          FirstName: customer.name?.split(' ')[0] || '',
+          LastName: customer.name?.split(' ').slice(1).join(' ') || '',
+          EmailAddress: customer.email || '',
+          Phone: customer.phone || '',
+          StreetAddress: customer.address?.line1 || '',
+          City: customer.address?.city || '',
+          State: customer.address?.state || '',
+          PostalCode: customer.address?.postal_code || '',
+          DOB: session.metadata?.DOB || '',
+          Gender: session.metadata?.Gender || '',
+          // Add cart info for order placement
+          cart: JSON.parse(session.metadata?.cart || '{}'),
+          splitApoePtau: session.metadata?.splitApoePtau === '1',
+          requireBoth: session.metadata?.requireBoth === '1'
+        };
 
-//         console.log("[stripe webhook] Patient data from Stripe:", patientData);
+        console.log('[stripe webhook] Patient data from Stripe:', patientData);
 
-//         // ✅ Save to DB
-//         try {
-//           const knex = require("../db/knex");
-//           const stripePayments = await knex("stripe_payments").insert({
-//             stripe_session_id: session.id,
-//             stripe_payment_intent_id: session.payment_intent || null,
-//             user_id: session.metadata?.user_id || null,
-//             product_key: session.metadata?.productKey || "",
-//             amount: session.amount_total / 100,
-//             currency: session.currency,
-//             status: session.payment_status || "unknown",
-//             metadata: JSON.stringify(patientData),
-//             evexia_processed: false,
-//             created_at: new Date(),
-//             updated_at: new Date(),
-//           });
-//           console.log("[stripe webhook] Saved payment in DB");
-//         } catch (dbErr) {
-//           console.error("[stripe webhook] DB insert failed:", dbErr);
-//         }
-//       }
-//     } catch (err) {
-//       console.error("[stripe webhook] error:", err);
-//     }
+        // ✅ Save to DB
+        let paymentId;
+        try {
+          const knex = await initKnex();
+          const inserted = await knex('stripe_payments').insert({
+            stripe_session_id: session.id,
+            stripe_payment_intent_id: session.payment_intent || null,
+            user_id: session.metadata?.user_id || null,
+            product_key: session.metadata?.productKey || '',
+            amount: session.amount_total / 100,
+            currency: session.currency,
+            status: session.payment_status || 'unknown',
+            metadata: JSON.stringify(patientData),
+            evexia_processed: false,
+            created_at: new Date(),
+            updated_at: new Date()
+          }).returning('id');
+          paymentId = inserted[0]?.id;
+          console.log('[stripe webhook] Saved payment in DB, ID:', paymentId);
+        } catch (dbErr) {
+          console.error('[stripe webhook] DB insert failed:', dbErr);
+          return res.status(500).end();
+        }
 
-//     res.status(200).end();
-//   }
-// );
+        // ✅ Add to Evexia queue for processing
+        try {
+          await evexiaQueue.add('processOrder', { patientData, paymentId });
+          console.log('[stripe webhook] Added to Evexia queue');
+        } catch (queueErr) {
+          console.error('[stripe webhook] Queue add failed:', queueErr);
+        }
+      }
+    } catch (err) {
+      console.error('[stripe webhook] error:', err);
+    }
+
+    res.status(200).end();
+  }
+);
 
 module.exports = router;

@@ -2319,16 +2319,90 @@ router.get('/draw-center-locator', getDrawCenterLocator);
 router.post('/draw-center-locator', getDrawCenterLocator);
 
 // Function for the queue worker
-async function runEvexiaSequence(patientData) {
-  // TODO: Implement the Evexia sequence for the patient
-  // For example, place orders, handle payments, etc.
+async function runEvexiaSequence({ patientData, paymentId }) {
   console.log('Running Evexia sequence for patient:', patientData.EmailAddress);
 
-  // Placeholder: perhaps call patientOrderCombinedPtauFirst with appropriate data
-  // But need to map patientData to the required format
+  try {
+    const knex = await initKnex();
 
-  // For now, just log
-  return { success: true };
+    // Check if already processed
+    const payment = await knex('stripe_payments').where({ id: paymentId }).first();
+    if (!payment || payment.evexia_processed) {
+      console.log('Payment already processed or not found');
+      return { success: true };
+    }
+
+    // Map patientData to Evexia format
+    const evexiaPatient = {
+      FirstName: patientData.FirstName,
+      LastName: patientData.LastName,
+      EmailAddress: patientData.EmailAddress,
+      Phone: patientData.Phone,
+      StreetAddress: patientData.StreetAddress,
+      City: patientData.City,
+      State: patientData.State,
+      PostalCode: patientData.PostalCode,
+      DOB: patientData.DOB,
+      Gender: patientData.Gender
+    };
+
+    // First, add patient to Evexia
+    const patientAddUrl = `${pickBaseUrl()}/api/evexia/patient-add`;
+    const addRes = await fetch(patientAddUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(evexiaPatient)
+    });
+
+    if (!addRes.ok) {
+      throw new Error(`Failed to add patient: ${addRes.status}`);
+    }
+
+    const addData = await addRes.json();
+    const patientId = addData.PatientID || addData.patientID;
+    if (!patientId) {
+      throw new Error('No PatientID returned from Evexia');
+    }
+
+    console.log('Added patient to Evexia, ID:', patientId);
+
+    // Now place order based on cart
+    const { cart, splitApoePtau, requireBoth } = patientData;
+    const orderData = {
+      PatientID: patientId,
+      OrderType: 'ClientBill', // or from metadata
+      PhlebotomyOption: 'PSC', // default
+      wantPtau: cart.ptau,
+      wantApoe: cart.apoe,
+      requireBoth: requireBoth || false
+    };
+
+    // Call the combined order function
+    const orderRes = await patientOrderCombinedPtauFirst({ body: orderData }, {
+      status: () => ({ json: (data) => data }),
+      json: (data) => data
+    });
+
+    if (!orderRes.ok) {
+      throw new Error(`Order failed: ${JSON.stringify(orderRes)}`);
+    }
+
+    console.log('Placed Evexia order:', orderRes);
+
+    // Mark as processed
+    await knex('stripe_payments').where({ id: paymentId }).update({
+      evexia_processed: true,
+      updated_at: new Date()
+    });
+
+    // TODO: Start results polling queue here
+
+    return { success: true, patientId, order: orderRes };
+  } catch (err) {
+    console.error('Evexia sequence error:', err);
+    // TODO: Handle retries or notifications
+    throw err;
+  }
 }
 
 module.exports = router;
