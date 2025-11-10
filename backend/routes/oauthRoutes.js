@@ -62,19 +62,6 @@ function sanitizeReturnTo(raw, feBase) {
 // GET /api/oauth/google (init)
 router.get('/google', async (req, res, next) => {
   try {
-
-    let knex;
-    try {
-      try {
-        knex = await require('../db/initKnex')();
-      } catch {
-        knex = await require('../db/knex')();
-      }
-    } catch (dbInitErr) {
-      console.error('[oauth] DB init failed:', dbInitErr);
-      return res.status(500).send('Database unavailable');
-    }
-
     const base = `${req.protocol}://${req.get('host')}`;
     await initGoogle({ base });
 
@@ -90,26 +77,6 @@ router.get('/google', async (req, res, next) => {
 
     const returnTo = sanitizeReturnTo(req.query.returnTo, feBase);
 
-    const user = await knex('users')
-      .leftJoin('roles', 'users.role_id', 'roles.id')
-      .select(
-        'users.id',
-        'users.email_canon',
-        'roles.role_name',
-        'users.is_email_confirmed',
-        'users.is_deleted'
-      )
-      .where('users.email_canon', email)
-      .andWhere(q => q.where('users.is_deleted', false).orWhereNull('users.is_deleted'))
-      .first();
-
-    req.session.user = {
-      id: user.id,
-      email: user.email_canon,
-      role_name: user.role_id,
-      is_email_confirmed: user.is_active
-    };
-
     // Signed, short-lived state carrying PKCE + returnTo
     const stateJWT = jwt.sign(
       { v: code_verifier, n: nonce, rt: returnTo, r: crypto.randomBytes(8).toString('hex') },
@@ -120,7 +87,7 @@ router.get('/google', async (req, res, next) => {
     const u = new URL(url);
     u.searchParams.set('state', stateJWT);
 
-    res.redirect(u.toString());
+    return res.redirect(u.toString());
   } catch (err) {
     next(err);
   }
