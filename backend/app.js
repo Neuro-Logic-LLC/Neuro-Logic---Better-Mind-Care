@@ -7,8 +7,9 @@ const initKnex = require('../backend/db/initKnex');
 const Stripe = require('stripe');
 const stripeRoutes = require('./routes/stripeRoutes');
 const evexiaWebhookRoutes = require('./routes/evexiaWebhookRoutes');
-// Start the Evexia worker
+// Start the workers
 require('./workers/evexiaWorker');
+require('./workers/resultsWorker');
 
 const app = express();
 const IS_PROD = process.env.NODE_ENV === 'production';

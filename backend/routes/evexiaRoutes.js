@@ -2395,7 +2395,18 @@ async function runEvexiaSequence({ patientData, paymentId }) {
       updated_at: new Date()
     });
 
-    // TODO: Start results polling queue here
+    // Start results polling
+    const { ResultsQueue } = require('../queues/EvexiaQueue');
+    const orderIds = [];
+    if (orderRes.ptau?.orderId) orderIds.push(orderRes.ptau.orderId);
+    if (orderRes.apoe?.orderId) orderIds.push(orderRes.apoe.orderId);
+
+    for (const orderId of orderIds) {
+      await ResultsQueue.add('pollResults', { patientOrderId: orderId, patientId }, {
+        delay: 1000 * 60 * 60, // Check in 1 hour
+        repeat: { every: 1000 * 60 * 60 * 24 } // Daily
+      });
+    }
 
     return { success: true, patientId, order: orderRes };
   } catch (err) {

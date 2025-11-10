@@ -6,4 +6,5 @@ const redisConfig = {
   port: process.env.REDIS_PORT || 6379,
 };
 
-export const EvexiaQueue = new Queue('evexiaQueue', { connection: redisConfig });           
+export const EvexiaQueue = new Queue('evexiaQueue', { connection: redisConfig });
+export const ResultsQueue = new Queue('resultsQueue', { connection: redisConfig });           
