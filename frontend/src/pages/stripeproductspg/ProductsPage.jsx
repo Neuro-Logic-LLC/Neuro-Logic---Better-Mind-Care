@@ -143,20 +143,26 @@ export default function ProductsPage() {
       campaign: localStorage.getItem('campaign') || ''
     };
 
-    const res = await fetch('api/stripe/checkout', {
+    const res = await fetch('/api/stripe/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        // flags map directly to your backend expected keys
         ...flags,
         success_url,
         cancel_url,
-        // Provide customer_email if you have it; otherwise omit
-        customer_email: undefined,
-        meta
+        customer_email: form.email, // optional
+        FirstName: form.firstName,
+        LastName: form.lastName,
+        DOB: form.dob,
+        Gender: form.gender,
+        EmailAddress: form.email,
+        StreetAddress: form.address,
+        City: form.city,
+        State: form.state,
+        PostalCode: form.zip,
+        Phone: form.phone
       })
     });
-
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       throw new Error(data.error || `Checkout failed with ${res.status}`);
