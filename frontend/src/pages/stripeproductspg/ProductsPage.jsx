@@ -116,7 +116,8 @@ export default function ProductsPage() {
         ...prev,
         FirstName: user.first_name || '',
         LastName: user.last_name || '',
-        EmailAddress: user.email || ''
+        EmailAddress: user.email || '',
+        Phone: user.phone || ''
       }));
     }
   }, [user]);
@@ -161,9 +162,14 @@ export default function ProductsPage() {
     console.log('[checkout] formData before submit:', formData);
     console.log('[checkout] meta about to send:', meta);
 
-    if (!formData.FirstName || !formData.LastName || !formData.EmailAddress) {
+    const requiredFields = [
+      'FirstName', 'LastName', 'EmailAddress', 'DOB', 'Gender',
+      'StreetAddress', 'City', 'State', 'PostalCode', 'Phone'
+    ];
+    const missing = requiredFields.filter(field => !formData[field]?.trim());
+    if (missing.length > 0) {
       alert(
-        'Please fill in your name and email before proceeding to checkout.'
+        `Please fill in all required fields before proceeding to checkout: ${missing.join(', ')}`
       );
       return;
     }
