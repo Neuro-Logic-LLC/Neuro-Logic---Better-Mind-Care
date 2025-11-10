@@ -155,14 +155,6 @@ router.get('/google/callback', async (req, res, next) => {
     if (!email) return res.status(400).send('No email in Google id_token');
     if (payload.email_verified === false) return res.status(403).send('Google email not verified');
 
-    // Store Google tokens in session
-    req.session.googleTokens = {
-      access_token: tokenSet.access_token,
-      refresh_token: tokenSet.refresh_token,
-      expires_in: tokenSet.expires_in,
-      obtained_at: Date.now()
-    };
-
     // Lookup user (no auto insert)
     let knex;
     try {
@@ -194,14 +186,6 @@ router.get('/google/callback', async (req, res, next) => {
       const qs = new URLSearchParams({ email, reason: 'oauth_no_account' });
       return res.redirect(`${feBase}/sign-up`);
     }
-
-    // Save session with Google tokens
-    await new Promise((resolve, reject) => {
-      req.session.save((err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
 
     // Set the ONE auth cookie (7d) and clear legacy junk
     issueSessionCookie(res, {
