@@ -47,6 +47,8 @@ async function refreshGoogleToken(knex, userId, clientId, clientSecret) {
 // Build OAuth2 client using DB-stored Google tokens
 async function getOAuth2ForSession(req) {
   try {
+    console.log(req.session);
+
     const userId = req?.session?.user?.id;
     if (!userId) {
       console.error('[getOAuth2ForSession] No userId in session');
@@ -130,6 +132,12 @@ function isGoogleAuthError(e) {
   );
 }
 
+
+
+router.get('/check-session', (req, res) => {
+  console.log(req.session);  // Logs the entire session object
+  res.json(req.session);  // Sends session data as JSON to inspect
+});
 /** ---------- Create Meeting ---------- */
 // POST /api/calendar/create-meeting
 router.post('/create-meeting', async (req, res) => {
@@ -236,7 +244,10 @@ router.post('/create-meeting', async (req, res) => {
   }
 });
 
-/** ---------- Availability ---------- */
+/** --
+ * 
+ * 
+ * -------- Availability ---------- */
 // GET /api/calendar/availability?date=YYYY-MM-DD&tz=America/Chicago&slot=30
 router.get('/availability', async (req, res) => {
   try {

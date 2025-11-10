@@ -1,5 +1,19 @@
 // calendarApi.ts
+
+
 export async function fetchEvents(startISO, endISO) {
+
+
+fetch('/check-session', {
+  method: 'GET',
+  credentials: 'include'  // Ensures cookies (session data) are sent along with the request
+})
+  .then(response => response.json()) // Parse the response as JSON
+  .then(data => {
+    console.log('Session Data:', data);  // Logs the session data received from the backend
+  })
+  .catch(error => console.error('Error fetching session:', error));
+
   const res = await fetch(
     `/api/google-calendar/events?start=${encodeURIComponent(startISO)}&end=${encodeURIComponent(endISO)}`,
     { credentials: 'include' }
