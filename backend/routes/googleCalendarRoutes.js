@@ -12,7 +12,8 @@ function overlaps(aStart, aEnd, bStart, bEnd) {
   return Math.max(+aStart, +bStart) < Math.min(+aEnd, +bEnd);
 }
 
-function getOAuth2ForSession(session) {
+async function getOAuth2ForSession(req) {
+  const session = req?.session;
   const t = session?.googleTokens;
   if (!t?.access_token) return null;
 
@@ -22,12 +23,33 @@ function getOAuth2ForSession(session) {
     process.env.GOOGLE_REDIRECT_URI
   );
 
-  // expiry_date as ms since epoch. Google client will refresh if refresh_token present.
   oauth2.setCredentials({
     access_token: t.access_token,
     refresh_token: t.refresh_token,
     expiry_date: (t.obtained_at || Date.now()) + (t.expires_in || 3600) * 1000
   });
+
+  // Try to refresh if expired
+  try {
+    const now = Date.now();
+    if (oauth2.credentials.expiry_date && oauth2.credentials.expiry_date <= now) {
+      console.log('[googleCalendarRoutes] Access token expired, refreshing...');
+      const res = await oauth2.refreshAccessToken();
+      const newTokens = res.credentials;
+
+      // Save back to session
+      session.googleTokens = {
+        ...t,
+        access_token: newTokens.access_token,
+        expires_in: newTokens.expiry_date ? (newTokens.expiry_date - now) / 1000 : 3600,
+        obtained_at: now
+      };
+      await new Promise(resolve => session.save(resolve));
+    }
+  } catch (err) {
+    console.error('[googleCalendarRoutes] Failed to refresh Google token:', err);
+    throw new Error('google_reauth'); // frontend should redirect user to /api/oauth/google
+  }
 
   return oauth2;
 }
@@ -73,7 +95,7 @@ router.post('/create-meeting', async (req, res) => {
       return res.status(400).json({ error: 'summary and start_time required' });
     }
 
-    const oauth2 = getOAuth2ForSession(req.session);
+    const oauth2 = await getOAuth2ForSession(req);
     if (!oauth2) {
       return res
         .status(401)
@@ -170,7 +192,7 @@ router.get('/availability', async (req, res) => {
 
     if (!date) return res.status(400).json({ error: 'date required (YYYY-MM-DD)' });
 
-    const oauth2 = getOAuth2ForSession(req.session);
+    const oauth2 = await getOAuth2ForSession(req);
     if (!oauth2) return res.status(401).json({ error: 'signin_required' });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2 });
@@ -223,7 +245,7 @@ router.get('/availability', async (req, res) => {
 // GET /api/calendar/events?start=ISO&end=ISO&calendarId=primary&includePastDays=60
 router.get('/events', async (req, res) => {
   try {
-    const oauth2 = getOAuth2ForSession(req.session);
+    const oauth2 = await getOAuth2ForSession(req);
     if (!oauth2) return res.status(401).json({ error: 'signin_required' });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2 });
@@ -297,13 +319,14 @@ router.get('/events', async (req, res) => {
 // PATCH /api/google-calendar/events/:id
 router.patch('/events/:id', async (req, res) => {
   try {
-    const oauth2 = getOAuth2ForSession(req.session);
+    const oauth2 = await getOAuth2ForSession(req);
     if (!oauth2) return res.status(401).json({ error: 'signin_required' });
 
     await oauth2.getAccessToken().catch(() => {}); // ensure fresh token
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2 });
-    const calendarId = req.query.calendarId || process.env.GOOGLE_CALENDAR_ID || 'jim@bettermindcare.com';
+    const calendarId =
+      req.query.calendarId || process.env.GOOGLE_CALENDAR_ID || 'jim@bettermindcare.com';
     const eventId = req.params.id;
     const { summary, start_time, end_time, time_zone = 'UTC' } = req.body || {};
 
@@ -366,7 +389,7 @@ router.patch('/events/:id', async (req, res) => {
 // DELETE /api/calendar/events/:id
 router.delete('/events/:id', async (req, res) => {
   try {
-    const oauth2 = getOAuth2ForSession(req.session);
+    const oauth2 = await getOAuth2ForSession(req);
     if (!oauth2) return res.status(401).json({ error: 'signin_required' });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2 });
