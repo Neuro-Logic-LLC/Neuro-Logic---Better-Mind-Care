@@ -89,52 +89,65 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
     const sig = req.headers['stripe-signature'];
     const whSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-    // ✅ Verify signature with raw body
     const event = stripe.webhooks.constructEvent(req.body, sig, whSecret);
     console.log('[webhook] ✅ Verified event:', event.type);
 
+    // Handle completed checkout
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
-      const customer = session.customer_details || {};
-
       console.log('[webhook] checkout.session.completed fired:', session.id);
-      console.log('[webhook] metadata:', session.metadata);
-      console.log('[webhook] customer_details:', customer);
 
-      // ✅ Merge Stripe-collected customer info with your own metadata
-      const mergedMeta = {
-        ...session.metadata,
-        customer: {
-          name: customer.name || '',
-          email: customer.email || '',
-          phone: customer.phone || '',
-          address: customer.address || {}
-        }
+      const insertData = {
+        stripe_session_id: session.id,
+        stripe_payment_intent_id: session.payment_intent || null,
+        product_key: session.metadata?.productKey || '',
+        amount: session.amount_total / 100,
+        currency: session.currency,
+        status: session.payment_status || 'unknown',
+        metadata: JSON.stringify(session.metadata || {}),
+        evexia_processed: false,
+        created_at: new Date(),
+        updated_at: new Date()
       };
 
-      try {
-        const insertData = {
-          stripe_session_id: session.id,
-          stripe_payment_intent_id: session.payment_intent || null,
-          product_key: session.metadata?.productKey || '',
-          amount: session.amount_total / 100,
-          currency: session.currency,
-          status: session.payment_status || 'unknown',
-          metadata: JSON.stringify(mergedMeta),
-          evexia_processed: false,
-          created_at: new Date(),
-          updated_at: new Date()
-        };
+      if (session.metadata?.user_id && session.metadata.user_id !== 'null') {
+        insertData.user_id = session.metadata.user_id;
+      }
 
-        // Optional: include user_id if present
-        if (session.metadata?.user_id && session.metadata.user_id !== 'null') {
-          insertData.user_id = session.metadata.user_id;
-        }
+      await knex('stripe_payments').insert(insertData);
+      console.log('[webhook] ✅ Inserted payment (session.completed):', session.id);
+    }
 
-        await knex('stripe_payments').insert(insertData);
-        console.log('[webhook] ✅ Inserted payment into DB for session', session.id);
-      } catch (dbErr) {
-        console.error('[webhook] ❌ DB insert failed:', dbErr);
+    // Handle charge succeeded / updated (contains billing + shipping info)
+    if (event.type === 'charge.succeeded' || event.type === 'charge.updated') {
+      const charge = event.data.object;
+      console.log('[webhook] charge event received:', charge.id);
+
+      const billing = charge.billing_details || {};
+      const shipping = charge.shipping || {};
+
+      const customerData = {
+        billing_name: billing.name || '',
+        billing_email: billing.email || '',
+        billing_phone: billing.phone || '',
+        billing_address: billing.address || {},
+        shipping_name: shipping.name || '',
+        shipping_phone: shipping.phone || '',
+        shipping_address: shipping.address || {}
+      };
+
+      // Update existing payment record using the payment_intent
+      if (charge.payment_intent) {
+        await knex('stripe_payments')
+          .where({ stripe_payment_intent_id: charge.payment_intent })
+          .update({
+            metadata: knex.raw(
+              "metadata || ?::jsonb",
+              JSON.stringify({ customer: customerData })
+            ),
+            updated_at: new Date()
+          });
+        console.log('[webhook] ✅ Updated metadata with billing/shipping for intent', charge.payment_intent);
       }
     }
 
