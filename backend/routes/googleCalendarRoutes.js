@@ -8,7 +8,7 @@ const loadSSMParams = require('../utils/loadSSMParams');
 const initKnex = require('../db/initKnex');
 const getOauth4w = require('../lib/oauth4w');
 const initGoogle = require('../auth/OIDC').initGoogle;
-const { TokenExpiredError } = require('google-auth-library'); // may be used in error handling
+
 
 // Initialize services (best-effort)
 (async () => {
@@ -239,17 +239,28 @@ try {
       html_link: ev.htmlLink
     });
   } catch (e) {
-    console.error('[create-meeting] Error:', e?.message || e, e?.response?.data || '');
-    if (e instanceof TokenExpiredError || isGoogleAuthError(e)) {
-      return res.status(401).json({ error: 'token_invalid_or_revoked: re-auth required' });
-    }
-    if (String(e?.message || '').includes('signin_required')) {
-      return res
-        .status(401)
-        .json({ error: 'signin_required: no Google token. Hit /api/oauth/google' });
-    }
-    return res.status(500).json({ error: String(e?.message || e) });
+  console.error('[create-meeting] Error:', e?.message || e, e?.response?.data || '');
+
+  // Handle token expiration errors based on error message
+  if (e.message && (e.message.includes('invalid_grant') || e.message.includes('expired_token'))) {
+    return res.status(401).json({ error: 'token_invalid_or_revoked: re-auth required' });
   }
+
+  // Handle "google_reauth" errors specifically
+  if (e.message === 'google_reauth') {
+    return res.status(401).json({ error: 'google_reauth' });
+  }
+
+  // If no valid token is found, request the user to reauthenticate
+  if (String(e?.message || '').includes('signin_required')) {
+    return res
+      .status(401)
+      .json({ error: 'signin_required: no Google token. Hit /api/oauth/google' });
+  }
+
+  // General error handling for other errors
+  return res.status(500).json({ error: 'Internal Server Error: ' + String(e?.message || e) });
+}
 });
 
 /** ---------- Availability ---------- */
