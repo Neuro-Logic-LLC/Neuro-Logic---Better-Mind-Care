@@ -64,12 +64,20 @@ const stripeKey =
     : process.env.STRIPE_SECRET_KEY_LOCAL;
 
 console.log('[stripe] NODE_ENV:', process.env.NODE_ENV);
-console.log('[stripe] STRIPE_SECRET_KEY_LOCAL:', process.env.STRIPE_SECRET_KEY_LOCAL ? '✅ set' : '❌ missing');
-console.log('[stripe] STRIPE_SECRET_KEY_LIVE:', process.env.STRIPE_SECRET_KEY_LIVE ? '✅ set' : '❌ missing');
+console.log(
+  '[stripe] STRIPE_SECRET_KEY_LOCAL:',
+  process.env.STRIPE_SECRET_KEY_LOCAL ? '✅ set' : '❌ missing'
+);
+console.log(
+  '[stripe] STRIPE_SECRET_KEY_LIVE:',
+  process.env.STRIPE_SECRET_KEY_LIVE ? '✅ set' : '❌ missing'
+);
 console.log('[stripe] Using key:', stripeKey ? stripeKey.slice(0, 8) + '...' : '❌ undefined');
 
 if (!stripeKey) {
-  throw new Error('Stripe secret key missing — check STRIPE_SECRET_KEY_LOCAL / STRIPE_SECRET_KEY_LIVE');
+  throw new Error(
+    'Stripe secret key missing — check STRIPE_SECRET_KEY_LOCAL / STRIPE_SECRET_KEY_LIVE'
+  );
 }
 
 const stripe = new Stripe(stripeKey);
@@ -92,10 +100,9 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
       console.log('[webhook] metadata:', session.metadata);
 
       try {
-        await knex('stripe_payments').insert({
+        const insertData = {
           stripe_session_id: session.id,
           stripe_payment_intent_id: session.payment_intent || null,
-          user_id: session.metadata?.user_id || null,
           product_key: session.metadata?.productKey || '',
           amount: session.amount_total / 100,
           currency: session.currency,
@@ -104,7 +111,14 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
           evexia_processed: false,
           created_at: new Date(),
           updated_at: new Date()
-        });
+        };
+
+        // Only include user_id if it’s valid
+        if (session.metadata?.user_id && session.metadata.user_id !== 'null') {
+          insertData.user_id = session.metadata.user_id;
+        }
+
+        await knex('stripe_payments').insert(insertData);
         console.log('[webhook] ✅ Inserted payment into DB for session', session.id);
       } catch (dbErr) {
         console.error('[webhook] ❌ DB insert failed:', dbErr);
