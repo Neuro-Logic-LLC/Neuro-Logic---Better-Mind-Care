@@ -160,12 +160,12 @@ router.post('/create-meeting', async (req, res) => {
       return res.status(400).json({ error: 'summary and start_time required' });
     }
 
-    const oauth2 = await getOAuth2ForSession(req);
-    if (!oauth2) {
-      return res
-        .status(401)
-        .json({ error: 'signin_required: no Google token. Hit /api/oauth/google' });
-    }
+try {
+  await oauth2.getAccessToken();
+} catch (err) {
+  console.error('[create-meeting] Token refresh failed:', err);
+  throw new Error('google_reauth'); // trigger reauth if token refresh fails
+}
 
     // ensure fresh token (no-op if valid)
     await oauth2.getAccessToken().catch(() => {});
