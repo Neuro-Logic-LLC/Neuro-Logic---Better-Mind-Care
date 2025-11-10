@@ -272,13 +272,18 @@ export default function GoogleCalendar() {
         calendarId,
         includePastDays
       );
-      setEvents(
-        (evs || []).map((e) => ({
-          ...e,
-          start: new Date(e.start),
-          end: new Date(e.end)
-        }))
-      );
+      let filteredEvents = (evs || []).map((e) => ({
+        ...e,
+        start: new Date(e.start),
+        end: new Date(e.end)
+      }));
+      // Patients only see events where they are attendees
+      if (user.role_name !== 'doctor') {
+        filteredEvents = filteredEvents.filter(e =>
+          e.attendees && e.attendees.some(a => a.email === user.email)
+        );
+      }
+      setEvents(filteredEvents);
     } catch (err) {
       console.error('Failed to load calendar events', err);
       if (process.env.NODE_ENV === 'development') {
