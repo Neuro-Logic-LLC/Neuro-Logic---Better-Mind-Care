@@ -63,50 +63,10 @@ async function refreshGoogleToken(knex, userId, clientId, clientSecret) {
 // Build OAuth2 client using DB-stored Google tokens
 async function getOAuth2ForSession(req) {
   try {
-    const userId = req?.session?.user?.id;
-    if (!userId) {
-      console.error('[getOAuth2ForSession] No userId in session');
-      return null;
-    }
+    const { getServiceAccountClient } = require('../lib/googleServiceAccount');
 
-    const knex = await initKnex();
-    const token = await knex('user_google_tokens').where({ user_id: userId }).first();
-
-    if (!token) {
-      console.error('[getOAuth2ForSession] No Google token found for userId:', userId);
-      return null;
-    }
-
-    // Ensure the token is fresh — refresh if expired
-    const now = Date.now();
-    const tokenExpiry = token.expiry ? new Date(token.expiry).getTime() : 0;
-
-    if (tokenExpiry <= now) {
-      console.log('[getOAuth2ForSession] Access token expired, refreshing...');
-      const accessToken = await refreshGoogleToken(
-        knex,
-        userId,
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET
-      );
-      token.access_token = accessToken;
-      token.expiry = new Date(Date.now() + 3600 * 1000);
-    }
-
-    // Set up OAuth2 client
-    const oauth2 = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      process.env.GOOGLE_REDIRECT_URI
-    );
-
-    oauth2.setCredentials({
-      access_token: token.access_token,
-      refresh_token: token.refresh_token,
-      expiry_date: token.expiry ? new Date(token.expiry).getTime() : undefined
-    });
-
-    return oauth2;
+    const targetEmail = req.query.calendarUser || 'jim@bettermindcare.com';
+    return getServiceAccountClient(targetEmail);
   } catch (err) {
     console.error('[getOAuth2ForSession] Error:', err);
     return null;
@@ -337,7 +297,7 @@ router.get('/events', async (req, res) => {
     const timeMax = new Date(endQ.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
     const { data } = await calendar.events.list({
-      calendarId: "jim@bettermindcare.com",
+      calendarId: 'jim@bettermindcare.com',
       timeMin,
       timeMax,
       singleEvents: true,
