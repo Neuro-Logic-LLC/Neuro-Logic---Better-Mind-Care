@@ -4,7 +4,7 @@
 export async function fetchEvents(startISO, endISO) {
 
 
-fetch('/check-session', {
+fetch('/api/google-calendar/check-session', {
   method: 'GET',
   credentials: 'include'  // Ensures cookies (session data) are sent along with the request
 })
@@ -14,7 +14,7 @@ fetch('/check-session', {
   })
   .catch(error => console.error('Error fetching session:', error));
 
-  const res = await fetch('/api/check-session')
+  const res = await fetch('/api/google-calendar/check-session')
   .then(response => {
     if (response.status === 401) {
       // Redirect to Google login or show re-authentication prompt

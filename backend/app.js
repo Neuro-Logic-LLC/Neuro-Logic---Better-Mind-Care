@@ -141,13 +141,13 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
         await knex('stripe_payments')
           .where({ stripe_payment_intent_id: charge.payment_intent })
           .update({
-            metadata: knex.raw(
-              "metadata || ?::jsonb",
-              JSON.stringify({ customer: customerData })
-            ),
+            metadata: knex.raw('metadata || ?::jsonb', JSON.stringify({ customer: customerData })),
             updated_at: new Date()
           });
-        console.log('[webhook] ✅ Updated metadata with billing/shipping for intent', charge.payment_intent);
+        console.log(
+          '[webhook] ✅ Updated metadata with billing/shipping for intent',
+          charge.payment_intent
+        );
       }
     }
 

@@ -1,27 +1,37 @@
 // src/backend/controllers/googleCalendarController.js
-const loadssmparams = await require('../utils/loadssmparams')();
-await loadssmparams;
-const initKnex = await require('../db/initKnex')();
-await initKnex;
-
-const getOauth4w = require('../lib/oauth4w');
-await getOauth4w;
-
-const initGoogle = require('../auth/OIDC').initGoogle;
-await initGoogle();
-
 const { google } = require('googleapis');
 const crypto = require('crypto');
 
 const { TokenExpiredError } = require('../auth/OIDC');  // Adjusted path as needed
-const { scheduleMeeting, listGoogleEvents } = require('../auth/googleCalendarService'); // New service file
 
+// Run startup initializers inside an async IIFE (avoids top-level await in CommonJS)
+(async () => {
+  try {
+    if (typeof require('../utils/loadssmparams') === 'function') {
+      await require('../utils/loadssmparams')();
+    } else {
+      await require('../utils/loadssmparams');
+    }
+
+    if (typeof require('../db/initKnex') === 'function') {
+      await require('../db/initKnex')();
+    } else {
+      await require('../db/initKnex');
+    }
+
+    const getOauth4w = require('../lib/oauth4w');
+    if (typeof getOauth4w === 'function') await getOauth4w();
+
+    const initGoogle = require('../auth/OIDC').initGoogle;
+    if (typeof initGoogle === 'function') await initGoogle();
+  } catch (err) {
+    console.error('googleCalendarController init error:', err);
+  }
+})();
 
 function overlaps(aStart, aEnd, bStart, bEnd) {
   return Math.max(+aStart, +bStart) < Math.min(+aEnd, +bEnd);
 }
-
-class TokenExpiredError extends Error {}
 
 async function getGoogleAuthFromSession(session) {
   const t = session?.googleTokens;

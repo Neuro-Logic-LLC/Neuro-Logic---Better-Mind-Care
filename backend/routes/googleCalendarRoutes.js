@@ -2,38 +2,39 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
+const { google } = require('googleapis');
 
-// src/backend/controllers/googleCalendarController.js
-const loadssmparams = await require('../utils/loadssmparams')();
-await loadssmparams;
-const initKnex = await require('../db/initKnex')();
-await initKnex;
+const loadSSMParams = require('../utils/loadssmparams');
+const initKnex = require('../db/initKnex');
 const getOauth4w = require('../lib/oauth4w');
-await getOauth4w;
 const initGoogle = require('../auth/OIDC').initGoogle;
-await initGoogle();
-const { google } = require('googleapis');
-const { TokenExpiredError } = require('../auth/OIDC');  // Adjusted path as needed
-const { scheduleMeeting, listGoogleEvents } = require('../auth/googleCalendarService'); // New service file
-const { google } = require('googleapis');
+const { TokenExpiredError } = require('../auth/OIDC'); // may be used in error handling
 
-// If you still use these elsewhere, keep them:
-const { scheduleMeeting, TokenExpiredError } = require('../controllers/googleCalendarController');
-
-
-
+// Initialize services (best-effort)
+(async () => {
+  try {
+    if (typeof loadSSMParams === 'function') await loadSSMParams();
+    if (typeof initKnex === 'function') await initKnex();
+    if (typeof getOauth4w === 'function') await getOauth4w();
+    if (typeof initGoogle === 'function') await initGoogle();
+    console.log('Services initialized successfully');
+  } catch (error) {
+    console.error('Error initializing services:', error);
+  }
+})();
 
 /** ---------- Helpers ---------- */
 function overlaps(aStart, aEnd, bStart, bEnd) {
   return Math.max(+aStart, +bStart) < Math.min(+aEnd, +bEnd);
 }
+
 // Refresh expired access token using stored refresh token
 async function refreshGoogleToken(knex, userId, clientId, clientSecret) {
   const token = await knex('user_google_tokens').where({ user_id: userId }).first();
   if (!token || !token.refresh_token) throw new Error('no_refresh_token');
 
   const now = new Date();
-  if (token.expiry > now) return token.access_token; // still valid
+  if (token.expiry && new Date(token.expiry) > now) return token.access_token; // still valid
 
   const res = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
@@ -69,7 +70,7 @@ async function getOAuth2ForSession(req) {
       return null;
     }
 
-    const knex = await require('../db/initKnex')();
+    const knex = await initKnex();
     const token = await knex('user_google_tokens').where({ user_id: userId }).first();
 
     if (!token) {
@@ -81,7 +82,6 @@ async function getOAuth2ForSession(req) {
     const now = Date.now();
     const tokenExpiry = token.expiry ? new Date(token.expiry).getTime() : 0;
 
-    // If token is expired or missing expiry, refresh
     if (tokenExpiry <= now) {
       console.log('[getOAuth2ForSession] Access token expired, refreshing...');
       const accessToken = await refreshGoogleToken(
@@ -90,7 +90,8 @@ async function getOAuth2ForSession(req) {
         process.env.GOOGLE_CLIENT_ID,
         process.env.GOOGLE_CLIENT_SECRET
       );
-      token.access_token = accessToken; // Update token with new access token
+      token.access_token = accessToken;
+      token.expiry = new Date(Date.now() + 3600 * 1000);
     }
 
     // Set up OAuth2 client
@@ -100,15 +101,13 @@ async function getOAuth2ForSession(req) {
       process.env.GOOGLE_REDIRECT_URI
     );
 
-    // Set credentials
     oauth2.setCredentials({
       access_token: token.access_token,
       refresh_token: token.refresh_token,
-      expiry_date: tokenExpiry
+      expiry_date: token.expiry ? new Date(token.expiry).getTime() : undefined
     });
 
     return oauth2;
-
   } catch (err) {
     console.error('[getOAuth2ForSession] Error:', err);
     return null;
@@ -138,13 +137,12 @@ function isGoogleAuthError(e) {
 }
 
 
-
 router.get('/check-session', (req, res) => {
-  console.log(req.session);  // Logs the entire session object
-  res.json(req.session);  // Sends session data as JSON to inspect
+  res.json({ session: req.session || null });
 });
+
 /** ---------- Create Meeting ---------- */
-// POST /api/calendar/create-meeting
+// POST /api/google-calendar/create-meeting
 router.post('/create-meeting', async (req, res) => {
   try {
     const {
@@ -152,7 +150,7 @@ router.post('/create-meeting', async (req, res) => {
       description,
       start_time,
       end_time,
-      time_zone,
+      time_zone = 'UTC',
       calendarId,
       patient_email,
       patient_name
@@ -169,32 +167,36 @@ router.post('/create-meeting', async (req, res) => {
         .json({ error: 'signin_required: no Google token. Hit /api/oauth/google' });
     }
 
-    // force token refresh if needed (no-op if valid)
-    await oauth2.getAccessToken().catch(() => {
-      /* ignore, googleapis refreshes when needed */
-    });
+    // ensure fresh token (no-op if valid)
+    await oauth2.getAccessToken().catch(() => {});
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2 });
-    const dayStart = new Date(startISO);
-    const dayEnd = new Date(endISO);
+
+    const targetCalendarId =
+      calendarId || process.env.GOOGLE_CALENDAR_ID || 'jim@bettermindcare.com';
+
+    // compute ISO times
     const startISO = asISO(start_time);
     const { endISO } = clampDuration(startISO, end_time && asISO(end_time), 30);
 
-    // availability check
-    const { data: fbData } = await calendar.freebusy.query({
+    // freebusy check for availability
+    const dayStart = new Date(startISO);
+    const dayEnd = new Date(endISO);
+
+    const fbResp = await calendar.freebusy.query({
       requestBody: {
         timeMin: dayStart.toISOString(),
         timeMax: dayEnd.toISOString(),
         items: [{ id: targetCalendarId }]
       }
     });
-    const busy = fbData?.calendars?.[targetCalendarId]?.busy || [];
+
+    const busy = fbResp?.data?.calendars?.[targetCalendarId]?.busy || [];
     const slotTaken = busy.some(b => {
       const b0 = new Date(b.start).getTime();
       const b1 = new Date(b.end).getTime();
       const s0 = new Date(startISO).getTime();
       const s1 = new Date(endISO).getTime();
-      // overlap if max(starts) < min(ends)
       return Math.max(b0, s0) < Math.min(b1, s1);
     });
 
@@ -202,7 +204,6 @@ router.post('/create-meeting', async (req, res) => {
       return res.status(409).json({ error: 'slot_unavailable' });
     }
 
-    const targetCalendarId = 'jim@bettermindcare.com'; // Hardcode to Jim's calendar
     console.log('[create-meeting] Creating event on calendar:', targetCalendarId);
     const { data: ev } = await calendar.events.insert({
       calendarId: targetCalendarId,
@@ -210,9 +211,10 @@ router.post('/create-meeting', async (req, res) => {
       sendUpdates: 'all',
       requestBody: {
         summary,
-        description: 'BetterMindCare Telehealth visit. Please join a few minutes early.',
-        start: { dateTime: startISO, timeZone: time_zone },
-        end: { dateTime: endISO, timeZone: time_zone },
+        description:
+          description || 'BetterMindCare Telehealth visit. Please join a few minutes early.',
+        start: { dateTime: startISO, timeZone },
+        end: { dateTime: endISO, timeZone },
         attendees: patient_email
           ? [{ email: patient_email, displayName: patient_name || undefined }]
           : [],
@@ -237,24 +239,21 @@ router.post('/create-meeting', async (req, res) => {
       html_link: ev.htmlLink
     });
   } catch (e) {
-    console.error('[create-meeting] Error:', e.message, e.response?.data || e);
+    console.error('[create-meeting] Error:', e?.message || e, e?.response?.data || '');
     if (e instanceof TokenExpiredError || isGoogleAuthError(e)) {
       return res.status(401).json({ error: 'token_invalid_or_revoked: re-auth required' });
     }
-    if (String(e.message).includes('signin_required')) {
+    if (String(e?.message || '').includes('signin_required')) {
       return res
         .status(401)
         .json({ error: 'signin_required: no Google token. Hit /api/oauth/google' });
     }
-    return res.status(500).json({ error: e.message });
+    return res.status(500).json({ error: String(e?.message || e) });
   }
 });
 
-/** --
- * 
- * 
- * -------- Availability ---------- */
-// GET /api/calendar/availability?date=YYYY-MM-DD&tz=America/Chicago&slot=30
+/** ---------- Availability ---------- */
+// GET /api/google-calendar/availability?date=YYYY-MM-DD&tz=America/Chicago&slot=30
 router.get('/availability', async (req, res) => {
   try {
     const tz = req.query.tz || 'America/Chicago';
@@ -268,35 +267,39 @@ router.get('/availability', async (req, res) => {
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2 });
 
-    // office hours. Make this dynamic per provider later.
-    const [startHour, endHour] = [9, 17]; // 9am to 5pm
+    const calendarId = 'jim@bettermindcare.com';
 
-    const dayStart = new Date(`${date}T10:00:00`);
-    const dayEnd = new Date(`${date}T20:59:59`);
+    // Office hours (local times); adjust if needed
+    const [startHour, endHour] = [9, 17]; // 9:00 to 17:00
 
-    const { data } = await calendar.freebusy.query({
+    // Use ISO window that covers the whole day portion we care about
+    const dayStart = new Date(`${date}T00:00:00`);
+    const dayEnd = new Date(`${date}T23:59:59`);
+
+    const fbResp = await calendar.freebusy.query({
       requestBody: {
         timeMin: dayStart.toISOString(),
         timeMax: dayEnd.toISOString(),
-        items: [{ id: 'jim@bettermindcare.com' }]
+        items: [{ id: calendarId }]
       }
     });
-    const calendarId = 'jim@bettermindcare.com';
-    const calKey = calendarId || 'primary';
-    const busy = fb.data?.calendars?.['jim@bettermindcare.com']?.busy || [];
-    // const busy = (data.calendars?.primary?.busy || []).map(b => [
-    //   new Date(b.start).getTime(),
-    //   new Date(b.end).getTime()
-    // ]);
 
-    const officeStart = new Date(`${date}T${String(startHour).padStart(2, '0')}:07:00`).getTime();
-    const officeEnd = new Date(`${date}T${String(endHour).padStart(2, '0')}:03:00`).getTime();
+    const busyEntries = fbResp?.data?.calendars?.[calendarId]?.busy || [];
+
+    // convert busy entries into [startMs, endMs]
+    const busyRanges = busyEntries.map(b => [
+      new Date(b.start).getTime(),
+      new Date(b.end).getTime()
+    ]);
+
+    const officeStart = new Date(`${date}T${String(startHour).padStart(2, '0')}:00:00`).getTime();
+    const officeEnd = new Date(`${date}T${String(endHour).padStart(2, '0')}:00:00`).getTime();
 
     const slots = [];
     for (let t0 = officeStart; t0 + slotMins * 60000 <= officeEnd; t0 += slotMins * 60000) {
       const t1 = t0 + slotMins * 60000;
-      const overlaps = busy.some(([b0, b1]) => Math.max(t0, b0) < Math.min(t1, b1));
-      if (!overlaps) {
+      const slotTaken = busyRanges.some(([b0, b1]) => Math.max(t0, b0) < Math.min(t1, b1));
+      if (!slotTaken) {
         slots.push({ start: new Date(t0).toISOString(), end: new Date(t1).toISOString(), tz });
       }
     }
@@ -307,12 +310,11 @@ router.get('/availability', async (req, res) => {
       return res.status(401).json({ error: 'token_invalid_or_revoked: re-auth required' });
     }
     console.error('[availability]', e);
-    return res.status(500).json({ error: e.message });
+    return res.status(500).json({ error: String(e?.message || e) });
   }
 });
 
-/** ---------- Events for React Big Calendar ---------- */
-// GET /api/calendar/events?start=ISO&end=ISO
+/** ---------- Events ---------- */
 // GET /api/calendar/events?start=ISO&end=ISO&calendarId=primary&includePastDays=60
 router.get('/events', async (req, res) => {
   try {
@@ -320,16 +322,15 @@ router.get('/events', async (req, res) => {
     if (!oauth2) return res.status(401).json({ error: 'signin_required' });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2 });
+
     const calendarId = req.query.calendarId || 'primary';
     const includePastDays = Math.max(0, Number(req.query.includePastDays || 60));
 
-    // window
     const startQ = req.query.start ? new Date(req.query.start) : new Date();
     const endQ = req.query.end ? new Date(req.query.end) : new Date(Date.now() + 7 * 86400000);
 
     if (includePastDays > 0) startQ.setDate(startQ.getDate() - includePastDays);
 
-    // Google timeMax is EXCLUSIVE → add 1 day so boundary events show up
     const timeMin = startQ.toISOString();
     const timeMax = new Date(endQ.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
@@ -344,19 +345,12 @@ router.get('/events', async (req, res) => {
     });
 
     const events = (data.items || []).map(ev => {
-      // start
-      const startISO =
-        ev.start?.dateTime || (ev.start?.date ? `${ev.start.date}T10:00:00.000Z` : null);
-
-      // end: for all-day, Google gives the NEXT day; subtract 1ms so it renders on the same day
-      let endISO;
-      if (ev.end?.dateTime) {
-        endISO = ev.end.dateTime;
-      } else if (ev.end?.date) {
-        endISO = new Date(new Date(`${ev.end.date}T12:00:00.000Z`).getTime() - 1).toISOString();
-      } else {
-        endISO = startISO;
-      }
+      const start = ev.start?.dateTime || (ev.start?.date ? `${ev.start.date}T00:00:00` : null);
+      let end;
+      if (ev.end?.dateTime) end = ev.end.dateTime;
+      else if (ev.end?.date)
+        end = new Date(new Date(`${ev.end.date}T00:00:00`).getTime() - 1).toISOString();
+      else end = start;
 
       const meetUrl =
         ev.hangoutLink ||
@@ -365,10 +359,9 @@ router.get('/events', async (req, res) => {
 
       return {
         id: ev.id,
-        description: ev.description || '',
         title: ev.summary || '(no title)',
-        start: startISO,
-        end: endISO,
+        start,
+        end,
         htmlLink: ev.htmlLink,
         location: ev.location,
         attendees: ev.attendees || [],
@@ -383,17 +376,17 @@ router.get('/events', async (req, res) => {
       return res.status(401).json({ error: 'token_invalid_or_revoked: re-auth required' });
     }
     console.error('[events]', e);
-    return res.status(500).json({ error: e.message });
+    return res.status(500).json({ error: String(e?.message || e) });
   }
 });
 
-// PATCH /api/google-calendar/events/:id
+/** ---------- Patch Event ---------- */
 router.patch('/events/:id', async (req, res) => {
   try {
     const oauth2 = await getOAuth2ForSession(req);
     if (!oauth2) return res.status(401).json({ error: 'signin_required' });
 
-    await oauth2.getAccessToken().catch(() => {}); // ensure fresh token
+    await oauth2.getAccessToken().catch(() => {});
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2 });
     const calendarId =
@@ -453,11 +446,11 @@ router.patch('/events/:id', async (req, res) => {
   } catch (e) {
     if (isGoogleAuthError(e)) return res.status(401).json({ error: 'google_reauth' });
     console.error('[events.patch]', e);
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: String(e?.message || e) });
   }
 });
 
-// DELETE /api/calendar/events/:id
+/** ---------- Delete Event ---------- */
 router.delete('/events/:id', async (req, res) => {
   try {
     const oauth2 = await getOAuth2ForSession(req);
@@ -472,50 +465,67 @@ router.delete('/events/:id', async (req, res) => {
   } catch (e) {
     if (isGoogleAuthError(e)) return res.status(401).json({ error: 'google_reauth' });
     if (e?.response?.status === 403) {
-      // Not organizer / no permission to modify this event
       return res.status(403).json({ error: 'forbidden_delete' });
     }
     console.error('[events.delete]', e);
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: String(e?.message || e) });
   }
 });
 
+/** ---------- Calendar Access (example) ---------- */
 router.get('/calendar-access', async (req, res) => {
-  const { userId, productKey, start_time, end_time, summary, patient_email, patient_name } =
-    req.query;
-
-  if (!userId) return res.status(400).json({ error: 'Missing userId' });
-
-  // 1️⃣ Verify payment in DB
-  const payment = await knex('stripe_payments')
-    .where({ user_id: userId, product_key: productKey, status: 'paid' })
-    .first();
-
-  if (!payment) return res.status(402).json({ error: 'Payment required to access calendar' });
-
-  // 2️⃣ Create Google Meet dynamically
   try {
-    // Example: you can pass start_time/end_time and summary from frontend or calculate default
-    const eventData = await scheduleMeeting(req.session, {
-      summary: summary || 'BetterMindCare Telehealth Visit',
-      start_time: start_time || new Date(),
-      end_time: end_time || new Date(Date.now() + 30 * 60 * 1000), // default 30 min
-      time_zone: 'America/Chicago',
-      calendarId: 'jim@bettermindcare.com',
-      patient_email,
-      patient_name
+    const { userId, productKey, start_time, end_time, summary, patient_email, patient_name } =
+      req.query;
+
+    if (!userId) return res.status(400).json({ error: 'Missing userId' });
+
+    const knex = await initKnex();
+    const payment = await knex('stripe_payments')
+      .where({ user_id: userId, product_key: productKey, status: 'paid' })
+      .first();
+
+    if (!payment) return res.status(402).json({ error: 'Payment required to access calendar' });
+
+    // create event using the session's OAuth2
+    const oauth2 = await getOAuth2ForSession(req);
+    if (!oauth2) return res.status(401).json({ error: 'signin_required' });
+
+    const calendar = google.calendar({ version: 'v3', auth: oauth2 });
+    const targetCalendarId = 'jim@bettermindcare.com';
+
+    const startISO = start_time ? asISO(start_time) : new Date().toISOString();
+    const { endISO } = clampDuration(startISO, end_time && asISO(end_time), 30);
+
+    const { data: ev } = await calendar.events.insert({
+      calendarId: targetCalendarId,
+      conferenceDataVersion: 1,
+      requestBody: {
+        summary: summary || 'BetterMindCare Telehealth Visit',
+        start: { dateTime: startISO, timeZone: 'America/Chicago' },
+        end: { dateTime: endISO, timeZone: 'America/Chicago' },
+        attendees: patient_email
+          ? [{ email: patient_email, displayName: patient_name || undefined }]
+          : [],
+        conferenceData: {
+          createRequest: {
+            requestId: crypto.randomUUID(),
+            conferenceSolutionKey: { type: 'hangoutsMeet' }
+          }
+        }
+      }
     });
 
     return res.json({
       success: true,
-      join_url: eventData.join_url, // Google Meet link
-      html_link: eventData.html_link, // Google Calendar event link
-      start: eventData.start,
-      end: eventData.end
+      join_url: ev.hangoutLink,
+      html_link: ev.htmlLink,
+      start: ev.start,
+      end: ev.end
     });
   } catch (e) {
     console.error('[calendar-access]', e);
-    return res.status(500).json({ error: e.message });
+    return res.status(500).json({ error: String(e?.message || e) });
   }
 });
 
