@@ -2,12 +2,16 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
-const { google } = require('googleapis');
+
 
 const loadSSMParams = require('../utils/loadSSMParams');
 const initKnex = require('../db/initKnex');
 const getOauth4w = require('../lib/oauth4w');
+
+//Google Imports
 const initGoogle = require('../auth/OIDC').initGoogle;
+const { GoogleAuth } = require('google-auth-library');
+const { google } = require('googleapis');
 
 // Initialize services (best-effort)
 (async () => {
@@ -69,17 +73,21 @@ async function refreshGoogleToken(knex, userId, clientId, clientSecret) {
 }
 
 // Build OAuth2 client using DB-stored Google tokens
-const { google } = require('googleapis');
-const { GoogleAuth } = require('google-auth-library');
-
 async function getOAuth2ForSession(req) {
   try {
-    const auth = new GoogleAuth({
-      scopes: ['https://www.googleapis.com/auth/calendar.events']
-    });
-
-    const client = await auth.getClient();
-    return client;
+    async function getOAuth2ForSession(req) {
+      try {
+        const auth = new GoogleAuth({
+          scopes: ['https://www.googleapis.com/auth/calendar.events']
+        });
+        const client = await auth.getClient();
+        return client;
+      } catch (err) {
+        console.error('[getOAuth2ForSession] Error:', err);
+        return null;
+      }
+    }
+    return await getOAuth2ForSession(req);
   } catch (err) {
     console.error('[getOAuth2ForSession] Error:', err);
     return null;
