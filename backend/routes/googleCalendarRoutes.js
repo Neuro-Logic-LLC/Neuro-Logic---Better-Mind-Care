@@ -69,12 +69,17 @@ async function refreshGoogleToken(knex, userId, clientId, clientSecret) {
 }
 
 // Build OAuth2 client using DB-stored Google tokens
+const { google } = require('googleapis');
+const { GoogleAuth } = require('google-auth-library');
+
 async function getOAuth2ForSession(req) {
   try {
-    const { getServiceAccountClient } = require('../lib/googleServiceAccount');
+    const auth = new GoogleAuth({
+      scopes: ['https://www.googleapis.com/auth/calendar.events']
+    });
 
-    const targetEmail = req.query.calendarUser || 'jim@bettermindcare.com';
-    return getServiceAccountClient(targetEmail);
+    const client = await auth.getClient();
+    return client;
   } catch (err) {
     console.error('[getOAuth2ForSession] Error:', err);
     return null;

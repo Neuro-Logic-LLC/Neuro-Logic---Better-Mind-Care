@@ -1,5 +1,3 @@
-// lib/googleCalendarClient.js
-const { getServiceAccountClient } = require('./googleServiceAccount');
 const { google } = require('googleapis');
 const initKnex = require('../db/initKnex');
 const { refreshGoogleToken } = require('../utils/refreshGoogleToken'); // reuse your existing function

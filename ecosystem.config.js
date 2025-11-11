@@ -14,7 +14,8 @@ module.exports = {
       RUN_AS_LIBRARY: "1",
       SSL_CERT_FILE: "/bmc/prod/certs/fullchain.pem",
       SSL_KEY_FILE: "/bmc/prod/certs/privkey.pem",
-
+      // Optional: Google service account email (for internal users)
+      GOOGLE_APPLICATION_CREDENTIALS: "/opt/bmc/aws-wif.json",
       // --- SSM config (important) ---
       SSM_PARAMS_PATH: "/bmc/prod",   // or /bmc/prod
       // Optional comma list; startup will exit if any are missing:
