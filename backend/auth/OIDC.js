@@ -22,14 +22,11 @@ async function initGoogle({ base, redirectUri: ru } = {}) {
 
     // Determine base purely from runtime environment (no env vars)
     const isProd = process.env.NODE_ENV === 'production';
-    const port = 5050;
-    const fallbackBase = isProd
-      ? 'https://staging.bettermindcare.com'
-      : `https://localhost:${port}`;
+    const fallbackBase = isProd ? 'https://staging.bettermindcare.com' : 'https://localhost:5050';
 
-    const baseForUri = trimTrailingSlash(base || fallbackBase);
+    const baseForUri = trimTrailingSlash(fallbackBase);
     const explicitRedirect = ru;
-    redirectUri = explicitRedirect ? explicitRedirect : `${baseForUri}/api/oauth/google/callback`;
+    redirectUri = `${baseForUri}/api/oauth/google/callback`;
 
     console.log('[OIDC] redirectUri:', redirectUri);
 

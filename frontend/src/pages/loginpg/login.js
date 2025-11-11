@@ -21,7 +21,7 @@ const API_BASE = (() => {
   if (injected) return injected;
   const host = window.location.hostname;
   if (host === 'localhost' || host === '127.0.0.1')
-    return 'https://localhost:5050';
+    return 'https://localhost:3000';
   if (host.includes('staging.bettermindcare.com'))
     return 'https://staging.bettermindcare.com';
   return window.location.origin;
@@ -40,7 +40,7 @@ if (isDev) {
     return _fetch(input, init);
   };
 }
-const BASE = isDev ? '' : 'https://staging.bettermindcare.com';
+const BASE = API_BASE;
 
 export async function req(path, init = {}) {
   const url = /^https?:\/\//i.test(path) ? path : `${BASE}${path}`;

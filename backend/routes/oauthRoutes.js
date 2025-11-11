@@ -197,7 +197,7 @@ router.get('/google/callback', async (req, res, next) => {
       const feBase =
         process.env.NODE_ENV === 'production'
           ? process.env.FRONTEND_URL || pickFrontendBase(req)
-          : process.env.FRONTEND_URL_DEV || 'http://localhost:3000';
+          : process.env.FRONTEND_URL_DEV || 'https://localhost:3000';
       const qs = new URLSearchParams({ email, reason: 'oauth_no_account' });
       return res.redirect(`${feBase}/sign-up`);
     }
@@ -252,7 +252,7 @@ router.get('/google/callback', async (req, res, next) => {
     let feBase =
       process.env.NODE_ENV === 'production'
         ? process.env.FRONTEND_URL || 'https://bettermindcare.com'
-        : process.env.FRONTEND_URL_DEV || 'http://localhost:3000';
+        : process.env.FRONTEND_URL_DEV || 'https://localhost:3000';
     feBase = feBase.replace(/\/+$/, '');
 
     const dest = feBase + sanitizeReturnTo(st.rt, feBase);

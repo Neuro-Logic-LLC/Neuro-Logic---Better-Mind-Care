@@ -81,7 +81,7 @@ async function loadSSMIntoEnv(pathPrefix) {
   if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
     console.warn('⚠️  SSL key/cert not found, falling back to HTTP.');
     app.listen(PORT, () => {
-      console.log(`🚀 HTTP server running on http://localhost:${PORT}`);
+      console.log(`🚀 HTTPS server running on http://localhost:${PORT}`);
     });
     return;
   }
