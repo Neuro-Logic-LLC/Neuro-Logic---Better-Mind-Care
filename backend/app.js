@@ -11,17 +11,18 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const initKnex = require('../backend/db/initKnex');
 const Stripe = require('stripe');
-const stripeRoutes = require('./routes/stripeRoutes');
-const evexiaWebhookRoutes = require('./routes/evexiaWebhookRoutes');
+
 
 
 const app = express();
 const IS_PROD = process.env.NODE_ENV === 'production';
 
+
 // Trust proxy for HTTPS
 app.set('trust proxy', 1);
 
-
+const stripeRoutes = require('./routes/stripeRoutes');
+const evexiaWebhookRoutes = require('./routes/evexiaWebhookRoutes');
 
 // ---- HTTPS session setup ----
 if (!process.env.SESSION_SECRET) throw new Error('SESSION_SECRET missing before session()');
