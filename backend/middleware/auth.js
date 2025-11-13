@@ -76,7 +76,9 @@ exports.attachUser = (req, _res, next) => {
 
 // Hard auth: require valid JWT
 exports.verifyToken = (req, res, next) => {
-  const token = req.cookies?.token;
+  const cookieName = process.env.APP_AUTH_COOKIE_NAME || 'bmc_jwt';
+  const token = req.cookies?.[cookieName];
+
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
@@ -85,7 +87,7 @@ exports.verifyToken = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     req.user = {
-      id: decoded.id || decoded.sub,  // fallback for old tokens
+      id: decoded.id || decoded.sub,
       role: decoded.role || 'user',
       email: decoded.email || null
     };
