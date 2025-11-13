@@ -26,11 +26,11 @@ const API_BASE = (() => {
 
   const host = window.location.hostname;
 
-  if (host === 'localhost' || host === '127.0.0.1') return ''; // use proxy
+
   if (host.includes('staging.bettermindcare.com'))
     return 'https://staging.bettermindcare.com';
 
-  return 'https://api.bettermindcare.com'; // your WIF’s real backend
+  return 'https://staging.bettermindcare.com'; // your WIF’s real backend
 })();
 
 console.log('[Auth] API_BASE =', API_BASE); // leave this in until fixed
@@ -53,7 +53,7 @@ async function req(path, opts = {}) {
 
 // ---- Auth context ----
 const AuthContext = createContext({
-  user: null,
+  user: '',
   setUser: () => {},
   loading: true,
   logout: () => {}
@@ -67,7 +67,7 @@ export function AuthProvider({ children }) {
     setLoading(true);
     try {
       const { res, data } = await req('/api/auth/me', { method: 'GET' });
-      if (res.ok && data.user) {
+      if (res && data) {
         setUser(data.user || null);
       } else {
         setUser(null);
