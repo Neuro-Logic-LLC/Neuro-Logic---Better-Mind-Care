@@ -199,27 +199,43 @@ exports.getMe = async (req, res) => {
   if (!key) return res.status(500).json({ error: 'Encryption key not found' });
 
   try {
-    let userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    // SESSION-BASED: get user id from req.session
+    const sessionUser = req.session?.user;
+    if (!sessionUser || !sessionUser.id) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
+    let userId = sessionUser.id;
+
+    // If userId might be provider/sub format, resolve to internal user ID
     if (!uuidV4ish.test(userId)) {
       const parsed = parseProviderId(userId);
       if (!parsed) return res.status(401).json({ error: 'Unauthorized' });
 
       let row = null;
+
+      // Try provider lookup
       try {
         row = await knex('users')
           .select('id')
-          .where({ auth_provider: parsed.provider, auth_sub: parsed.subject })
+          .where({
+            auth_provider: parsed.provider,
+            auth_sub: parsed.subject
+          })
           .first();
       } catch (_) {}
 
+      // Fallback: match by email hash (Google often)
       if (!row && parsed.subject.includes('@')) {
-        const eCanon = canon(parsed.subject);
-        const eHash = identHash(eCanon);
+        const canonEmail = canon(parsed.subject);
+        const emailHash = identHash(canonEmail);
+
         row = await knex('users')
           .select('id')
-          .where({ email_hash: eHash, is_deleted: false })
+          .where({
+            email_hash: emailHash,
+            is_deleted: false
+          })
           .first();
       }
 
@@ -227,7 +243,7 @@ exports.getMe = async (req, res) => {
       userId = row.id;
     }
 
-    // join roles.role_name instead of roles.name
+    // Fetch full user profile
     const me = await knex('users')
       .leftJoin('roles', 'users.role_id', 'roles.id')
       .first(
@@ -238,15 +254,18 @@ exports.getMe = async (req, res) => {
         knex.raw('pgp_sym_decrypt(users.last_name, ?)::text AS last_name', [key]),
         'roles.role_name'
       )
-      .where({ 'users.id': userId, 'users.is_deleted': false });
+      .where({
+        'users.id': userId,
+        'users.is_deleted': false
+      });
 
     if (!me) return res.status(404).json({ error: 'Not found' });
 
-    // normalize
+    // Normalize role fields
     const roleStr = String(me.role_name || 'user').toLowerCase();
     me.role = roleStr;
     me.role_name = roleStr;
-    me.is_admin = roleStr === 'admin' || roleStr === 'superadmin';
+    me.is_admin = ['admin', 'superadmin'].includes(roleStr);
     me.is_doctor = roleStr === 'doctor';
     me.is_patient = roleStr === 'patient';
 
