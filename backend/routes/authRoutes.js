@@ -80,7 +80,12 @@ router.post("/logout", authController.logout);       // Clears the cookie
  *       '200':
  *         description: Current user
  */
-router.get("/me", verifyToken, authController.getMe); // Gets user from verified JWT
+router.get("/me", (req, res) => {
+  if (req.session && req.session.user) {
+    return res.json({ user: req.session.user });
+  }
+  res.status(401).json({ error: "Not authenticated" });
+});
 
 // 🛡️ Admin-only protected routes
 /**
