@@ -271,8 +271,8 @@ export default function GoogleCalendar() {
         (evs || []).map((e) => ({
           ...e,
           title: e.summary || e.title || '(no title)',
-          start: new Date(e.start_time),
-          end: new Date(e.end_time)
+          start: new Date(e.start),
+          end: new Date(e.end)
         }))
       );
     } catch (err) {
