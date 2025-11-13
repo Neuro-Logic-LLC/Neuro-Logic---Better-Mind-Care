@@ -135,13 +135,12 @@ router.get('/google/callback', async (req, res, next) => {
 
     const raw = await tokenRes.text();
     let tokenSet;
-    try { tokenSet = JSON.parse(raw); } catch {}
+    try {
+      tokenSet = JSON.parse(raw);
+    } catch {}
 
     if (!tokenRes.ok) {
-      const msg =
-        tokenSet?.error_description ||
-        tokenSet?.error ||
-        `HTTP ${tokenRes.status}`;
+      const msg = tokenSet?.error_description || tokenSet?.error || `HTTP ${tokenRes.status}`;
       return res.status(400).send(`Token exchange failed: ${msg}`);
     }
 
@@ -149,17 +148,13 @@ router.get('/google/callback', async (req, res, next) => {
     if (!idToken) return res.status(400).send('Missing id_token');
 
     // --- 3. Decode ID token ---
-    const payload = JSON.parse(
-      Buffer.from(idToken.split('.')[1], 'base64url').toString('utf8')
-    );
+    const payload = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64url').toString('utf8'));
 
-    if (payload.nonce !== st.n)
-      return res.status(400).send('Nonce mismatch');
+    if (payload.nonce !== st.n) return res.status(400).send('Nonce mismatch');
 
     const email = String(payload.email || '').toLowerCase();
     if (!email) return res.status(400).send('No email from Google');
-    if (payload.email_verified === false)
-      return res.status(403).send('Google email not verified');
+    if (payload.email_verified === false) return res.status(403).send('Google email not verified');
 
     // --- 4. DB LOOKUP ---
     let knex;
@@ -171,16 +166,9 @@ router.get('/google/callback', async (req, res, next) => {
 
     const user = await knex('users')
       .leftJoin('roles', 'users.role_id', 'roles.id')
-      .select(
-        'users.id',
-        'users.email_canon',
-        'roles.role_name',
-        'users.is_deleted'
-      )
+      .select('users.id', 'users.email_canon', 'roles.role_name', 'users.is_deleted')
       .where('users.email_canon', email)
-      .andWhere(q =>
-        q.where('users.is_deleted', false).orWhereNull('users.is_deleted')
-      )
+      .andWhere(q => q.where('users.is_deleted', false).orWhereNull('users.is_deleted'))
       .first();
 
     // --- No account → redirect to signup ---
@@ -221,6 +209,13 @@ router.get('/google/callback', async (req, res, next) => {
       email: user.email_canon,
       role: user.role_name
     });
+
+    // Inject user into req so downstream logic can use req.user
+    req.user = {
+      id: user.id,
+      email: user.email_canon,
+      role: user.role_id
+    };
 
     res.set('Cache-Control', 'no-store');
 

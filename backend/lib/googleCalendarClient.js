@@ -13,7 +13,9 @@ async function getGoogleCalendar(req) {
 
   // CASE 2: External users — load their saved OAuth tokens
   const knex = await initKnex();
-  const token = await knex('user_google_tokens').where({ user_id: req.session.user.id }).first();
+
+  const token = await knex('user_google_tokens').where({ user_id: req.user.id }).first();
+
   if (!token) throw new Error('signin_required');
 
   const oauth2 = new google.auth.OAuth2(
@@ -21,17 +23,18 @@ async function getGoogleCalendar(req) {
     process.env.GOOGLE_CLIENT_SECRET,
     process.env.GOOGLE_REDIRECT_URI
   );
-
   // Refresh token if expired
   const now = Date.now();
   const expiry = token.expiry ? new Date(token.expiry).getTime() : 0;
+  // --- FIX HERE: replace req.session.user.id with req.user.id ---
   if (expiry <= now) {
     const newAccessToken = await refreshGoogleToken(
       knex,
-      req.session.user.id,
+      req.user.id,
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET
     );
+
     token.access_token = newAccessToken;
     token.expiry = new Date(Date.now() + 3600 * 1000);
   }
@@ -39,7 +42,7 @@ async function getGoogleCalendar(req) {
   oauth2.setCredentials({
     access_token: token.access_token,
     refresh_token: token.refresh_token,
-    expiry_date: token.expiry ? new Date(token.expiry).getTime() : undefined,
+    expiry_date: token.expiry ? new Date(token.expiry).getTime() : undefined
   });
 
   return google.calendar({ version: 'v3', auth: oauth2 });
