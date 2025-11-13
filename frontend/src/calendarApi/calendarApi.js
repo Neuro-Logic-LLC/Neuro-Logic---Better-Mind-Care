@@ -43,21 +43,19 @@ export async function createMeeting(payload = {}) {
     payload.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const normalized = {
-    summary: payload.summary || payload.title || '(No title)',
-    start: {
-      dateTime: payload.start,
-      timeZone
-    },
-    end: {
-      dateTime: payload.end,
-      timeZone
-    }
+    summary: payload.summary || payload.title || "(No title)",
+    description: payload.description || "",
+    start_time: payload.start,    // backend expects this
+    end_time: payload.end,        // backend expects this
+    time_zone: timeZone,
+    patient_email: payload.patientEmail,
+    patient_name: payload.patientName
   };
 
-  const res = await fetch('/api/google-calendar/create-meeting', {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+  const res = await fetch("/api/google-calendar/create-meeting", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(normalized),
   });
 
