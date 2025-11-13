@@ -76,14 +76,28 @@ exports.attachUser = (req, _res, next) => {
 
 // Hard auth: require valid JWT
 exports.verifyToken = (req, res, next) => {
-  const t = readToken(req);
-  if (!t) return res.status(401).json({ error: 'Unauthorized' });
+  const token = req.cookies?.token;
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
-  const payload = verifyAny(t);
-  if (!payload) return res.status(401).json({ error: 'Invalid token' });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-  req.user = normalize(payload);
-  return next();
+    req.user = {
+      id: decoded.id || decoded.sub,  // fallback for old tokens
+      role: decoded.role || 'user',
+      email: decoded.email || null
+    };
+
+    if (!req.user.id) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 };
 
 exports.requireAdmin = (req, res, next) => {

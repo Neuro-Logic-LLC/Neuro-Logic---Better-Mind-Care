@@ -66,7 +66,7 @@ router.post("/login", authController.login);         // Login and sets HttpOnly 
  *       '204': { description: Logged out }
  */
 
-router.post("/logout", authController.logout);       // Clears the cookie
+router.post("/logout", verifyToken, authController.logout);       // Clears the cookie
 
 // 👤 Authenticated user session check
 /**
@@ -80,7 +80,7 @@ router.post("/logout", authController.logout);       // Clears the cookie
  *       '200':
  *         description: Current user
  */
-router.get("/me", authController.getMe); // Gets user from verified JWT
+router.get("/me", verifyToken,  authController.getMe); // Gets user from verified JWT
 
 // 🛡️ Admin-only protected routes
 /**
@@ -170,7 +170,7 @@ router.delete("/users/:id", verifyToken, authController.deleteUser);
  *       '200': { description: Verified }
  *       '400': { description: Invalid code }
  */
-router.post('/verify-mfa', authController.verifyMfa);
+router.post('/verify-mfa', verifyToken, authController.verifyMfa);
 
 /**
  * @openapi
