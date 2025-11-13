@@ -52,6 +52,8 @@ export async function createMeeting(payload = {}) {
     patient_name: payload.patientName
   };
 
+  console.log(normalized);
+  
   const res = await fetch("/api/google-calendar/create-meeting", {
     method: "POST",
     credentials: "include",
