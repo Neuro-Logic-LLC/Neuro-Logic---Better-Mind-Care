@@ -209,7 +209,7 @@ exports.getMe = async (req, res) => {
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (e) {
-      console.warn("Invalid JWT:", e.message);
+      console.warn('Invalid JWT:', e.message);
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -268,7 +268,6 @@ exports.getMe = async (req, res) => {
     me.is_patient = role === 'patient';
 
     return res.json({ user: me });
-
   } catch (err) {
     console.error('getMe error:', err);
     return res.status(500).json({ error: 'Server error' });
@@ -703,13 +702,10 @@ exports.verifyMfa = async (req, res) => {
       { expiresIn: '1h' }
     );
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none', // <-- this fixes the 401s
-      domain: '.bettermindcare.com',
-      path: '/',
-      maxAge: 60 * 60 * 1000
+    issueSessionCookie(res, {
+      id: user.id,
+      email: user.email_canon,
+      role: user.role_name
     });
     return res.json({
       message: 'Authenticated successfully',
@@ -900,11 +896,10 @@ exports.updateUser = async (req, res) => {
       );
 
       res.clearCookie('token');
-      res.cookie('token', newToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 3600_000
+      issueSessionCookie(res, {
+        id: user.id,
+        email: user.email_canon,
+        role: user.role_name
       });
 
       return res.json({ message: 'User updated + token refreshed' });
@@ -970,11 +965,10 @@ exports.updateMyProfile = async (req, res) => {
       );
 
       res.clearCookie('token');
-      res.cookie('token', newToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 3600_000
+      issueSessionCookie(res, {
+        id: user.id,
+        email: user.email_canon,
+        role: user.role_name
       });
 
       return res.json({ message: 'Profile updated + token refreshed' });
