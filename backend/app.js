@@ -45,9 +45,20 @@ app.use((_, res, next) => {
   next();
 });
 const DEV_FRONTEND_ORIGIN = process.env.DEV_FRONTEND_ORIGIN || 'https://localhost:3000';
+const PROD_FRONTEND_ORIGIN = process.env.PROD_FRONTEND_ORIGIN || 'https://bettermindcare.com';
+const STAGING_FRONTEND_ORIGIN = process.env.STAGING_FRONTEND_ORIGIN || 'https://staging.bettermindcare.com';
+
+const allowedOrigins = [DEV_FRONTEND_ORIGIN];
+if (IS_PROD) {
+  allowedOrigins.push(PROD_FRONTEND_ORIGIN);
+} else {
+  // Allow staging in non-prod
+  allowedOrigins.push(STAGING_FRONTEND_ORIGIN);
+}
+
 app.use(
   cors({
-    origin: DEV_FRONTEND_ORIGIN,
+    origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
