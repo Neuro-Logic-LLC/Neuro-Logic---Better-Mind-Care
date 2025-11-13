@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { issueSessionCookie } = require('../utils/issueSessionCookie'); // <- filename per your project
 const { initGoogle, startAuth, getConfig, ensureReady } = require('../auth/OIDC');
-await initGoogle();
+// initialize lazily inside the route to avoid top-level await in CommonJS
 // ---- helpers ---------------------------------------------------------------
 
 const ORIGIN_WHITELIST = [
@@ -60,51 +60,33 @@ function sanitizeReturnTo(raw, feBase) {
 // ---- routes ----------------------------------------------------------------
 
 // GET /api/oauth/google (init)
-router.get('/google', async (req, res) => {
+router.get('/google', async (req, res, next) => {
   try {
-    const returnTo = req.query.returnTo || '/dashboard';
+    const base = `${req.protocol}://${req.get('host')}`;
+    await initGoogle({ base });
+    // make sure OIDC helper finished initialization
+    await ensureReady();
+    const feBase =
+      process.env.NODE_ENV === 'production'
+        ? process.env.FRONTEND_URL || pickFrontendBase(req)
+        : process.env.FRONTEND_URL_DEV || 'https://localhost:3000';
 
-    // Generate PKCE
-    const verifier = crypto.randomBytes(32).toString('base64url');
-    const challenge = crypto
-      .createHash('sha256')
-      .update(verifier)
-      .digest('base64url');
+    const returnTo = sanitizeReturnTo(req.query.returnTo, feBase);
 
+    // create PKCE+url via OIDC helper
     const nonce = crypto.randomBytes(16).toString('hex');
+    const { url, code_verifier } = await startAuth({ state: 'placeholder', nonce });
 
-    // Signed STATE for callback
-    const state = jwt.sign(
-      { v: verifier, n: nonce, rt: returnTo },
+    // Signed, short-lived state carrying PKCE + returnTo
+    const stateJWT = jwt.sign(
+      { v: code_verifier, n: nonce, rt: returnTo, r: crypto.randomBytes(8).toString('hex') },
       process.env.JWT_SECRET,
       { expiresIn: '10m', issuer: 'bmc' }
     );
 
-    // Exact redirectUri that callback uses
-
-    const redirectUri = "https://staging.bettermindcare.com/api/oauth/google/callback";
-
-    const authURL = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-    authURL.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID);
-    authURL.searchParams.set('redirect_uri', redirectUri);
-    authURL.searchParams.set('response_type', 'code');
-    authURL.searchParams.set(
-      'scope',
-      [
-        'openid',
-        'email',
-        'profile',
-        'https://www.googleapis.com/auth/userinfo.email',
-        'https://www.googleapis.com/auth/userinfo.profile',
-        'https://www.googleapis.com/auth/calendar.events'
-      ].join(' ')
-    );
-    authURL.searchParams.set('state', state);
-    authURL.searchParams.set('nonce', nonce);
-    authURL.searchParams.set('code_challenge', challenge);
-    authURL.searchParams.set('code_challenge_method', 'S256');
-
-    return res.redirect(authURL.toString());
+    const u = new URL(url);
+    u.searchParams.set('state', stateJWT);
+    return res.redirect(u.toString());
   } catch (err) {
     console.error('/google start error:', err);
     return res.status(500).send('OAuth start failed');
@@ -134,9 +116,9 @@ router.get('/google/callback', async (req, res, next) => {
     // st.n = nonce
     // st.rt = returnTo
 
-    // Rebuild redirect_uri exactly as used during /google
-
-    const redirectUri = "https://staging.bettermindcare.com/api/oauth/google/callback";
+    // Ensure OIDC helper is initialized and get the exact redirectUri used during /google
+    await ensureReady();
+    const { redirectUri } = getConfig();
 
     // --- 2. Exchange code with Google ---
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
@@ -247,6 +229,6 @@ router.get('/google/callback', async (req, res, next) => {
     console.error('[oauth callback fatal]', err);
     return res.status(500).send('OAuth callback failed');
   }
-}); 
+});
 
 module.exports = router;
