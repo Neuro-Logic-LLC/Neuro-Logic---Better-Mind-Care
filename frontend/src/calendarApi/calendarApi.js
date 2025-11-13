@@ -1,7 +1,9 @@
 // calendarApi.ts
 
 export async function fetchEvents(startISO, endISO, calendarId, includePastDays) {
-  const url = `/api/google-calendar/events?start=${startISO}&end=${endISO}&includePastDays=${includePastDays}`;
+  const url = `/api/google-calendar/events?calendarId=${encodeURIComponent(calendarId)}&start=${encodeURIComponent(
+    startISO
+  )}&end=${encodeURIComponent(endISO)}&includePastDays=${encodeURIComponent(includePastDays)}`;
 
   try {
     const res = await fetch(url, {
@@ -83,31 +85,31 @@ export async function deleteEvent(calendarId, id) {
   return j;
 }
 
-export async function fetchPaidCalendarAccess(
-  userId,
-  productKey,
-  start_time,
-  end_time,
-  patient_email,
-  patient_name
-) {
-  const params = new URLSearchParams({ userId, productKey });
-  if (start_time) params.append('start_time', start_time);
-  if (end_time) params.append('end_time', end_time);
-  if (patient_email) params.append('patient_email', patient_email);
-  if (patient_name) params.append('patient_name', patient_name);
+// export async function fetchPaidCalendarAccess(
+//   userId,
+//   productKey,
+//   start_time,
+//   end_time,
+//   patient_email,
+//   patient_name
+// ) {
+//   const params = new URLSearchParams({ userId, productKey });
+//   if (start_time) params.append('start_time', start_time);
+//   if (end_time) params.append('end_time', end_time);
+//   if (patient_email) params.append('patient_email', patient_email);
+//   if (patient_name) params.append('patient_name', patient_name);
 
-  const res = await fetch(
-    `/api/google-calendar/calendar-access?${params.toString()}`,
-    {
-      credentials: 'include'
-    }
-  );
+//   const res = await fetch(
+//     `/api/google-calendar/calendar-access?${params.toString()}`,
+//     {
+//       credentials: 'include'
+//     }
+//   );
 
-  const data = await res.json();
-  if (res.status === 401) throw new Error('google_reauth');
-  if (res.status === 402) throw new Error('Payment required');
-  if (!res.ok) throw new Error(data.error || 'calendar_access_failed');
+//   const data = await res.json();
+//   if (res.status === 401) throw new Error('google_reauth');
+//   if (res.status === 402) throw new Error('Payment required');
+//   if (!res.ok) throw new Error(data.error || 'calendar_access_failed');
 
-  return data; // contains join_url, html_link, start, end
-}
+//   return data; // contains join_url, html_link, start, end
+// }
