@@ -134,7 +134,7 @@ router.get('/google/callback', async (req, res, next) => {
     // st.rt = returnTo
 
     // Rebuild redirect_uri exactly as used during /google
-    const redirectUri = `${req.protocol}://${req.get('host')}/api/oauth/google/callback`;
+    const redirectUri = process.env.GOOGLE_REDIRECT_URI;
 
     // --- 2. Exchange code with Google ---
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
@@ -245,6 +245,6 @@ router.get('/google/callback', async (req, res, next) => {
     console.error('[oauth callback fatal]', err);
     return res.status(500).send('OAuth callback failed');
   }
-});
+}); 
 
 module.exports = router;
