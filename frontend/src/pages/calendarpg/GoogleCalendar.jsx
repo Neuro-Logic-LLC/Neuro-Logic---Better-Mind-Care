@@ -267,6 +267,7 @@ export default function GoogleCalendar() {
         calendarId,
         includePastDays
       );
+      console.log("RAW EVENTS:", evs);
       setEvents(
         (evs || []).map((e) => ({
           ...e,
