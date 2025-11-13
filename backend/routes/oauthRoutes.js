@@ -60,37 +60,34 @@ function sanitizeReturnTo(raw, feBase) {
 // ---- routes ----------------------------------------------------------------
 
 // GET /api/oauth/google (init)
-router.get('/google', async (req, res, next) => {
-  try {
-    const base = `${req.protocol}://${req.get('host')}`;
-    await initGoogle({ base });
+router.get('/google', async (req, res) => {
+  const returnTo = req.query.returnTo || '/dashboard';
 
-    const nonce = crypto.randomBytes(16).toString('hex');
+  // Generate PKCE + nonce
+  const code_verifier = crypto.randomBytes(32).toString('base64url');
+  const code_challenge = sha256base64url(code_verifier);
+  const nonce = crypto.randomBytes(16).toString('hex');
 
-    // Let OIDC prep PKCE, we’ll replace "state" with our signed JWT
-    const { url, code_verifier } = await startAuth({ state: 'placeholder', nonce });
+  // STATE JWT (NO sessions)
+  const stateJWT = jwt.sign({ v: code_verifier, n: nonce, rt: returnTo }, process.env.JWT_SECRET, {
+    expiresIn: '10m',
+    issuer: 'bmc'
+  });
 
-    const feBase =
-      process.env.NODE_ENV === 'production'
-        ? process.env.FRONTEND_URL || pickFrontendBase(req)
-        : process.env.FRONTEND_URL_DEV || 'https://localhost:5050';
+  const redirect = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+  redirect.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID);
+  redirect.searchParams.set('redirect_uri', process.env.GOOGLE_REDIRECT_URI);
+  redirect.searchParams.set('response_type', 'code');
+  redirect.searchParams.set(
+    'scope',
+    'openid email profile https://www.googleapis.com/auth/calendar.events'
+  );
+  redirect.searchParams.set('state', stateJWT);
+  redirect.searchParams.set('nonce', nonce);
+  redirect.searchParams.set('code_challenge', code_challenge);
+  redirect.searchParams.set('code_challenge_method', 'S256');
 
-    const returnTo = sanitizeReturnTo(req.query.returnTo, feBase);
-
-    // Signed, short-lived state carrying PKCE + returnTo
-    const stateJWT = jwt.sign(
-      { v: code_verifier, n: nonce, rt: returnTo, r: crypto.randomBytes(8).toString('hex') },
-      process.env.JWT_SECRET,
-      { expiresIn: '10m', issuer: 'bmc' }
-    );
-
-    const u = new URL(url);
-    u.searchParams.set('state', stateJWT);
-
-    return res.redirect(u.toString());
-  } catch (err) {
-    next(err);
-  }
+  return res.redirect(redirect.toString());
 });
 
 // GET /api/oauth/google/callback
