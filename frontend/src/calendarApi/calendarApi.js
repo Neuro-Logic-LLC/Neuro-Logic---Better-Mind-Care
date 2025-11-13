@@ -1,20 +1,34 @@
 // calendarApi.ts
 
-export async function fetchEvents(startISO, endISO) {
-  const url = `/api/google-calendar/events?start=${startISO}&end=${endISO}`;
+export async function fetchEvents(startISO, endISO, calendarId, includePastDays) {
+  const url = `/api/google-calendar/events?start=${startISO}&end=${endISO}&includePastDays=${includePastDays}`;
 
-  const res = await fetch(url, { credentials: 'include' });
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      credentials: "include"
+    });
 
-  if (res.status === 401) {
-    const data = await res.json();
-    if (data.error === 'signin_required') {
-      window.location.href = '/api/oauth/google?returnTo=/google-calendar';
-      return [];
+    // Handle auth failure consistently
+    if (res.status === 401) {
+      const data = await res.json().catch(() => ({}));
+
+      if (data.error?.includes("signin_required")) {
+        window.location.href = "/api/oauth/google?returnTo=/google-calendar";
+        return []; // Always return array
+      }
+
+      return []; // Fallback
     }
-  }
 
-  const data = await res.json();
-  return data.events || [];
+    // Normal success
+    const data = await res.json().catch(() => ({}));
+
+    return Array.isArray(data.events) ? data.events : [];
+  } catch (err) {
+    console.error("fetchEvents failed:", err);
+    return []; // Always safe fallback
+  }
 }
 
 
