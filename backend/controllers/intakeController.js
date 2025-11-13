@@ -53,16 +53,31 @@ exports.submitIntake = async (req, res) => {
 };
 
 exports.getMyReports = async (req, res) => {
+  const jwt = require('jsonwebtoken');
+
+  let userId;
+
+  // 1. Try session first
+  userId = req.session?.user?.id;
+
+  // 2. Try JWT cookie if session user isn't set
+  if (!userId && req.cookies?.bmc_jwt) {
+    try {
+      const decoded = jwt.verify(req.cookies.bmc_jwt, process.env.JWT_SECRET);
+      userId = decoded.sub || decoded.id;
+    } catch (err) {
+      console.error("JWT decode failed:", err);
+    }
+  }
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  // ---- NOW safe to use userId ----
   try {
     const knex = await initKnex();
     const KEY = process.env.PGPCRYPTO_KEY;
-
-    // ⭐ Use session instead of req.user
-    const userId = req.session?.user?.id;
-
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
 
     const rows = await knex('intake_reports as ir')
       .join('users as u', 'ir.user_id', 'u.id')
@@ -77,6 +92,7 @@ exports.getMyReports = async (req, res) => {
 
     res.json(rows);
   } catch (err) {
+    console.error("getMyReports DB error:", err);
     res.status(500).json({ error: 'Server error' });
   }
 };
