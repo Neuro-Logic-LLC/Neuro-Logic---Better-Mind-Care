@@ -196,58 +196,17 @@ function parseProviderId(id) {
 exports.getMe = async (req, res) => {
   const knex = await initKnex();
   const key = process.env.PGPCRYPTO_KEY;
-  if (!key) return res.status(500).json({ error: 'Encryption key not found' });
 
   try {
-    // ---- JWT COOKIE AUTH ----
-    const token = req.cookies?.[process.env.APP_AUTH_COOKIE_NAME || 'bmc_jwt'];
-    if (!token) {
+    if (!req.user?.id) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (e) {
-      console.warn('Invalid JWT:', e.message);
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+    const userId = req.user.id;
 
-    let userId = decoded.id;
-
-    // ---- Resolve provider-based IDs (Google OAuth etc) ----
-    if (!uuidV4ish.test(userId)) {
-      const parsed = parseProviderId(userId);
-      if (!parsed) return res.status(401).json({ error: 'Unauthorized' });
-
-      // Provider lookup
-      let row = await knex('users')
-        .select('id')
-        .where({
-          auth_provider: parsed.provider,
-          auth_sub: parsed.subject
-        })
-        .first();
-
-      // Fallback: email hash matching
-      if (!row && parsed.subject.includes('@')) {
-        const eCanon = canon(parsed.subject);
-        const eHash = identHash(eCanon);
-
-        row = await knex('users')
-          .select('id')
-          .where({ email_hash: eHash, is_deleted: false })
-          .first();
-      }
-
-      if (!row) return res.status(401).json({ error: 'Unauthorized' });
-      userId = row.id;
-    }
-
-    // ---- Fetch user profile ----
     const me = await knex('users')
       .leftJoin('roles', 'users.role_id', 'roles.id')
-      .first(
+      .select(
         'users.id',
         'users.role_id',
         knex.raw('pgp_sym_decrypt(users.email, ?)::text AS email', [key]),
@@ -255,11 +214,11 @@ exports.getMe = async (req, res) => {
         knex.raw('pgp_sym_decrypt(users.last_name, ?)::text AS last_name', [key]),
         'roles.role_name'
       )
-      .where({ 'users.id': userId, 'users.is_deleted': false });
+      .where({ 'users.id': userId, 'users.is_deleted': false })
+      .first();
 
     if (!me) return res.status(404).json({ error: 'Not found' });
 
-    // ---- Normalize roles ----
     const role = String(me.role_name || '').toLowerCase();
     me.role = role;
     me.role_name = role;
@@ -267,10 +226,10 @@ exports.getMe = async (req, res) => {
     me.is_doctor = role === 'doctor';
     me.is_patient = role === 'patient';
 
-    return res.json({ user: me });
+    res.json({ user: me });
   } catch (err) {
     console.error('getMe error:', err);
-    return res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
