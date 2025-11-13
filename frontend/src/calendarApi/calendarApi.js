@@ -39,18 +39,32 @@ export async function fetchEvents(
 }
 
 export async function createMeeting(payload = {}) {
+  const timeZone =
+    payload.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   const normalized = {
     summary: payload.summary || payload.title || '(No title)',
-    start: payload.start,
-    end: payload.end
+    start: {
+      dateTime: payload.start,
+      timeZone
+    },
+    end: {
+      dateTime: payload.end,
+      timeZone
+    }
   };
 
   const res = await fetch('/api/google-calendar/create-meeting', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(normalized)
+    body: JSON.stringify(normalized),
   });
+
+  if (!res.ok) {
+    console.error("Meeting creation failed:", await res.text());
+    throw new Error("Google Calendar rejected the request");
+  }
 
   return res.json();
 }
