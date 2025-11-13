@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { issueSessionCookie } = require('../utils/issueSessionCookie'); // <- filename per your project
 const { initGoogle, startAuth, getConfig, ensureReady } = require('../auth/OIDC');
-
+await initGoogle();
 // ---- helpers ---------------------------------------------------------------
 
 const ORIGIN_WHITELIST = [
@@ -81,7 +81,8 @@ router.get('/google', async (req, res) => {
     );
 
     // Exact redirectUri that callback uses
-    const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+
+    const redirectUri = "https://staging.bettermindcare.com/api/oauth/google/callback";
 
     const authURL = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     authURL.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID);
@@ -134,7 +135,8 @@ router.get('/google/callback', async (req, res, next) => {
     // st.rt = returnTo
 
     // Rebuild redirect_uri exactly as used during /google
-    const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+
+    const redirectUri = "https://staging.bettermindcare.com/api/oauth/google/callback";
 
     // --- 2. Exchange code with Google ---
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
