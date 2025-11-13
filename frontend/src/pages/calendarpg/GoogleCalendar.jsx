@@ -309,8 +309,8 @@ export default function GoogleCalendar() {
 
     setCreateTitle('Patient Meeting with Patient A');
     setCreateDesc('BetterMindCare Telehealth Visit');
-    setCreateStart(toLocalInputValue(s));
-    setCreateEnd(toLocalInputValue(e));
+    setCreateStart(s);
+    setCreateEnd(e);
     setShowCreate(true);
   }
 
