@@ -1,22 +1,18 @@
 const params = require('./utils/loadSSMParams');
 
-(async () => {
-  await params();
-
+// load SSM params (don't block module loading). Log failures.
+params().catch(err => console.error('[loadSSMParams] failed:', err));
 
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const initKnex = require('../backend/db/initKnex');
+const initKnex = require('./db/initKnex');
 const Stripe = require('stripe');
-
-
 
 const app = express();
 const IS_PROD = process.env.NODE_ENV === 'production';
-
 
 // Trust proxy for HTTPS
 app.set('trust proxy', 1);
@@ -42,7 +38,6 @@ app.use(
     }
   })
 );
-
 
 // ---- Base middleware ----
 app.use(cookieParser());
@@ -205,6 +200,5 @@ app.use((err, _req, res, _next) => {
   console.error('Unhandled error:', err);
   res.status(err.status || 500).json({ error: err.message || 'Server error' });
 });
-})();
 
 module.exports = app;
