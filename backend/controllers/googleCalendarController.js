@@ -50,7 +50,7 @@ async function listGoogleEvents(req, { calendarId, timeMin, timeMax, includePast
 
     return {
       id: ev.id,
-      title: ev.summary || '(no title)',
+      title: ev.summary && ev.summary.trim() ? ev.summary : null, 
       start: startISO,
       end: endISO,
       htmlLink: ev.htmlLink,
