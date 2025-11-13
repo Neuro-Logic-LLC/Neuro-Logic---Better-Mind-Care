@@ -223,6 +223,7 @@ router.get('/google/callback', async (req, res, next) => {
         updated_at: now,
         ...(tokenSet.refresh_token ? { refresh_token: tokenSet.refresh_token } : {})
       });
+
     req.session.googleTokens = {
       access_token: tokenSet.access_token,
       refresh_token: tokenSet.refresh_token, // may be undefined (that's fine)
@@ -246,8 +247,7 @@ router.get('/google/callback', async (req, res, next) => {
 
     const clear = { domain: '.bettermindcare.com', path: '/' };
     res.clearCookie('token', clear); // old name
-    const badSid = (req.cookies?.['bmc.sid'] || '').split('.').length === 3;
-    if (badSid) res.clearCookie('bmc.sid', clear);
+
 
     // FE base from env (prod or dev), no “staging” env concept here
     let feBase = 'https://staging.bettermindcare.com';

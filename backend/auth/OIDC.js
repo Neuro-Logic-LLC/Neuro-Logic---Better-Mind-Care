@@ -22,7 +22,7 @@ async function initGoogle({ base, redirectUri: ru } = {}) {
 
     // Determine base purely from runtime environment (no env vars)
     const isProd = process.env.NODE_ENV === 'production';
-    const fallbackBase = isProd ? 'https://staging.bettermindcare.com' : 'https://localhost:5050';
+    const fallbackBase = 'https://staging.bettermindcare.com';
 
     const baseForUri = trimTrailingSlash(fallbackBase);
     const explicitRedirect = ru;

@@ -37,7 +37,7 @@ export async function createMeeting(payload) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify(payload || {}), // <-- always send at least an obj
+    body: payload || {}// <-- always send at least an obj
   });
 
   if (res.status === 401) {
