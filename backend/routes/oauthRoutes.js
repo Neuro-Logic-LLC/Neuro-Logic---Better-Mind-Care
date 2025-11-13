@@ -194,10 +194,7 @@ router.get('/google/callback', async (req, res, next) => {
     const expiry = new Date(now.getTime() + (tokenSet.expires_in || 3600) * 1000);
 
     if (!user || user.is_deleted) {
-      const feBase =
-        process.env.NODE_ENV === 'production'
-          ? process.env.FRONTEND_URL || pickFrontendBase(req)
-          : process.env.FRONTEND_URL_DEV || 'https://localhost:3000';
+      const feBase = 'https://staging.bettermindcare.com'
       const qs = new URLSearchParams({ email, reason: 'oauth_no_account' });
       return res.redirect(`${feBase}/sign-up`);
     }
@@ -226,7 +223,11 @@ router.get('/google/callback', async (req, res, next) => {
         updated_at: now,
         ...(tokenSet.refresh_token ? { refresh_token: tokenSet.refresh_token } : {})
       });
-
+    req.session.googleTokens = {
+      access_token: tokenSet.access_token,
+      refresh_token: tokenSet.refresh_token, // may be undefined (that's fine)
+      expiry_date: expiry
+    };
     req.session.user = {
       id: user.id,
       email: user.email_canon,
@@ -249,10 +250,8 @@ router.get('/google/callback', async (req, res, next) => {
     if (badSid) res.clearCookie('bmc.sid', clear);
 
     // FE base from env (prod or dev), no “staging” env concept here
-    let feBase =
-      process.env.NODE_ENV === 'production'
-        ? process.env.FRONTEND_URL || 'https://bettermindcare.com'
-        : process.env.FRONTEND_URL_DEV || 'https://localhost:3000';
+    let feBase = 'https://staging.bettermindcare.com';
+
     feBase = feBase.replace(/\/+$/, '');
 
     const dest = feBase + sanitizeReturnTo(st.rt, feBase);
