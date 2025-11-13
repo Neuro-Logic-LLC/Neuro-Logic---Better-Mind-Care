@@ -196,11 +196,14 @@ function pastDaysFor(view) {
   }
 }
 function toLocalInputValue(dateLike) {
-  if (!dateLike) return '';
-  const d = new Date(dateLike);
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
-    .toISOString()
-    .slice(0, 16);
+  if (!dateLike) return null; // don't use '' — it's poison later
+
+  const d = dateLike instanceof Date ? dateLike : new Date(dateLike);
+  if (isNaN(d.getTime())) return null; // invalid date → no silent failure
+
+  // Convert to local ISO without timezone shifting the wrong way
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
 }
 
 // Shared button styles (consistent size)
@@ -430,8 +433,8 @@ export default function GoogleCalendar() {
           setSelected(ev);
           setIsEditing(false);
           setEditTitle(ev.title || '');
-          setEditStart(toLocalInputValue(ev.start));
-          setEditEnd(toLocalInputValue(ev.end));
+          setEditStart(toLocalInputValue(new Date(ev.start)));
+          setEditEnd(toLocalInputValue(new Date(ev.end)));
         }}
         components={{
           toolbar: CustomToolbar
