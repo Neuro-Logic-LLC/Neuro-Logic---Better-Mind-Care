@@ -107,7 +107,7 @@ export function AuthProvider({ children }) {
       // use replace so Back doesn’t resurrect dashboard
       window.location.replace('/login');
     }
-  }, [req, setUser]);
+  }, [setUser]);
 
   return (
     <AuthContext.Provider value={{ user, setUser, loading, logout }}>

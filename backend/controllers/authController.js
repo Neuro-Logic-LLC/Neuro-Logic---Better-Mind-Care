@@ -1233,7 +1233,7 @@ exports.hardDeleteUser = async (req, res) => {
   const userId = req.params.id;
 
   try {
-    if (decoded.role !== 'SuperAdmin') {
+    if (decoded.role !== 'superadmin') {
       return res.status(403).json({ error: 'Access denied: SuperAdmins only' });
     }
 
