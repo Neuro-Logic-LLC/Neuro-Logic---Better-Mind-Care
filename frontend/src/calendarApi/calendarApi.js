@@ -1,32 +1,23 @@
 // calendarApi.ts
 
 export async function fetchEvents(startISO, endISO) {
-  const session = await fetch('/api/google-calendar/check-session', {
-    credentials: 'include'
-  });
+  const url = `/api/google-calendar/events?start=${startISO}&end=${endISO}`;
 
-  if (session.status === 401) {
-    console.log("No session — redirecting to Google");
-    window.location.href = '/api/oauth/google?returnTo=/google-calendar';
-    return;
+  const res = await fetch(url, { credentials: 'include' });
+
+  if (res.status === 401) {
+    const data = await res.json();
+    if (data.error === 'signin_required') {
+      window.location.href = '/api/oauth/google?returnTo=/google-calendar';
+      return [];
+    }
   }
 
-  const sessionData = await session.json();
-  console.log('Session Data:', sessionData);
-
-  // TODO: Now actually fetch events:
-  const res = await fetch(`/api/google-calendar/events?start=${startISO}&end=${endISO}`, {
-    credentials: 'include',
-  });
-
-  return res.json();
+  const data = await res.json();
+  return data.events || [];
 }
 
-const isLocal =
-  window.location.hostname === 'localhost' ||
-  window.location.hostname === '127.0.0.1';
 
-const API = isLocal ? 'https://localhost:5050' : '';
 export async function createMeeting(payload) {
   const res = await fetch('/api/google-calendar/create-meeting', {
     method: 'POST',
