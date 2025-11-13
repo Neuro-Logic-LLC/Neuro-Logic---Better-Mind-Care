@@ -1,25 +1,25 @@
 // calendarApi.ts
 
 export async function fetchEvents(startISO, endISO) {
-  fetch('/api/google-calendar/check-session', {
-    method: 'GET',
-    credentials: 'include' // Ensures cookies (session data) are sent along with the request
-  })
-    .then((response) => response) // Parse the response as JSON
-    .then((data) => {
-      console.log('Session Data:', data); // Logs the session data received from the backend
-    })
-    .catch((error) => console.error('Error fetching session:', error));
+  const session = await fetch('/api/google-calendar/check-session', {
+    credentials: 'include'
+  });
 
-  const res = await fetch('/api/google-calendar/check-session')
-    .then((response) => {
-      if (response.status === 401) {
-        // Redirect to Google login or show re-authentication prompt
-      }
-    })
-    .catch((error) => {
-      console.error('Error checking session:', error);
-    });
+  if (session.status === 401) {
+    console.log("No session — redirecting to Google");
+    window.location.href = '/api/oauth/google?returnTo=/google-calendar';
+    return;
+  }
+
+  const sessionData = await session.json();
+  console.log('Session Data:', sessionData);
+
+  // TODO: Now actually fetch events:
+  const res = await fetch(`/api/google-calendar/events?start=${startISO}&end=${endISO}`, {
+    credentials: 'include',
+  });
+
+  return res.json();
 }
 
 const isLocal =
@@ -28,29 +28,23 @@ const isLocal =
 
 const API = isLocal ? 'https://localhost:5050' : '';
 export async function createMeeting(payload) {
-  const res = await fetch(`/api/google-calendar/create-meeting`, {
+  const res = await fetch('/api/google-calendar/create-meeting', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: payload ? JSON.stringify(payload) : null,
+    body: JSON.stringify(payload || {}), // <-- always send at least an obj
   });
 
-  // If not authorized for Google, trigger OAuth
   if (res.status === 401) {
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (data.error?.includes('signin_required')) {
       window.location.href = '/api/oauth/google?returnTo=/google-calendar';
       return;
     }
   }
 
-  if (!res.ok) {
-    throw new Error(`Failed to create meeting: ${res.status}`);
-  }
-
-  return await res.json();
+  return res.json();
 }
-
 const BASE = '/api/google-calendar';
 
 export async function updateEvent(calendarId, id, payload) {
