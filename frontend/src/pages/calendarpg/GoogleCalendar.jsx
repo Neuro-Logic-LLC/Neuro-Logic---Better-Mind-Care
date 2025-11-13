@@ -353,8 +353,8 @@ export default function GoogleCalendar() {
       await createMeeting({
         summary: createTitle.trim(),
         description: createDesc || '',
-        start_time: s.toISOString(),
-        end_time: e.toISOString(),
+        start_time: s,
+        end_time: e,
         time_zone: tz,
         calendarId,
         patient_email: createPatientEmail || undefined,

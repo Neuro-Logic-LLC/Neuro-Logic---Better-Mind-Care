@@ -132,7 +132,7 @@ router.get('/check-session', verifyToken, (req, res) => {
 
 // Create Meeting
 router.post('/create-meeting', verifyToken, async (req, res) => {
-  const { oauth, knex, error } = await requireGoogleAuth(req, res);
+  const { oauth, error } = await requireGoogleAuth(req, res);
   if (error) return;
 
   try {
@@ -141,7 +141,7 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
       description,
       start_time,
       end_time,
-      time_zone = 'UTC',
+      time_zone,
       calendarId,
       patient_email,
       patient_name
