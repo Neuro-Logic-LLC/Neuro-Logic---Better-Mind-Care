@@ -61,33 +61,53 @@ function sanitizeReturnTo(raw, feBase) {
 
 // GET /api/oauth/google (init)
 router.get('/google', async (req, res) => {
-  const returnTo = req.query.returnTo || '/dashboard';
+  try {
+    const returnTo = req.query.returnTo || '/dashboard';
 
-  // Generate PKCE + nonce
-  const code_verifier = crypto.randomBytes(32).toString('base64url');
-  const code_challenge = sha256base64url(code_verifier);
-  const nonce = crypto.randomBytes(16).toString('hex');
+    // Generate PKCE
+    const verifier = crypto.randomBytes(32).toString('base64url');
+    const challenge = crypto
+      .createHash('sha256')
+      .update(verifier)
+      .digest('base64url');
 
-  // STATE JWT (NO sessions)
-  const stateJWT = jwt.sign({ v: code_verifier, n: nonce, rt: returnTo }, process.env.JWT_SECRET, {
-    expiresIn: '10m',
-    issuer: 'bmc'
-  });
+    const nonce = crypto.randomBytes(16).toString('hex');
 
-  const redirect = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-  redirect.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID);
-  redirect.searchParams.set('redirect_uri', process.env.GOOGLE_REDIRECT_URI);
-  redirect.searchParams.set('response_type', 'code');
-  redirect.searchParams.set(
-    'scope',
-    'openid email profile https://www.googleapis.com/auth/calendar.events'
-  );
-  redirect.searchParams.set('state', stateJWT);
-  redirect.searchParams.set('nonce', nonce);
-  redirect.searchParams.set('code_challenge', code_challenge);
-  redirect.searchParams.set('code_challenge_method', 'S256');
+    // Signed STATE for callback
+    const state = jwt.sign(
+      { v: verifier, n: nonce, rt: returnTo },
+      process.env.JWT_SECRET,
+      { expiresIn: '10m', issuer: 'bmc' }
+    );
 
-  return res.redirect(redirect.toString());
+    // Exact redirectUri that callback uses
+    const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+
+    const authURL = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    authURL.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID);
+    authURL.searchParams.set('redirect_uri', redirectUri);
+    authURL.searchParams.set('response_type', 'code');
+    authURL.searchParams.set(
+      'scope',
+      [
+        'openid',
+        'email',
+        'profile',
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/calendar.events'
+      ].join(' ')
+    );
+    authURL.searchParams.set('state', state);
+    authURL.searchParams.set('nonce', nonce);
+    authURL.searchParams.set('code_challenge', challenge);
+    authURL.searchParams.set('code_challenge_method', 'S256');
+
+    return res.redirect(authURL.toString());
+  } catch (err) {
+    console.error('/google start error:', err);
+    return res.status(500).send('OAuth start failed');
+  }
 });
 
 // GET /api/oauth/google/callback
