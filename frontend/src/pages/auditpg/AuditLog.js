@@ -22,9 +22,8 @@ export default function AuditLog() {
     fetch('/api/auth/audit-log', {
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/json'
-        // 'X-Client-Timezone': detectedTZ,
-        // 'X-Client-Time': new Date().toISOString()
+        'X-Client-Timezone': detectedTZ,
+        'X-Client-Time': new Date().toISOString()
       }
     })
       .then((res) => {

@@ -37,7 +37,6 @@ export async function fetchEvents(startISO, endISO, calendarId, includePastDays)
 export async function createMeeting(payload) {
   const res = await fetch('/api/google-calendar/create-meeting', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: payload || {}// <-- always send at least an obj
   });
@@ -59,7 +58,6 @@ export async function updateEvent(calendarId, id, payload) {
     `${BASE}/events/${encodeURIComponent(id)}?calendarId=${encodeURIComponent(calendarId)}`,
     {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(payload)
     }
