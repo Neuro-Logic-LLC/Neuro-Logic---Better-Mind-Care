@@ -200,7 +200,7 @@ exports.getMe = async (req, res) => {
 
   try {
     // ---- JWT COOKIE AUTH ----
-    const token = req.cookies?.token;
+    const token = req.cookies?.[process.env.APP_AUTH_COOKIE_NAME || 'bmc_jwt'];
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -680,7 +680,14 @@ exports.verifyMfa = async (req, res) => {
     }
 
     const roleRow = await knex('roles').select('role_name').where({ id: user.role_id }).first();
-    if (!roleRow) return res.status(400).json({ error: 'User role not found' });
+    const emailCanon = canon(email);
+
+    res.clearCookie(process.env.APP_AUTH_COOKIE_NAME || 'bmc_jwt');
+    issueSessionCookie(res, {
+      id: user.id,
+      email: emailCanon,
+      role: roleRow.role_name
+    });
 
     await knex('users').where({ id: user.id }).update({ mfa_code: null, mfa_expires_at: null });
 
@@ -692,16 +699,7 @@ exports.verifyMfa = async (req, res) => {
       timestamp: knex.fn.now()
     });
 
-    const token = jwt.sign(
-      {
-        id: user.id,
-        role: roleRow.role_name,
-        email: canon(email)
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-
+    res.clearCookie(process.env.APP_AUTH_COOKIE_NAME || 'bmc_jwt');
     issueSessionCookie(res, {
       id: user.id,
       email: user.email_canon,
@@ -883,23 +881,11 @@ exports.updateUser = async (req, res) => {
         .where({ id: decoded.id })
         .first();
 
-      const newToken = jwt.sign(
-        {
-          id: decoded.id,
-          role: roleRow.role_name,
-          email: me.email,
-          first_name: me.first_name || '',
-          last_name: me.last_name || ''
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' }
-      );
-
-      res.clearCookie('token');
+      res.clearCookie(process.env.APP_AUTH_COOKIE_NAME || 'bmc_jwt');
       issueSessionCookie(res, {
-        id: user.id,
-        email: user.email_canon,
-        role: user.role_name
+        id: decoded.id,
+        role: roleRow.role_name,
+        email: me.email
       });
 
       return res.json({ message: 'User updated + token refreshed' });
@@ -945,34 +931,21 @@ exports.updateMyProfile = async (req, res) => {
       timestamp: knex.fn.now()
     });
 
-    if (emailWasUpdated) {
-      const [updated] = await knex('users')
-        .join('roles', 'users.role_id', 'roles.id')
-        .select(
-          'roles.role_name',
-          knex.raw('pgp_sym_decrypt(users.email::bytea, ?) as email', [process.env.PGPCRYPTO_KEY])
-        )
-        .where('users.id', userId);
+    const [updated] = await knex('users')
+      .join('roles', 'users.role_id', 'roles.id')
+      .select(
+        'users.id',
+        'roles.role_name',
+        knex.raw('pgp_sym_decrypt(users.email::bytea, ?) as email', [process.env.PGPCRYPTO_KEY])
+      )
+      .where('users.id', userId);
 
-      const newToken = jwt.sign(
-        {
-          id: userId,
-          role: updated.role_name,
-          email: updated.email
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' }
-      );
-
-      res.clearCookie('token');
-      issueSessionCookie(res, {
-        id: user.id,
-        email: user.email_canon,
-        role: user.role_name
-      });
-
-      return res.json({ message: 'Profile updated + token refreshed' });
-    }
+    res.clearCookie(process.env.APP_AUTH_COOKIE_NAME || 'bmc_jwt');
+    issueSessionCookie(res, {
+      id: updated.id,
+      role: updated.role_name,
+      email: updated.email
+    });
 
     res.json({ message: 'Profile updated successfully' });
   } catch (err) {

@@ -232,20 +232,11 @@ router.get('/google/callback', async (req, res, next) => {
 
     // Set the ONE auth cookie (7d) and clear legacy junk
     // --- ISSUE JWT COOKIE (same as MFA login) ---
-    const token = jwt.sign(
-      {
-        id: user.id,
-        role: user.role_name,
-        email: user.email_canon
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-
+   
     issueSessionCookie(res, {
       id: user.id,
       email: user.email_canon,
-      role: user.role_name
+      role: user.role_id
     });
 
     res.set('Cache-Control', 'no-store');
