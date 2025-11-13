@@ -685,14 +685,14 @@ exports.verifyMfa = async (req, res) => {
       { expiresIn: '1h' }
     );
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 1000
-    });
-
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',   // <-- this fixes the 401s
+    domain: '.bettermindcare.com',
+    path: '/',
+    maxAge: 60 * 60 * 1000
+  });
     return res.json({
       message: 'Authenticated successfully',
       user: {
@@ -885,7 +885,7 @@ exports.updateUser = async (req, res) => {
       res.cookie('token', newToken, {
         httpOnly: true,
         secure: true,
-        sameSite: 'lax',
+        sameSite: 'none',
         maxAge: 3600_000
       });
 
@@ -955,7 +955,7 @@ exports.updateMyProfile = async (req, res) => {
       res.cookie('token', newToken, {
         httpOnly: true,
         secure: true,
-        sameSite: 'lax',
+        sameSite: 'none',
         maxAge: 3600_000
       });
 
