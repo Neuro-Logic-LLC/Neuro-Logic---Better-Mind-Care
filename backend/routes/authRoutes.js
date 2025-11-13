@@ -55,7 +55,7 @@ const authController = require('../controllers/authController');
  */
 
 
-router.post("/login", authController.login);         // Login and sets HttpOnly cookie
+router.post("/login", verifyToken, authController.login);         // Login and sets HttpOnly cookie
 
 /**
  * @openapi
