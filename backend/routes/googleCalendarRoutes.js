@@ -1,7 +1,7 @@
 // Refactored googleCalendarRoutes.js
 // Cleaned up structure, centralized auth/token logic, removed duplication
 // Notes: Fill in missing env vars + utilities as needed.
-
+const { verifyToken } = require("../middleware/auth");
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
