@@ -96,84 +96,77 @@ router.get('/google', async (req, res, next) => {
 // GET /api/oauth/google/callback
 router.get('/google/callback', async (req, res, next) => {
   try {
-    // survive restarts between init/callback
-    try {
-      await ensureReady();
-    } catch {
-      const base = `${req.protocol}://${req.get('host')}`;
-      await initGoogle({ base });
-      await ensureReady();
-    }
-    const { server: as, client, redirectUri } = getConfig();
+    const { state, code, error } = req.query;
 
-    const abs = new URL(`${req.protocol}://${req.get('host')}${req.originalUrl}`);
-    const stateJWT = abs.searchParams.get('state');
-    const code = abs.searchParams.get('code');
-    const err = abs.searchParams.get('error');
-    if (err) return res.status(400).send(`OAuth error: ${err}`);
+    if (error) return res.status(400).send(`OAuth error: ${error}`);
+    if (!state) return res.status(400).send('Missing state');
     if (!code) return res.status(400).send('Missing code');
-    if (!stateJWT) return res.status(400).send('Missing state');
 
+    // --- 1. VERIFY STATE ---
     let st;
     try {
-      st = jwt.verify(stateJWT, process.env.JWT_SECRET, { issuer: 'bmc' });
-    } catch {
-      return res.status(400).send('Bad/expired state');
+      st = jwt.verify(state, process.env.JWT_SECRET, { issuer: 'bmc' });
+    } catch (err) {
+      console.error('Bad state:', err);
+      return res.status(400).send('Invalid state');
     }
 
-    // Exchange code -> tokens with PKCE
-    const form = new URLSearchParams();
-    form.set('grant_type', 'authorization_code');
-    form.set('code', code);
-    form.set('redirect_uri', redirectUri);
-    form.set('client_id', client.client_id);
-    form.set('client_secret', client.client_secret);
-    form.set('code_verifier', st.v);
+    // state contains:
+    // st.v = code_verifier
+    // st.n = nonce
+    // st.rt = returnTo
 
-    const tRes = await fetch(as.token_endpoint, {
+    // Rebuild redirect_uri exactly as used during /google
+    const redirectUri = `${req.protocol}://${req.get('host')}/api/oauth/google/callback`;
+
+    // --- 2. Exchange code with Google ---
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: form
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: redirectUri,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        code_verifier: st.v
+      })
     });
 
-    const raw = await tRes.text();
-    let tokenSet = null;
-    try {
-      tokenSet = JSON.parse(raw);
-    } catch {}
-    if (!tRes.ok) {
-      const msg = tokenSet?.error_description || tokenSet?.error || `HTTP ${tRes.status}`;
-      return res.status(400).send(`Token error: ${msg}`);
+    const raw = await tokenRes.text();
+    let tokenSet;
+    try { tokenSet = JSON.parse(raw); } catch {}
+
+    if (!tokenRes.ok) {
+      const msg =
+        tokenSet?.error_description ||
+        tokenSet?.error ||
+        `HTTP ${tokenRes.status}`;
+      return res.status(400).send(`Token exchange failed: ${msg}`);
     }
 
-    // Minimal ID token checks + email
-    const idt = tokenSet.id_token || '';
-    let payload;
-    try {
-      payload = JSON.parse(
-        Buffer.from(idt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString(
-          'utf8'
-        )
-      );
-    } catch {
-      return res.status(400).send('Invalid id_token');
-    }
-    if (payload.nonce !== st.n) return res.status(400).send('Unexpected ID Token "nonce" value');
+    const idToken = tokenSet.id_token;
+    if (!idToken) return res.status(400).send('Missing id_token');
+
+    // --- 3. Decode ID token ---
+    const payload = JSON.parse(
+      Buffer.from(idToken.split('.')[1], 'base64url').toString('utf8')
+    );
+
+    if (payload.nonce !== st.n)
+      return res.status(400).send('Nonce mismatch');
+
     const email = String(payload.email || '').toLowerCase();
-    if (!email) return res.status(400).send('No email in Google id_token');
-    if (payload.email_verified === false) return res.status(403).send('Google email not verified');
+    if (!email) return res.status(400).send('No email from Google');
+    if (payload.email_verified === false)
+      return res.status(403).send('Google email not verified');
 
-    // Lookup user (no auto insert)
+    // --- 4. DB LOOKUP ---
     let knex;
     try {
-      try {
-        knex = await require('../db/initKnex')();
-      } catch {
-        knex = await require('../db/knex')();
-      }
-    } catch (dbInitErr) {
-      console.error('[oauth] DB init failed:', dbInitErr);
-      return res.status(500).send('Database unavailable');
+      knex = await require('../db/initKnex')();
+    } catch {
+      knex = await require('../db/knex')();
     }
 
     const user = await knex('users')
@@ -182,75 +175,63 @@ router.get('/google/callback', async (req, res, next) => {
         'users.id',
         'users.email_canon',
         'roles.role_name',
-        'users.is_email_confirmed',
         'users.is_deleted'
       )
       .where('users.email_canon', email)
-      .andWhere(q => q.where('users.is_deleted', false).orWhereNull('users.is_deleted'))
+      .andWhere(q =>
+        q.where('users.is_deleted', false).orWhereNull('users.is_deleted')
+      )
       .first();
 
-    // Save or update Google tokens
+    // --- No account → redirect to signup ---
+    if (!user) {
+      const fe = process.env.FRONTEND_URL || 'https://staging.bettermindcare.com';
+      const qs = new URLSearchParams({ email, reason: 'oauth_no_account' });
+      return res.redirect(`${fe}/sign-up?${qs.toString()}`);
+    }
+
+    // --- Save tokens (optional) ---
     const now = new Date();
     const expiry = new Date(now.getTime() + (tokenSet.expires_in || 3600) * 1000);
 
-    if (!user || user.is_deleted) {
-      const feBase = 'https://staging.bettermindcare.com';
-      const qs = new URLSearchParams({ email, reason: 'oauth_no_account' });
-      return res.redirect(`${feBase}/sign-up`);
-    }
-
-    // --- Save or update Google tokens (preserve existing refresh_token if none returned)
-    const insertData = {
-      user_id: user.id,
-      access_token: tokenSet.access_token,
-      scope: tokenSet.scope,
-      token_type: tokenSet.token_type,
-      expiry,
-      created_at: now,
-      updated_at: now
-    };
-
-    if (tokenSet.refresh_token) insertData.refresh_token = tokenSet.refresh_token;
-
     await knex('user_google_tokens')
-      .insert(insertData)
-      .onConflict('user_id')
-      .merge({
+      .insert({
+        user_id: user.id,
         access_token: tokenSet.access_token,
+        refresh_token: tokenSet.refresh_token || null,
         scope: tokenSet.scope,
         token_type: tokenSet.token_type,
         expiry,
-        updated_at: now,
-        ...(tokenSet.refresh_token ? { refresh_token: tokenSet.refresh_token } : {})
+        created_at: now,
+        updated_at: now
+      })
+      .onConflict('user_id')
+      .merge({
+        access_token: tokenSet.access_token,
+        refresh_token: tokenSet.refresh_token || null,
+        scope: tokenSet.scope,
+        token_type: tokenSet.token_type,
+        expiry,
+        updated_at: now
       });
 
-    req.session.googleTokens = {
-      access_token: tokenSet.access_token,
-      refresh_token: tokenSet.refresh_token, // may be undefined (that's fine)
-      expiry_date: expiry
-    };
-
-    // Set the ONE auth cookie (7d) and clear legacy junk
-    // --- ISSUE JWT COOKIE (same as MFA login) ---
-   
+    // --- 5. ISSUE YOUR ONE REAL AUTH COOKIE ---
     issueSessionCookie(res, {
       id: user.id,
       email: user.email_canon,
-      role: user.role_id
+      role: user.role_name
     });
 
     res.set('Cache-Control', 'no-store');
 
-    // FE base from env (prod or dev), no “staging” env concept here
-    let feBase = 'https://staging.bettermindcare.com';
+    // --- 6. Redirect back to frontend ---
+    const feBase = process.env.FRONTEND_URL || 'https://staging.bettermindcare.com';
+    const dest = feBase + (st.rt || '/dashboard');
 
-    feBase = feBase.replace(/\/+$/, '');
-
-    const dest = feBase + sanitizeReturnTo(st.rt, feBase);
     return res.redirect(dest);
-  } catch (e) {
-    console.error('[oauth] callback fatal:', e);
-    next(e);
+  } catch (err) {
+    console.error('[oauth callback fatal]', err);
+    return res.status(500).send('OAuth callback failed');
   }
 });
 
