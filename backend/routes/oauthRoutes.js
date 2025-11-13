@@ -194,7 +194,7 @@ router.get('/google/callback', async (req, res, next) => {
     const expiry = new Date(now.getTime() + (tokenSet.expires_in || 3600) * 1000);
 
     if (!user || user.is_deleted) {
-      const feBase = 'https://staging.bettermindcare.com'
+      const feBase = 'https://staging.bettermindcare.com';
       const qs = new URLSearchParams({ email, reason: 'oauth_no_account' });
       return res.redirect(`${feBase}/sign-up`);
     }
@@ -229,25 +229,29 @@ router.get('/google/callback', async (req, res, next) => {
       refresh_token: tokenSet.refresh_token, // may be undefined (that's fine)
       expiry_date: expiry
     };
-    req.session.user = {
-      id: user.id,
-      email: user.email_canon,
-      role_name: user.role_id,
-      is_email_confirmed: user.is_active
-    };
 
     // Set the ONE auth cookie (7d) and clear legacy junk
-    issueSessionCookie(res, {
-      id: user.id,
-      email: user.email_canon,
-      role: user.role_id || 'User',
-      is_email_confirmed: user.is_active
+    // --- ISSUE JWT COOKIE (same as MFA login) ---
+    const token = jwt.sign(
+      {
+        id: user.id,
+        role: user.role_name,
+        email: user.email_canon
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: '.bettermindcare.com',
+      path: '/',
+      maxAge: 3600 * 1000
     });
+
     res.set('Cache-Control', 'no-store');
-
-    const clear = { domain: '.bettermindcare.com', path: '/' };
-    res.clearCookie('token', clear); // old name
-
 
     // FE base from env (prod or dev), no “staging” env concept here
     let feBase = 'https://staging.bettermindcare.com';
