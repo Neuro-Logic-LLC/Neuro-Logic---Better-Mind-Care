@@ -45,8 +45,8 @@ export async function createMeeting(payload = {}) {
   const normalized = {
     summary: payload.summary || payload.title || "(No title)",
     description: payload.description || "",
-    start_time: payload.start,    // backend expects this
-    end_time: payload.end,        // backend expects this
+    start_time: payload.start_time,    // backend expects this
+    end_time: payload.end_time,        // backend expects this
     time_zone: timeZone,
     patient_email: payload.patientEmail,
     patient_name: payload.patientName
