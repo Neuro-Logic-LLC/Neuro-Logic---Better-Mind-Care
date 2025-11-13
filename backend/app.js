@@ -42,16 +42,21 @@ app.use((_, res, next) => {
   next();
 });
 const DEV_FRONTEND_ORIGIN = process.env.DEV_FRONTEND_ORIGIN || 'https://localhost:3000';
+const PROD_FRONTEND_ORIGIN = 'https://staging.bettermindcare.com';
+
 app.use(
   cors({
-    origin: DEV_FRONTEND_ORIGIN,
+    origin: [
+      'https://staging.bettermindcare.com',
+      'https://localhost:3000' // if you still want dev
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     optionsSuccessStatus: 204
   })
 );
-console.log(`CORS: allowing ${DEV_FRONTEND_ORIGIN}`);
+console.log(`CORS: allowing ${PROD_FRONTEND_ORIGIN}`);
 
 // ---- Health check ----
 app.get('/', (_req, res) => res.send('Hello HTTPS!'));
