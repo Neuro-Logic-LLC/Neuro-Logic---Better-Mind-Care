@@ -66,7 +66,7 @@ export function AuthProvider({ children }) {
   const checkSession = useCallback(async () => {
     setLoading(true);
     try {
-      const { res, data } = await req('/api/auth/me', { method: 'GET' });
+      const { res, data } = await req('/api/auth/me', { method: 'GET', credentials: 'include' });
       if (res && data) {
         setUser(data.user || null);
       } else {

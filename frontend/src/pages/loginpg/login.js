@@ -83,7 +83,7 @@ export default function Login() {
   useEffect(() => {
     (async () => {
       try {
-        const me = await req('/api/auth/me', { method: 'GET' });
+        const me = await req('/api/auth/me', { method: 'GET', credentials: 'include' });
         if (me.res.ok && me.data && me.data.user) {
           setUser(me.data.user);
           navigate('/admin/dashboard', { replace: true });
