@@ -16,6 +16,7 @@
   "description": "",
   "type": "commonjs",
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.930.0",
     "@aws-sdk/client-ssm": "^3.910.0",
     "@aws-sdk/credential-providers": "^3.908.0",
     "axios": "^1.12.2",

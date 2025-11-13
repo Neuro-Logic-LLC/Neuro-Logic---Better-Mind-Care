@@ -199,43 +199,44 @@ exports.getMe = async (req, res) => {
   if (!key) return res.status(500).json({ error: 'Encryption key not found' });
 
   try {
-    // SESSION-BASED: get user id from req.session
-    const sessionUser = req.session?.user;
-    if (!sessionUser || !sessionUser.id) {
+    // ---- JWT COOKIE AUTH ----
+    const token = req.cookies?.token;
+    if (!token) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    let userId = sessionUser.id;
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (e) {
+      console.warn("Invalid JWT:", e.message);
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
-    // If userId might be provider/sub format, resolve to internal user ID
+    let userId = decoded.id;
+
+    // ---- Resolve provider-based IDs (Google OAuth etc) ----
     if (!uuidV4ish.test(userId)) {
       const parsed = parseProviderId(userId);
       if (!parsed) return res.status(401).json({ error: 'Unauthorized' });
 
-      let row = null;
+      // Provider lookup
+      let row = await knex('users')
+        .select('id')
+        .where({
+          auth_provider: parsed.provider,
+          auth_sub: parsed.subject
+        })
+        .first();
 
-      // Try provider lookup
-      try {
-        row = await knex('users')
-          .select('id')
-          .where({
-            auth_provider: parsed.provider,
-            auth_sub: parsed.subject
-          })
-          .first();
-      } catch (_) {}
-
-      // Fallback: match by email hash (Google often)
+      // Fallback: email hash matching
       if (!row && parsed.subject.includes('@')) {
-        const canonEmail = canon(parsed.subject);
-        const emailHash = identHash(canonEmail);
+        const eCanon = canon(parsed.subject);
+        const eHash = identHash(eCanon);
 
         row = await knex('users')
           .select('id')
-          .where({
-            email_hash: emailHash,
-            is_deleted: false
-          })
+          .where({ email_hash: eHash, is_deleted: false })
           .first();
       }
 
@@ -243,7 +244,7 @@ exports.getMe = async (req, res) => {
       userId = row.id;
     }
 
-    // Fetch full user profile
+    // ---- Fetch user profile ----
     const me = await knex('users')
       .leftJoin('roles', 'users.role_id', 'roles.id')
       .first(
@@ -254,22 +255,20 @@ exports.getMe = async (req, res) => {
         knex.raw('pgp_sym_decrypt(users.last_name, ?)::text AS last_name', [key]),
         'roles.role_name'
       )
-      .where({
-        'users.id': userId,
-        'users.is_deleted': false
-      });
+      .where({ 'users.id': userId, 'users.is_deleted': false });
 
     if (!me) return res.status(404).json({ error: 'Not found' });
 
-    // Normalize role fields
-    const roleStr = String(me.role_name || 'user').toLowerCase();
-    me.role = roleStr;
-    me.role_name = roleStr;
-    me.is_admin = ['admin', 'superadmin'].includes(roleStr);
-    me.is_doctor = roleStr === 'doctor';
-    me.is_patient = roleStr === 'patient';
+    // ---- Normalize roles ----
+    const role = String(me.role_name || '').toLowerCase();
+    me.role = role;
+    me.role_name = role;
+    me.is_admin = role === 'admin' || role === 'superadmin';
+    me.is_doctor = role === 'doctor';
+    me.is_patient = role === 'patient';
 
     return res.json({ user: me });
+
   } catch (err) {
     console.error('getMe error:', err);
     return res.status(500).json({ error: 'Server error' });
@@ -704,14 +703,14 @@ exports.verifyMfa = async (req, res) => {
       { expiresIn: '1h' }
     );
 
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',   // <-- this fixes the 401s
-    domain: '.bettermindcare.com',
-    path: '/',
-    maxAge: 60 * 60 * 1000
-  });
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none', // <-- this fixes the 401s
+      domain: '.bettermindcare.com',
+      path: '/',
+      maxAge: 60 * 60 * 1000
+    });
     return res.json({
       message: 'Authenticated successfully',
       user: {
