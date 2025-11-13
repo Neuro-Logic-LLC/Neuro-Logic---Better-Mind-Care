@@ -80,12 +80,7 @@ router.post("/logout", authController.logout);       // Clears the cookie
  *       '200':
  *         description: Current user
  */
-router.get("/me", (req, res) => {
-  if (req.session && req.session.user) {
-    return res.json({ user: req.session.user });
-  }
-  res.status(401).json({ error: "Not authenticated" });
-});
+router.get("/me", authController.getMe); // Gets user from verified JWT
 
 // 🛡️ Admin-only protected routes
 /**
@@ -109,9 +104,9 @@ router.get("/me", (req, res) => {
  *       '201': { description: Created }
  *       '401': { description: Unauthorized }
  */
-router.post("/admin-create-user", authController.adminCreateUser)
+router.post("/admin-create-user", verifyToken, authController.adminCreateUser)
 
-router.post("/create-user", authController.createUser);
+router.post("/create-user", verifyToken, authController.createUser);
 /**
  * @openapi
  * /api/auth/users/{id}:
@@ -128,7 +123,7 @@ router.post("/create-user", authController.createUser);
  *       '200': { description: OK }
  *       '404': { description: Not found }
  */
-router.get("/users/:id", authController.getUserById);
+router.get("/users/:id", verifyToken, authController.getUserById);
 
 /**
  * @openapi
@@ -141,7 +136,7 @@ router.get("/users/:id", authController.getUserById);
  *       '200': { description: OK }
  */
 
-router.get("/users", authController.getAllUsers);
+router.get("/users", verifyToken, requireAdminOrDoctor,authController.getAllUsers);
 
 
 // router.post("/users/reset-password", verifyToken, authController.resetUserPassword);
@@ -162,7 +157,7 @@ router.get("/users", authController.getAllUsers);
  *     responses:
  *       '204': { description: Deleted }
  */
-router.delete("/users/:id",  authController.deleteUser);
+router.delete("/users/:id", verifyToken, authController.deleteUser);
 
 
 
@@ -211,7 +206,7 @@ router.get('/dev-mfa', async (req, res) => {
  *     responses:
  *       '200': { description: OK }
  */
-router.get('/audit-log', authController.getAuditLog);
+router.get('/audit-log', verifyToken, authController.getAuditLog);
 
 /**
  * @openapi
@@ -223,7 +218,7 @@ router.get('/audit-log', authController.getAuditLog);
  *     responses:
  *       '200': { description: Reactivated }
  */
-router.post('/users/reactivate', authController.reactivateUser);
+router.post('/users/reactivate', verifyToken, authController.reactivateUser);
 
 /**
  * @openapi
@@ -245,7 +240,7 @@ router.post('/users/reactivate', authController.reactivateUser);
  *     responses:
  *       '200': { description: Updated }
  */
-router.put('/users/:id', authController.updateUser);
+router.put('/users/:id', verifyToken, authController.updateUser);
 
 
 /**
@@ -324,6 +319,6 @@ router.post('/resend-confirmation', authController.resendEmailConfirmation);
  *       '204': { description: Deleted }
  */
 // ✅ SuperAdmin-only Hard Delete
-router.delete("/admin/user/hard-delete/:id",  authController.hardDeleteUser);
+router.delete("/admin/user/hard-delete/:id", verifyToken, authController.hardDeleteUser);
 
 module.exports = router;
