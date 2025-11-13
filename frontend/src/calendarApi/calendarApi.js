@@ -1,22 +1,27 @@
 // calendarApi.ts
 
-export async function fetchEvents(startISO, endISO, calendarId, includePastDays) {
+export async function fetchEvents(
+  startISO,
+  endISO,
+  calendarId,
+  includePastDays
+) {
   const url = `/api/google-calendar/events?calendarId=${encodeURIComponent(calendarId)}&start=${encodeURIComponent(
     startISO
   )}&end=${encodeURIComponent(endISO)}&includePastDays=${encodeURIComponent(includePastDays)}`;
 
   try {
     const res = await fetch(url, {
-      method: "GET",
-      credentials: "include"
+      method: 'GET',
+      credentials: 'include'
     });
 
     // Handle auth failure consistently
     if (res.status === 401) {
       const data = await res.json().catch(() => ({}));
 
-      if (data.error?.includes("signin_required")) {
-        window.location.href = "/api/oauth/google?returnTo=/google-calendar";
+      if (data.error?.includes('signin_required')) {
+        window.location.href = '/api/oauth/google?returnTo=/google-calendar';
         return []; // Always return array
       }
 
@@ -28,29 +33,28 @@ export async function fetchEvents(startISO, endISO, calendarId, includePastDays)
 
     return Array.isArray(data.events) ? data.events : [];
   } catch (err) {
-    console.error("fetchEvents failed:", err);
+    console.error('fetchEvents failed:', err);
     return []; // Always safe fallback
   }
 }
 
+export async function createMeeting(payload = {}) {
+  const normalized = {
+    summary: payload.summary || payload.title || '(No title)',
+    start: payload.start,
+    end: payload.end
+  };
 
-export async function createMeeting(payload) {
   const res = await fetch('/api/google-calendar/create-meeting', {
     method: 'POST',
     credentials: 'include',
-    body: payload || {}// <-- always send at least an obj
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(normalized)
   });
-
-  if (res.status === 401) {
-    const data = await res.json().catch(() => ({}));
-    if (data.error?.includes('signin_required')) {
-      window.location.href = '/api/oauth/google?returnTo=/google-calendar';
-      return;
-    }
-  }
 
   return res.json();
 }
+
 const BASE = '/api/google-calendar';
 
 export async function updateEvent(calendarId, id, payload) {
