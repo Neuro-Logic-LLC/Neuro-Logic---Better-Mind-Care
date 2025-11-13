@@ -48,7 +48,7 @@ function issueSessionCookie(arg1, arg2, arg3) {
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
     secure: true, // ✅ only secure over HTTPS
-    sameSite: isProd ? 'none' : 'lax', // ✅ none for prod HTTPS, lax for localhost
+    sameSite: 'none', // ✅ none for prod HTTPS, lax for localhost
     path: '/',
     domain: isProd ? '.bettermindcare.com' : undefined,  
     maxAge: 7 * 24 * 60 * 60 * 1000

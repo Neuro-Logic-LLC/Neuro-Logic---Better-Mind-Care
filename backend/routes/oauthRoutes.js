@@ -73,7 +73,7 @@ router.get('/google', async (req, res, next) => {
     const feBase =
       process.env.NODE_ENV === 'production'
         ? process.env.FRONTEND_URL || pickFrontendBase(req)
-        : process.env.FRONTEND_URL_DEV || 'https://localhost:3000';
+        : process.env.FRONTEND_URL_DEV || 'https://localhost:5050';
 
     const returnTo = sanitizeReturnTo(req.query.returnTo, feBase);
 

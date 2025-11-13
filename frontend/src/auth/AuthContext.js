@@ -17,25 +17,22 @@ function readMeta(name) {
   return el ? el.getAttribute('content') : '';
 }
 const API_BASE = (() => {
-  const injected = (
-    (window.__APP_CONFIG__ && window.__APP_CONFIG__.API_BASE) ||
-    document.querySelector('meta[name="app-env:api-base"]')?.content ||
-    ''
-  )
-    .trim()
-    .replace(/\/+$/, '');
+  const metaBase =
+    document.querySelector('meta[name="app-env:api-base"]')?.content?.trim();
+  const configBase = window.__APP_CONFIG__?.API_BASE?.trim();
 
-  if (injected) return injected;
+  if (configBase) return configBase.replace(/\/+$/, '');
+  if (metaBase) return metaBase.replace(/\/+$/, '');
 
   const host = window.location.hostname;
-  if (host === 'localhost' || host === '127.0.0.1')
-    return 'https://localhost:5050';
 
+  if (host === 'localhost' || host === '127.0.0.1') return ''; // use proxy
   if (host.includes('staging.bettermindcare.com'))
     return 'https://staging.bettermindcare.com';
 
-  return window.location.origin; // prod same-origin
+  return 'https://api.bettermindcare.com'; // your WIF’s real backend
 })();
+
 console.log('[Auth] API_BASE =', API_BASE); // leave this in until fixed
 
 async function req(path, opts = {}) {
