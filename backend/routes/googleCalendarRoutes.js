@@ -122,7 +122,13 @@ async function requireGoogleAuth(req, res) {
 
 // ----- Routes -----
 router.get('/check-session', (req, res) => {
-  res.json({ session: req.session || null });
+  if (!req.session.views) req.session.views = 0;
+  req.session.views++;
+  res.json({
+    storeType: req.session.store.constructor.name, // should be "MemoryStore"
+    views: req.session.views,
+    session: req.session
+  });
 });
 
 // Create Meeting
