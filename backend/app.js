@@ -1,3 +1,9 @@
+const params = require('./utils/loadSSMParams');
+
+(async () => {
+  await params();
+
+
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
@@ -7,6 +13,7 @@ const initKnex = require('../backend/db/initKnex');
 const Stripe = require('stripe');
 const stripeRoutes = require('./routes/stripeRoutes');
 const evexiaWebhookRoutes = require('./routes/evexiaWebhookRoutes');
+
 
 const app = express();
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -197,5 +204,6 @@ app.use((err, _req, res, _next) => {
   console.error('Unhandled error:', err);
   res.status(err.status || 500).json({ error: err.message || 'Server error' });
 });
+})();
 
 module.exports = app;
