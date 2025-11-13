@@ -3,7 +3,6 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 
-
 const loadSSMParams = require('../utils/loadSSMParams');
 const initKnex = require('../db/initKnex');
 const getOauth4w = require('../lib/oauth4w');
@@ -78,7 +77,8 @@ async function getOAuth2ForSession(req) {
     async function getOAuth2ForSession(req) {
       try {
         const auth = new GoogleAuth({
-          scopes: ['https://www.googleapis.com/auth/calendar.events']
+          scopes: ['https://www.googleapis.com/auth/calendar'],
+          keyFile: '/opt/bmc/aws-wif.json'
         });
         const client = await auth.getClient();
         return client;
