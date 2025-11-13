@@ -56,9 +56,9 @@ exports.getMyReports = async (req, res) => {
   try {
     const knex = await initKnex();
     const KEY = process.env.PGPCRYPTO_KEY;
-    const userId = req.user?.id;
 
-    console.log('Current user ID:', userId);
+    // ⭐ Use session instead of req.user
+    const userId = req.session?.user?.id;
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -75,10 +75,8 @@ exports.getMyReports = async (req, res) => {
       .where('ir.user_id', userId)
       .orderBy('submitted_at', 'desc');
 
-    console.log('Fetched reports:', rows.length);
     res.json(rows);
   } catch (err) {
-    console.error('getMyReports error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 };

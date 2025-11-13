@@ -8,6 +8,6 @@ router.post('/submit',  requireAdminOrDoctor, submitIntake);
 
 
 // Patient views their own reports
-router.get('/my-reports', getMyReports);
+router.get('/my-reports', verifyToken, getMyReports);
 
 module.exports = router;
