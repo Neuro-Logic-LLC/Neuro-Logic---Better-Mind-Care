@@ -67,7 +67,7 @@ export function AuthProvider({ children }) {
     setLoading(true);
     try {
       const { res, data } = await req('/api/auth/me', { method: 'GET' });
-      if (res.ok && data && typeof data === 'object') {
+      if (res.ok && data.user) {
         setUser(data.user || null);
       } else {
         setUser(null);
