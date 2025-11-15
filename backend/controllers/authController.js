@@ -67,18 +67,20 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await knex('users')
-      .join('roles', 'users.role_id', 'roles.id')
-      .select(
+const user = await knex('users')
+    .join('roles', 'users.role_id', 'roles.id')
+    .select(
         'users.id',
-        'users.email', // <-- make sure we select the stored email
-        'users.password',
+        'users.email',
+        'users.email_canon',
+        'users.password', 
+        'users.role_id',
         'roles.role_name',
         'users.is_email_confirmed'
-      )
-      .where({ 'users.email_hash': identHash(email) })
-      .andWhere('users.is_deleted', false)
-      .first();
+    )
+    .where({ 'users.email_hash': identHash(email) })
+    .andWhere('users.is_deleted', false)
+    .first();
 
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
@@ -111,15 +113,12 @@ exports.login = async (req, res) => {
     await knex('users').where({ id: user.id }).update({ mfa_code: code, mfa_expires_at: expires });
 
     // ---- FIX: derive a valid recipient ----
-    const candidate1 = normalizeEmail(user?.email_canon);
-    const candidate2 = normalizeEmail(email);
-    const toAddress = candidate2 || candidate1;
+    const toAddress = normalizeEmail(user.email_canon);
 
     console.log('DEBUG MFA email:', {
       email: user.email,
       email_canon: user.email_canon,
-      candidate1,
-      candidate2,
+      toAddress,
       reqEmail: email
     });
 
@@ -128,9 +127,9 @@ exports.login = async (req, res) => {
       FROM: process.env.MAILGUN_FROM,
       API_KEY: process.env.MAILGUN_API_KEY ? '✅ set' : '❌ missing'
     });
+
     if (!toAddress) {
-      // log sanitized details for debugging
-      console.error('MFA send aborted: no valid recipient email', { candidate1, candidate2 });
+      console.error('MFA send aborted: no valid recipient email');
       return res.status(500).json({ error: 'no_recipient_email' });
     }
 
@@ -620,16 +619,32 @@ exports.deleteUser = async (req, res) => {
 
 exports.verifyMfa = async (req, res) => {
   const knex = await initKnex();
-  const { email, code } = req.body;
+  const { code } = req.body;
 
   try {
+    // The login route created the temporary session
+    const tempUser = req.session?.user;
+    if (!tempUser?.id) {
+      return res.status(401).json({ error: 'No active login challenge' });
+    }
+
     const user = await knex('users')
-      .select('users.id', 'users.role_id', 'users.mfa_code', 'users.mfa_expires_at')
-      .where({ email_hash: identHash(email) })
+      .join('roles', 'users.role_id', 'roles.id')
+      .select(
+        'users.id',
+        'users.email_canon',
+        'users.mfa_code',
+        'users.mfa_expires_at',
+        'roles.role_name'
+      )
+      .where({ 'users.id': tempUser.id })
       .first();
 
-    if (!user) return res.status(401).json({ error: 'Invalid or expired MFA code' });
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid login session' });
+    }
 
+    // Validate MFA
     if (
       user.mfa_code !== code ||
       !user.mfa_expires_at ||
@@ -638,43 +653,41 @@ exports.verifyMfa = async (req, res) => {
       return res.status(401).json({ error: 'Invalid or expired MFA code' });
     }
 
-    const roleRow = await knex('roles').select('role_name').where({ id: user.role_id }).first();
-    const emailCanon = canon(email);
-
-    res.clearCookie(process.env.APP_AUTH_COOKIE_NAME || 'bmc_jwt');
-    issueSessionCookie(res, {
-      id: user.id,
-      email: emailCanon,
-      role: roleRow.role_name
+    // Clear MFA code from DB
+    await knex('users').where({ id: user.id }).update({
+      mfa_code: null,
+      mfa_expires_at: null
     });
 
-    await knex('users').where({ id: user.id }).update({ mfa_code: null, mfa_expires_at: null });
-
+    // Record success
     await knex('audit_log').insert({
       user_id: user.id,
       action: 'MFA_SUCCESS',
-      description: `User ${canon(email)} passed MFA verification`,
+      description: `User ${user.email_canon} passed MFA`,
       ip_address: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
       timestamp: knex.fn.now()
     });
 
+    // Issue final JWT cookie
     res.clearCookie(process.env.APP_AUTH_COOKIE_NAME || 'bmc_jwt');
     issueSessionCookie(res, {
       id: user.id,
       email: user.email_canon,
       role: user.role_name
     });
+
     return res.json({
       message: 'Authenticated successfully',
       user: {
         id: user.id,
-        email: canon(email),
-        role: roleRow.role_name
+        email: user.email_canon,
+        role: user.role_name
       }
     });
+
   } catch (err) {
     console.error('MFA verification error:', err);
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error' });
   }
 };
 

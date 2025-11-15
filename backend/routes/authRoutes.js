@@ -55,7 +55,7 @@ const authController = require('../controllers/authController');
  */
 
 
-router.post("/login", verifyToken, authController.login);         // Login and sets HttpOnly cookie
+router.post("/login", authController.login);         // Login and sets HttpOnly cookie
 
 /**
  * @openapi
@@ -170,7 +170,7 @@ router.delete("/users/:id", verifyToken, authController.deleteUser);
  *       '200': { description: Verified }
  *       '400': { description: Invalid code }
  */
-router.post('/verify-mfa', verifyToken, authController.verifyMfa);
+router.post('/verify-mfa', authController.verifyMfa);
 
 /**
  * @openapi

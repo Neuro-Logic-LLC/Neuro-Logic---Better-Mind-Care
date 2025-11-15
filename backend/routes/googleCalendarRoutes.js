@@ -279,10 +279,10 @@ router.get('/events', verifyToken, async (req, res) => {
       showDeleted: false,
       maxResults: 2500
     });
-
+  console.log(data);
     const events = (data.items || []).map(ev => ({
       id: ev.id,
-      title: ev.summary || '(no title)',
+      title: ev.summary || 'Time Booked',
       start: ev.start?.dateTime || `${ev.start?.date}T00:00:00`,
       end:
         ev.end?.dateTime ||
@@ -301,6 +301,48 @@ router.get('/events', verifyToken, async (req, res) => {
   } catch (e) {
     if (isGoogleAuthError(e)) return res.status(401).json({ error: 'google_reauth' });
     console.error('events error:', e);
+    res.status(500).json({ error: String(e?.message || e) });
+  }
+});
+
+
+// Get Pending Appointment Requests
+router.get('/pending-events', verifyToken, async (req, res) => {
+  const { oauth, error } = await requireGoogleAuth(req, res);
+  if (error) return;
+
+  try {
+    const calendar = google.calendar({ version: 'v3', auth: oauth });
+
+    const { data } = await calendar.events.list({
+      calendarId: CALENDAR_ID,
+      singleEvents: true,
+      orderBy: 'startTime',
+      showDeleted: false,
+      maxResults: 2500
+    });
+
+    const pending = (data.items || [])
+      .filter(ev => ev.status === "tentative")
+      .map(ev => ({
+        id: ev.id,
+        status: ev.status,
+        title: ev.summary || "Pending Request",
+        start: ev.start?.dateTime || `${ev.start?.date}T00:00:00`,
+        end:
+          ev.end?.dateTime ||
+          new Date(new Date(`${ev.end?.date}T00:00:00`).getTime() - 1).toISOString(),
+        notes: ev.description || "",
+        attendees: ev.attendees || [],
+        patientName: ev.attendees?.[0]?.displayName || "",
+        patientEmail: ev.attendees?.[0]?.email || "",
+        htmlLink: ev.htmlLink
+      }));
+
+    res.json({ pending });
+  } catch (e) {
+    if (isGoogleAuthError(e)) return res.status(401).json({ error: 'google_reauth' });
+    console.error('pending-events error:', e);
     res.status(500).json({ error: String(e?.message || e) });
   }
 });
@@ -352,7 +394,7 @@ router.patch('/events/:id', verifyToken, async (req, res) => {
 
     res.json({
       id: ev.id,
-      title: ev.summary || '(no title)',
+      title: ev.summary || 'Time Booked',
       start: ev.start?.dateTime || ev.start?.date,
       end: ev.end?.dateTime || ev.end?.date,
       htmlLink: ev.htmlLink,

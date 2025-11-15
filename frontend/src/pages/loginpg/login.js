@@ -83,7 +83,10 @@ export default function Login() {
   useEffect(() => {
     (async () => {
       try {
-        const me = await req('/api/auth/me', { method: 'GET', credentials: 'include' });
+        const me = await req('/api/auth/me', {
+          method: 'GET',
+          credentials: 'include'
+        });
         if (me.res.ok && me.data && me.data.user) {
           setUser(me.data.user);
           navigate('/admin/dashboard', { replace: true });
@@ -146,6 +149,13 @@ export default function Login() {
       });
 
       const data = await getJsonSafe(res);
+
+      // ❌ Wrong password — stop here
+      if (!res.ok) {
+        setError(data.error || 'Invalid credentials');
+        setBusy(false);
+        return;
+      }
       const status = data.status || data.result || data.code;
 
       // If API signals MFA explicitly
