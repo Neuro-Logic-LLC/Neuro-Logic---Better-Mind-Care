@@ -98,7 +98,7 @@ async function scheduleMeeting(platform, req, summary, startTime, endTime, timeZ
     return { ...event, platform: 'google' };
   }
   if (platform === 'zoom') throw new Error('Zoom not implemented');
-  throw new Error('Unsupported platform');
+  throw new Error('Zoom: Unsupported platform');
 }
 
 // ---------- Exports ----------
