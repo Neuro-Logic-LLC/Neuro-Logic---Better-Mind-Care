@@ -119,3 +119,5 @@ async function requireSystemGoogleAuth(req, res) {
     console.error('[SYSTEM GOOGLE OAUTH INIT ERROR]', err);
   }
 })();
+
+module.exports = router;
