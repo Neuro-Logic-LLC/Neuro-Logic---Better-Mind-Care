@@ -223,7 +223,7 @@ export default function PatientBooking() {
           {new Date(selectedSlot.start).toLocaleString()}
         </h3>
 
-        <label>Name</label>
+        <label style={{ display: 'none' }}>Name</label>
         <input
           style={{ display: 'none' }}
           className="input mb-2"
@@ -231,7 +231,7 @@ export default function PatientBooking() {
           onChange={(e) => setBookingName(e.target.value)}
         />
 
-        <label>Email</label>
+        <label style={{ display: 'none' }}>Email</label>
         <input
           style={{ display: 'none' }}
           className="input mb-4"

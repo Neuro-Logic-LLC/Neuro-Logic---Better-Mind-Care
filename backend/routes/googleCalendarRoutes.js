@@ -189,7 +189,7 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
             conferenceSolutionKey: { type: 'hangoutsMeet' }
           }
         },
-        guestsCanSeeOtherGuests: false
+        guestsCanSeeOtherGuests: true
       }
     });
 
