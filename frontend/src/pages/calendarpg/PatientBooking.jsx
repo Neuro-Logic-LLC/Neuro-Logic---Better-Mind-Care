@@ -208,7 +208,7 @@ export default function PatientBooking() {
         </button>
 
         <h3 className="font-bold text-lg mb-4">
-          {new Date(selectedDay).toLocaleDateString()}
+          {new Date(selectedDay + 'T12:00:00').toLocaleDateString()}
         </h3>
 
         <div style={{ display: 'grid', gap: 10 }}>
@@ -248,7 +248,7 @@ export default function PatientBooking() {
         </button>
 
         <h3 className="text-xl font-bold mb-6">
-          {new Date(selectedSlot.start).toLocaleString()}
+          {new Date(selectedSlot.start.replace('Z', '')).toLocaleString()}
         </h3>
 
         {/* Hidden inputs (still needed for state) */}
