@@ -108,7 +108,7 @@ async function requireSystemGoogleAuth(req, res) {
     return { error: res.status(401).json({ error: 'auth_required' }) };
   }
 
-  if (!req.user.hasPaid) {
+  if (!req.user.has_paid) {
     return { error: res.status(403).json({ error: 'payment_required' }) };
   }
 
