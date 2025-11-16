@@ -20,9 +20,7 @@ function overlaps(aStart, aEnd, bStart, bEnd) {
 function clampDuration(startISO, endISO, fallbackMin = 30) {
   const startMs = new Date(startISO).getTime();
   const endMs = endISO ? new Date(endISO).getTime() : NaN;
-  const ms = Number.isFinite(endMs) && endMs > startMs
-    ? endMs - startMs
-    : fallbackMin * 60000;
+  const ms = Number.isFinite(endMs) && endMs > startMs ? endMs - startMs : fallbackMin * 60000;
   return { startISO, endISO: new Date(startMs + ms).toISOString() };
 }
 
@@ -40,21 +38,17 @@ async function loadSystemOAuth() {
   const knex = await initKnex();
   const row = await knex('system_google_tokens').first();
 
-if (!row) {
-  console.warn('No system Google tokens stored. System OAuth not active yet.');
-  return; // <-- THIS is the fix
-}
+  if (!row) {
+    console.warn('No system Google tokens stored. System OAuth not active yet.');
+    return; // <-- THIS is the fix
+  }
 
-  const oauth = new google.auth.OAuth2(
-    GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET,
-    GOOGLE_REDIRECT_URI
-  );
+  const oauth = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI);
 
   oauth.setCredentials({
     access_token: row.access_token,
     refresh_token: row.refresh_token,
-    expiry_date: new Date(row.expiry).getTime(),
+    expiry_date: new Date(row.expiry).getTime()
   });
 
   systemOAuth = oauth;
@@ -75,13 +69,13 @@ async function refreshSystemTokenIfNeeded() {
     await knex('system_google_tokens').update({
       access_token: creds.access_token,
       expiry: new Date(creds.expiry_date),
-      updated_at: knex.fn.now(),
+      updated_at: knex.fn.now()
     });
 
     systemOAuth.setCredentials({
       access_token: creds.access_token,
       refresh_token: systemOAuth.credentials.refresh_token,
-      expiry_date: creds.expiry_date,
+      expiry_date: creds.expiry_date
     });
   }
 }
@@ -92,7 +86,10 @@ async function requireSystemGoogleAuth(req, res) {
     return { error: res.status(401).json({ error: 'auth_required' }) };
   }
 
-  if (!req.user.has_paid) {
+  const knex = await initKnex();
+  const dbUser = await knex('users').where('id', req.user.id).first();
+
+  if (!dbUser || !dbUser.has_paid) {
     return { error: res.status(403).json({ error: 'payment_required' }) };
   }
 
@@ -123,12 +120,11 @@ async function requireSystemGoogleAuth(req, res) {
   }
 })();
 
-
 // ----- Routes -----
 router.get('/check-session', verifyToken, (req, res) => {
   if (!req.session.views) req.session.views = 0;
   req.session.views++;
-  res.json({  
+  res.json({
     storeType: req.session.store.constructor.name, // should be "MemoryStore"
     views: req.session.views,
     session: req.session
@@ -284,7 +280,7 @@ router.get('/events', verifyToken, async (req, res) => {
       showDeleted: false,
       maxResults: 2500
     });
-  console.log(data);
+    console.log(data);
     const events = (data.items || []).map(ev => ({
       id: ev.id,
       title: ev.summary || 'Time Booked',
@@ -310,7 +306,6 @@ router.get('/events', verifyToken, async (req, res) => {
   }
 });
 
-
 // Get Pending Appointment Requests
 router.get('/pending-events', verifyToken, async (req, res) => {
   const { oauth, error } = await requireSystemGoogleAuth(req, res);
@@ -328,19 +323,19 @@ router.get('/pending-events', verifyToken, async (req, res) => {
     });
 
     const pending = (data.items || [])
-      .filter(ev => ev.status === "tentative")
+      .filter(ev => ev.status === 'tentative')
       .map(ev => ({
         id: ev.id,
         status: ev.status,
-        title: ev.summary || "Pending Request",
+        title: ev.summary || 'Pending Request',
         start: ev.start?.dateTime || `${ev.start?.date}T00:00:00`,
         end:
           ev.end?.dateTime ||
           new Date(new Date(`${ev.end?.date}T00:00:00`).getTime() - 1).toISOString(),
-        notes: ev.description || "",
+        notes: ev.description || '',
         attendees: ev.attendees || [],
-        patientName: ev.attendees?.[0]?.displayName || "",
-        patientEmail: ev.attendees?.[0]?.email || "",
+        patientName: ev.attendees?.[0]?.displayName || '',
+        patientEmail: ev.attendees?.[0]?.email || '',
         htmlLink: ev.htmlLink
       }));
 
