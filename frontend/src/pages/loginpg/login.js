@@ -27,19 +27,34 @@ const API_BASE = (() => {
   return window.location.origin;
 })();
 const isDev = process.env.NODE_ENV === 'development';
-if (isDev) {
-  const _fetch = window.fetch;
-  window.fetch = (input, init) => {
-    const u = typeof input === 'string' ? input : input?.url || '';
-    if (/^https?:\/\/localhost:5050/i.test(u)) {
+
+if (isDev && typeof window !== 'undefined') {
+  const realFetch = window.fetch.bind(window);
+
+  window.fetch = async (input, init) => {
+    const url = typeof input === 'string'
+      ? input
+      : input?.url || '';
+
+    // Warn ONLY on absolute 5050 calls
+    if (url.startsWith('https://localhost:5050')) {
       console.warn(
-        'Dev request used absolute 5050 URL. Use relative /api/... so the proxy works:',
-        u
+        '[DEV WARNING] Direct call to https://localhost:5050 detected:',
+        url
       );
     }
-    return _fetch(input, init);
+
+    // Do NOT mutate init — clone it safely
+    const finalInit = {
+      ...init,
+      // Respect existing credential settings
+      credentials: init?.credentials || 'include'
+    };
+
+    return realFetch(input, finalInit);
   };
 }
+
 const BASE = API_BASE;
 
 export async function req(path, init = {}) {

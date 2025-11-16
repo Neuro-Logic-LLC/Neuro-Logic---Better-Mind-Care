@@ -189,7 +189,7 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
             conferenceSolutionKey: { type: 'hangoutsMeet' }
           }
         },
-        guestsCanSeeOtherGuests: false
+        guestsCanSeeOtherGuests: true
       }
     });
 
@@ -209,32 +209,126 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
   }
 });
 
+router.get('/availability-range', verifyToken, async (req, res) => {
+  const { oauth, error } = await requireSystemGoogleAuth(req, res);
+  if (error) return;
+
+  try {
+    const { start, end } = req.query;
+    const slotMins = 30;
+
+    if (!start || !end) {
+      return res.status(400).json({ error: 'start and end required (YYYY-MM-DD)' });
+    }
+
+    const calendar = google.calendar({ version: 'v3', auth: oauth });
+
+    // 🔥 Pull raw busy blocks from Google
+    const fb = await calendar.freebusy.query({
+      requestBody: {
+        timeMin: new Date(`${start}T00:00:00Z`).toISOString(),
+        timeMax: new Date(`${end}T23:59:59Z`).toISOString(),
+        items: [{ id: CALENDAR_ID }]
+      }
+    });
+
+    const busy = fb.data.calendars[CALENDAR_ID]?.busy || [];
+    const busyRanges = busy.map(b => [
+      new Date(b.start).getTime(),
+      new Date(b.end).getTime()
+    ]);
+
+    const days = [];
+    const slots = {};
+
+    const dayMs = 86400000;
+    let cursor = new Date(start).getTime();
+    const endMs = new Date(end).getTime();
+
+    function isTaken(t0, t1) {
+      return busyRanges.some(([b0, b1]) =>
+        Math.max(t0, b0) < Math.min(t1, b1)
+      );
+    }
+
+    while (cursor <= endMs) {
+      const d = new Date(cursor);
+      const dateStr = d.toISOString().slice(0, 10);
+
+      const officeStart = new Date(`${dateStr}T09:00:00`).getTime();
+      const officeEnd = new Date(`${dateStr}T17:00:00`).getTime();
+
+      const daySlots = [];
+
+      for (let t0 = officeStart; t0 + slotMins * 60000 <= officeEnd; t0 += slotMins * 60000) {
+        const t1 = t0 + slotMins * 60000;
+
+        if (!isTaken(t0, t1)) {
+          daySlots.push({
+            start: new Date(t0).toISOString(),
+            end: new Date(t1).toISOString()
+          });
+        }
+      }
+
+      days.push({
+        date: dateStr,
+        available: daySlots.length > 0
+      });
+
+      if (daySlots.length) {
+        slots[dateStr] = daySlots;
+      }
+
+      cursor += dayMs;
+    }
+
+// ✅ ADD THIS — the new clean response
+const availableDates = days
+  .filter(d => d.available)
+  .map(d => d.date);
+
+res.json({ days, availableDates, slots });
+
+  } catch (e) {
+    console.error('availability-range error:', e);
+    res.status(500).json({ error: String(e?.message || e) });
+  }
+});
+
 // Get Availability
 router.get('/availability', verifyToken, async (req, res) => {
   const { oauth, error } = await requireSystemGoogleAuth(req, res);
   if (error) return;
 
   try {
-    const { date, tz = 'America/Chicago' } = req.query;
-    const slotMins = Math.max(5, Number(req.query.slot || 30));
+    const { date } = req.query;
+    const slotMins = 30;
 
     if (!date) return res.status(400).json({ error: 'date required (YYYY-MM-DD)' });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth });
 
-    const dayStart = new Date(`${date}T00:00:00`);
-    const dayEnd = new Date(`${date}T23:59:59`);
-
+    // 🔥 Ask Google what’s busy on that day
     const fb = await calendar.freebusy.query({
       requestBody: {
-        timeMin: dayStart.toISOString(),
-        timeMax: dayEnd.toISOString(),
+        timeMin: new Date(`${date}T00:00:00Z`).toISOString(),
+        timeMax: new Date(`${date}T23:59:59Z`).toISOString(),
         items: [{ id: CALENDAR_ID }]
       }
     });
 
     const busy = fb.data.calendars[CALENDAR_ID]?.busy || [];
-    const busyRanges = busy.map(b => [new Date(b.start).getTime(), new Date(b.end).getTime()]);
+    const busyRanges = busy.map(b => [
+      new Date(b.start).getTime(),
+      new Date(b.end).getTime()
+    ]);
+
+    function isTaken(t0, t1) {
+      return busyRanges.some(([b0, b1]) =>
+        Math.max(t0, b0) < Math.min(t1, b1)
+      );
+    }
 
     const officeStart = new Date(`${date}T09:00:00`).getTime();
     const officeEnd = new Date(`${date}T17:00:00`).getTime();
@@ -243,15 +337,17 @@ router.get('/availability', verifyToken, async (req, res) => {
 
     for (let t0 = officeStart; t0 + slotMins * 60000 <= officeEnd; t0 += slotMins * 60000) {
       const t1 = t0 + slotMins * 60000;
-      const taken = busyRanges.some(([b0, b1]) => Math.max(t0, b0) < Math.min(t1, b1));
-      if (!taken) {
-        slots.push({ start: new Date(t0).toISOString(), end: new Date(t1).toISOString(), tz });
+      if (!isTaken(t0, t1)) {
+        slots.push({
+          start: new Date(t0).toISOString(),
+          end: new Date(t1).toISOString()
+        });
       }
     }
 
-    res.json({ date, tz, slot: slotMins, slots });
+    res.json({ date, slots });
+
   } catch (e) {
-    if (isGoogleAuthError(e)) return res.status(401).json({ error: 'google_reauth' });
     console.error('availability error:', e);
     res.status(500).json({ error: String(e?.message || e) });
   }

@@ -1,15 +1,11 @@
-
-
-
-const  loadSSMParams = require('./utils/loadSSMParams');
- loadSSMParams();
+const loadSSMParams = require('./utils/loadSSMParams');
+loadSSMParams();
 require('dotenv').config();
 const fs = require('fs');
 const https = require('https');
 const path = require('path');
 const { SSMClient, GetParametersByPathCommand } = require('@aws-sdk/client-ssm');
 const { initGoogle } = require('./auth/OIDC');
-
 
 // === Load AWS SSM Parameters ===
 async function loadSSMIntoEnv(pathPrefix) {
@@ -53,28 +49,23 @@ async function loadSSMIntoEnv(pathPrefix) {
   // Init OIDC AFTER env is present. Base is just for redirectUri construction.
   const base = isProd ? 'https://staging.bettermindcare.com' : 'https://localhost:5050';
 
-
   const PORT = process.env.PORT || 5050;
 
   let keyPath, certPath;
 
   // Prefer env vars
-  if (process.env.SSL_KEY && process.env.SSL_CERT) {
-    keyPath = process.env.SSL_KEY;
-    certPath = process.env.SSL_CERT;
-  } else {
-    // Check production certs first
-    const prodKey = '/etc/letsencrypt/live/staging.bettermindcare.com/privkey.pem';
-    const prodCert = '/etc/letsencrypt/live/staging.bettermindcare.com/fullchain.pem';
 
-    if (fs.existsSync(prodKey) && fs.existsSync(prodCert)) {
-      keyPath = prodKey;
-      certPath = prodCert;
-    } else {
-      // Local dev fallback
-      keyPath = path.resolve(__dirname, '../https-on-localhost/localhost.key');
-      certPath = path.resolve(__dirname, '../https-on-localhost/localhost.crt');
-    }
+  // Check production certs first
+  const prodKey = '/etc/letsencrypt/live/staging.bettermindcare.com/privkey.pem';
+  const prodCert = '/etc/letsencrypt/live/staging.bettermindcare.com/fullchain.pem';
+
+  if (fs.existsSync(prodKey) && fs.existsSync(prodCert)) {
+    keyPath = prodKey;
+    certPath = prodCert;
+  } else {
+    // Local dev fallback
+    keyPath = path.resolve(__dirname, '../https-on-localhost/privkey.pem');
+    certPath = path.resolve(__dirname, '../https-on-localhost/fullchain.pem');
   }
 
   // Verify they exist
