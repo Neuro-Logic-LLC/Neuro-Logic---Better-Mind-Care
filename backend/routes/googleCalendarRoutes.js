@@ -1,20 +1,22 @@
-// Refactored googleCalendarRoutes.js
-// Cleaned up structure, centralized auth/token logic, removed duplication
-// Notes: Fill in missing env vars + utilities as needed.
-const { verifyToken } = require("../middleware/auth");
+// googleCalendarRoutes.js
+// Fully rewritten to use SYSTEM OAuth (jim@bettermindcare.com)
+// Patients can BOOK but CANNOT update/delete
+// Doctor/admin can update/delete
+// No per-user Google tokens
+
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const { google } = require('googleapis');
-
-const loadSSMParams = require('../utils/loadSSMParams');
+const { verifyToken } = require('../middleware/auth');
 const initKnex = require('../db/initKnex');
+const loadSSMParams = require('../utils/loadSSMParams');
 
-// ----- Config -----
-const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID || 'jim@bettermindcare.com';
+// ---------------------- Config ----------------------
+const CALENDAR_ID = 'admin@bettermindcare.com';  // Will repace with process.env.GOOGLE_CALENDAR_ID || later
 const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } = process.env;
 
-// ----- Bootstrap (should ideally live in server.js) -----
+// ---------------------- Init SSM + DB ----------------------
 (async () => {
   try {
     if (typeof loadSSMParams === 'function') await loadSSMParams();
@@ -25,7 +27,7 @@ const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } = process.
   }
 })();
 
-// ----- Helpers -----
+// ---------------------- Helpers ----------------------
 const iso = dt => new Date(dt).toISOString();
 
 function overlaps(aStart, aEnd, bStart, bEnd) {
@@ -41,98 +43,89 @@ function clampDuration(startISO, endISO, fallbackMin = 30) {
 
 function isGoogleAuthError(e) {
   const code = e?.code || e?.response?.status;
-  const msg = String(e?.message || '');
-  return code === 401 || msg.includes('invalid_grant') || msg.includes('invalid_token');
+  const msg = String(e?.message || "");
+  return code === 401 || msg.includes("invalid_grant") || msg.includes("invalid_token");
 }
 
-// ----- OAuth Handling -----
-async function getOAuthClientForUser(req, knex) {
-  const userId = req.user?.id;
-  if (!userId) return null;
+// ---------------------- SYSTEM OAUTH ----------------------
+let systemOAuth = null;
 
-  const row = await knex('user_google_tokens').where({ user_id: userId }).first();
-  if (!row) return null;
+async function loadSystemOAuth() {
+  const knex = await initKnex();
+  const row = await knex('system_google_tokens').first();
 
-  const oauth = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI);
+  if (!row) throw new Error('No system Google tokens stored.');
 
-  const now = Date.now();
-
-  // Token still valid?
-  if (row.expiry && new Date(row.expiry).getTime() > now) {
-    oauth.setCredentials({
-      access_token: row.access_token,
-      refresh_token: row.refresh_token,
-      expiry_date: new Date(row.expiry).getTime()
-    });
-    return oauth;
-  }
-
-  // Refresh token
-  const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
-      grant_type: 'refresh_token',
-      refresh_token: row.refresh_token
-    })
-  });
-
-  if (!tokenRes.ok) {
-    await knex('user_google_tokens').where({ user_id: userId }).del();
-    throw new Error('google_token_refresh_failed');
-  }
-
-  const data = await tokenRes.json();
-  const newExpiry = new Date(Date.now() + data.expires_in * 1000);
-
-  await knex('user_google_tokens').where({ user_id: userId }).update({
-    access_token: data.access_token,
-    expiry: newExpiry,
-    updated_at: knex.fn.now()
-  });
+  const oauth = new google.auth.OAuth2(
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    GOOGLE_REDIRECT_URI
+  );
 
   oauth.setCredentials({
-    access_token: data.access_token,
+    access_token: row.access_token,
     refresh_token: row.refresh_token,
-    expiry_date: newExpiry.getTime()
+    expiry_date: new Date(row.expiry).getTime()
   });
 
-  return oauth;
+  systemOAuth = oauth;
 }
 
-// Wrap all routes with centralized auth
-async function requireGoogleAuth(req, res) {
-  const knex = await initKnex();
-  try {
-    const oauth = await getOAuthClientForUser(req, knex); // <-- pass req, not req.session
-    if (!oauth) {
-      return { error: res.status(401).json({ error: 'signin_required' }) };
-    }
-    return { oauth, knex };
-  } catch (e) {
-    if (isGoogleAuthError(e)) {
-      return { error: res.status(401).json({ error: 'token_invalid_or_revoked' }) };
-    }
-    return { error: res.status(500).json({ error: String(e?.message || e) }) };
+loadSystemOAuth().catch(console.error);
+
+async function refreshSystemTokenIfNeeded() {
+  if (!systemOAuth) return;
+
+  const expiry = systemOAuth.credentials.expiry_date;
+  const now = Date.now();
+
+  if (expiry && expiry - now < 60 * 1000) { // refresh if <60s remaining
+    const newTokens = await systemOAuth.refreshAccessToken();
+    const creds = newTokens.credentials;
+
+    const knex = await initKnex();
+    await knex('system_google_tokens').update({
+      access_token: creds.access_token,
+      expiry: new Date(creds.expiry_date),
+      updated_at: knex.fn.now()
+    });
+
+    systemOAuth.setCredentials({
+      access_token: creds.access_token,
+      refresh_token: systemOAuth.credentials.refresh_token,
+      expiry_date: creds.expiry_date
+    });
   }
 }
 
-// ----- Routes -----
-router.get('/check-session', verifyToken, (req, res) => {
-  if (!req.session.views) req.session.views = 0;
-  req.session.views++;
-  res.json({  
-    storeType: req.session.store.constructor.name, // should be "MemoryStore"
-    views: req.session.views,
-    session: req.session
-  });
-});
+// ---------------------- Auth Guard ----------------------
+async function requireSystemGoogleAuth(req, res) {
+  if (!req.user) {
+    return { error: res.status(401).json({ error: 'auth_required' }) };
+  }
 
-// Create Meeting
+  if (!req.user.hasPaid) {
+    return { error: res.status(403).json({ error: 'payment_required' }) };
+  }
+
+  if (!systemOAuth) {
+    return { error: res.status(500).json({ error: 'google_not_ready' }) };
+  }
+
+  try {
+    await refreshSystemTokenIfNeeded();
+  } catch (e) {
+    return { error: res.status(500).json({ error: 'google_refresh_failed' }) };
+  }
+
+  return { oauth: systemOAuth };
+}
+
+// ---------------------- ROUTES ----------------------
+
+// ---------------------- Create Meeting (Patients Allowed) ----------------------
 router.post('/create-meeting', verifyToken, async (req, res) => {
-  const { oauth, error } = await requireGoogleAuth(req, res);
+  const { oauth, error } = await requireSystemGoogleAuth(req, res);
   if (error) return;
 
   try {
@@ -142,7 +135,6 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
       start_time,
       end_time,
       time_zone,
-      calendarId,
       patient_email,
       patient_name
     } = req.body;
@@ -161,23 +153,24 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
       requestBody: {
         timeMin: startISO,
         timeMax: endISO,
-        items: [{ id: calendarId || CALENDAR_ID }]
+        items: [{ id: CALENDAR_ID }]
       }
     });
 
-    const busy = fb.data.calendars[calendarId || CALENDAR_ID]?.busy || [];
-    const overlap = busy.some(b =>
+    const busy = fb.data.calendars[CALENDAR_ID]?.busy || [];
+    const conflict = busy.some(b =>
       overlaps(new Date(startISO), new Date(endISO), new Date(b.start), new Date(b.end))
     );
-    if (overlap) return res.status(409).json({ error: 'slot_unavailable' });
+
+    if (conflict) return res.status(409).json({ error: 'slot_unavailable' });
 
     const { data: ev } = await calendar.events.insert({
-      calendarId: calendarId || CALENDAR_ID,
+      calendarId: CALENDAR_ID,
       conferenceDataVersion: 1,
       sendUpdates: 'all',
       requestBody: {
         summary,
-        description: description || 'Telehealth visit.',
+        description: description || 'Telehealth Visit',
         start: { dateTime: startISO, timeZone: time_zone },
         end: { dateTime: endISO, timeZone: time_zone },
         attendees: patient_email ? [{ email: patient_email, displayName: patient_name }] : [],
@@ -194,35 +187,33 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
 
     res.json({
       success: true,
-      platform: 'google',
-      join_url: ev.hangoutLink,
+      event_id: ev.id,
       start: ev.start,
       end: ev.end,
-      event_id: ev.id,
+      join_url: ev.hangoutLink,
       html_link: ev.htmlLink
     });
   } catch (e) {
     if (isGoogleAuthError(e)) return res.status(401).json({ error: 'google_reauth' });
-    console.error('create-meeting error:', e);
     res.status(500).json({ error: String(e?.message || e) });
   }
 });
 
-// Get Availability
+// ---------------------- Availability (Patients Allowed) ----------------------
 router.get('/availability', verifyToken, async (req, res) => {
-  const { oauth, error } = await requireGoogleAuth(req, res);
+  const { oauth, error } = await requireSystemGoogleAuth(req, res);
   if (error) return;
 
   try {
     const { date, tz = 'America/Chicago' } = req.query;
     const slotMins = Math.max(5, Number(req.query.slot || 30));
 
-    if (!date) return res.status(400).json({ error: 'date required (YYYY-MM-DD)' });
+    if (!date) return res.status(400).json({ error: 'date required' });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth });
 
-    const dayStart = new Date(`${date}T00:00:00`);
-    const dayEnd = new Date(`${date}T23:59:59`);
+    const dayStart = new Date(date + 'T00:00:00');
+    const dayEnd = new Date(date + 'T23:59:59');
 
     const fb = await calendar.freebusy.query({
       requestBody: {
@@ -235,30 +226,29 @@ router.get('/availability', verifyToken, async (req, res) => {
     const busy = fb.data.calendars[CALENDAR_ID]?.busy || [];
     const busyRanges = busy.map(b => [new Date(b.start).getTime(), new Date(b.end).getTime()]);
 
-    const officeStart = new Date(`${date}T09:00:00`).getTime();
-    const officeEnd = new Date(`${date}T17:00:00`).getTime();
+    const officeStart = new Date(date + 'T09:00:00').getTime();
+    const officeEnd = new Date(date + 'T17:00:00').getTime();
 
     const slots = [];
 
     for (let t0 = officeStart; t0 + slotMins * 60000 <= officeEnd; t0 += slotMins * 60000) {
       const t1 = t0 + slotMins * 60000;
-      const taken = busyRanges.some(([b0, b1]) => Math.max(t0, b0) < Math.min(t1, b1));
-      if (!taken) {
+
+      const collision = busyRanges.some(([b0, b1]) => Math.max(t0, b0) < Math.min(t1, b1));
+      if (!collision) {
         slots.push({ start: new Date(t0).toISOString(), end: new Date(t1).toISOString(), tz });
       }
     }
 
-    res.json({ date, tz, slot: slotMins, slots });
+    res.json({ date, tz, slots });
   } catch (e) {
-    if (isGoogleAuthError(e)) return res.status(401).json({ error: 'google_reauth' });
-    console.error('availability error:', e);
     res.status(500).json({ error: String(e?.message || e) });
   }
 });
 
-// List Events
+// ---------------------- Events (Patients Allowed Read-Only) ----------------------
 router.get('/events', verifyToken, async (req, res) => {
-  const { oauth, error } = await requireGoogleAuth(req, res);
+  const { oauth, error } = await requireSystemGoogleAuth(req, res);
   if (error) return;
 
   try {
@@ -279,19 +269,18 @@ router.get('/events', verifyToken, async (req, res) => {
       showDeleted: false,
       maxResults: 2500
     });
-  console.log(data);
+
     const events = (data.items || []).map(ev => ({
       id: ev.id,
       title: ev.summary || 'Time Booked',
-      start: ev.start?.dateTime || `${ev.start?.date}T00:00:00`,
+      start: ev.start?.dateTime || ev.start?.date + 'T00:00:00',
       end:
         ev.end?.dateTime ||
-        new Date(new Date(`${ev.end?.date}T00:00:00`).getTime() - 1).toISOString(),
+        new Date(new Date(ev.end?.date + 'T00:00:00').getTime() - 1).toISOString(),
       htmlLink: ev.htmlLink,
       meetUrl:
         ev.hangoutLink ||
-        ev.conferenceData?.entryPoints?.find(p => p.entryPointType === 'video')?.uri ||
-        null,
+        ev.conferenceData?.entryPoints?.find(p => p.entryPointType === 'video')?.uri || null,
       location: ev.location,
       attendees: ev.attendees || [],
       isAllDay: Boolean(ev.start?.date && !ev.start?.dateTime)
@@ -299,16 +288,13 @@ router.get('/events', verifyToken, async (req, res) => {
 
     res.json({ events });
   } catch (e) {
-    if (isGoogleAuthError(e)) return res.status(401).json({ error: 'google_reauth' });
-    console.error('events error:', e);
     res.status(500).json({ error: String(e?.message || e) });
   }
 });
 
-
-// Get Pending Appointment Requests
+// ---------------------- Pending Events (Read-Only) ----------------------
 router.get('/pending-events', verifyToken, async (req, res) => {
-  const { oauth, error } = await requireGoogleAuth(req, res);
+  const { oauth, error } = await requireSystemGoogleAuth(req, res);
   if (error) return;
 
   try {
@@ -323,33 +309,35 @@ router.get('/pending-events', verifyToken, async (req, res) => {
     });
 
     const pending = (data.items || [])
-      .filter(ev => ev.status === "tentative")
+      .filter(ev => ev.status === 'tentative')
       .map(ev => ({
         id: ev.id,
         status: ev.status,
-        title: ev.summary || "Pending Request",
-        start: ev.start?.dateTime || `${ev.start?.date}T00:00:00`,
+        title: ev.summary || 'Pending Request',
+        start: ev.start?.dateTime || ev.start?.date + 'T00:00:00',
         end:
           ev.end?.dateTime ||
-          new Date(new Date(`${ev.end?.date}T00:00:00`).getTime() - 1).toISOString(),
-        notes: ev.description || "",
+          new Date(new Date(ev.end?.date + 'T00:00:00').getTime() - 1).toISOString(),
+        notes: ev.description || '',
         attendees: ev.attendees || [],
-        patientName: ev.attendees?.[0]?.displayName || "",
-        patientEmail: ev.attendees?.[0]?.email || "",
+        patientName: ev.attendees?.[0]?.displayName || '',
+        patientEmail: ev.attendees?.[0]?.email || '',
         htmlLink: ev.htmlLink
       }));
 
     res.json({ pending });
   } catch (e) {
-    if (isGoogleAuthError(e)) return res.status(401).json({ error: 'google_reauth' });
-    console.error('pending-events error:', e);
     res.status(500).json({ error: String(e?.message || e) });
   }
 });
 
-// Patch Event
+// ---------------------- Update Event (Doctor/Admin ONLY) ----------------------
 router.patch('/events/:id', verifyToken, async (req, res) => {
-  const { oauth, error } = await requireGoogleAuth(req, res);
+  if (req.user.role !== 'doctor' && req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'no_permission' });
+  }
+
+  const { oauth, error } = await requireSystemGoogleAuth(req, res);
   if (error) return;
 
   try {
@@ -358,7 +346,6 @@ router.patch('/events/:id', verifyToken, async (req, res) => {
     const { summary, start_time, end_time, time_zone = 'UTC' } = req.body || {};
 
     if (start_time && end_time) {
-      // Collision check
       const fb = await calendar.events.list({
         calendarId: CALENDAR_ID,
         timeMin: iso(start_time),
@@ -370,8 +357,8 @@ router.patch('/events/:id', verifyToken, async (req, res) => {
 
       const collision = (fb.data.items || []).some(ev => {
         if (ev.id === eventId) return false;
-        const s = new Date(ev.start.dateTime || `${ev.start.date}T00:00:00Z`);
-        const e = new Date(ev.end.dateTime || `${ev.end.date}T23:59:59Z`);
+        const s = new Date(ev.start.dateTime || ev.start.date + 'T00:00:00Z');
+        const e = new Date(ev.end.dateTime || ev.end.date + 'T23:59:59Z');
         return overlaps(new Date(start_time), new Date(end_time), s, e);
       });
 
@@ -400,34 +387,36 @@ router.patch('/events/:id', verifyToken, async (req, res) => {
       htmlLink: ev.htmlLink,
       meetUrl:
         ev.hangoutLink ||
-        ev.conferenceData?.entryPoints?.find(p => p.entryPointType === 'video')?.uri ||
-        null
+        ev.conferenceData?.entryPoints?.find(p => p.entryPointType === 'video')?.uri || null
     });
   } catch (e) {
-    if (isGoogleAuthError(e)) return res.status(401).json({ error: 'google_reauth' });
-    console.error('patch error:', e);
     res.status(500).json({ error: String(e?.message || e) });
   }
 });
 
-// Delete Event
+// ---------------------- Delete Event (Doctor/Admin ONLY) ----------------------
 router.delete('/events/:id', verifyToken, async (req, res) => {
-  const { oauth, error } = await requireGoogleAuth(req, res);
+  if (req.user.role !== 'doctor' && req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'no_permission' });
+  }
+
+  const { oauth, error } = await requireSystemGoogleAuth(req, res);
   if (error) return;
 
   try {
     const calendar = google.calendar({ version: 'v3', auth: oauth });
+
     await calendar.events.delete({
       calendarId: CALENDAR_ID,
       eventId: req.params.id,
       sendUpdates: 'all'
     });
+
     res.json({ ok: true });
   } catch (e) {
-    if (isGoogleAuthError(e)) return res.status(401).json({ error: 'google_reauth' });
-    console.error('delete error:', e);
     res.status(500).json({ error: String(e?.message || e) });
   }
 });
 
 module.exports = router;
+
