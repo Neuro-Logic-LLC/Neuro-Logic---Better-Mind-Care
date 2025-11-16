@@ -34,7 +34,8 @@ function issueSessionCookie(arg1, arg2, arg3) {
     {
       sub: String(sub),
       email: payload.email || '',
-      role: payload.role || 'user'
+      role: payload.role || 'user',
+      has_paid: payload.has_paid === true
     },
     secret,
     { expiresIn: '7d', issuer: 'bettermindcare' }
