@@ -28,7 +28,8 @@ function normalize(payload) {
     id,
     email: payload.email || null,
     role: payload.role || 'user',
-    _jwt: payload
+    _jwt: payload,
+      has_paid: payload.has_paid === true
   };
 }
 
@@ -63,7 +64,7 @@ exports.attachUser = (req, _res, next) => {
       const parts = jwtParts(idt);
       const payload = parts.length === 3 ? b64urlToJson(parts[1]) : null;
       if (payload?.sub) {
-        req.user = { id: `google:${payload.sub}`, email: payload.email, role_name: undefined };
+        req.user = { id: `google:${payload.sub}`, email: payload.email, role_name: undefined, has_paid:payload.has_paid === true };
       }
     }
   }
@@ -89,7 +90,8 @@ exports.verifyToken = (req, res, next) => {
     req.user = {
       id: decoded.id || decoded.sub,
       role: decoded.role || 'user',
-      email: decoded.email || null
+      email: decoded.email || null,
+      has_paid: decoded.has_paid === true,
     };
 
     if (!req.user.id) {
