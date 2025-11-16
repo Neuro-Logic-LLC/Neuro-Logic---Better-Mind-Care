@@ -283,7 +283,12 @@ router.get('/availability-range', verifyToken, async (req, res) => {
       cursor += dayMs;
     }
 
-    res.json({ days, slots });
+// ✅ ADD THIS — the new clean response
+const availableDates = days
+  .filter(d => d.available)
+  .map(d => d.date);
+
+res.json({ days, availableDates, slots });
 
   } catch (e) {
     console.error('availability-range error:', e);

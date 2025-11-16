@@ -133,7 +133,7 @@ function Navbar() {
           )}
           {isLoggedIn && (
             <li role="none">
-              <Link role="menuitem" to="/doctor-calendar">
+              <Link role="menuitem" to="/google-calendar">
                 Calendar
               </Link>
             </li>
