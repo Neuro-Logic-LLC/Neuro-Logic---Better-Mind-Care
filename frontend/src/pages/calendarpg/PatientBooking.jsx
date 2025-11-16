@@ -37,7 +37,7 @@ export default function PatientBooking() {
     const end = new Date(year, month, 0).toISOString().slice(0, 10);
 
     fetchAvailabilityRange(start, end).then((res) => {
-      setAvailableDays(res?.days || []);
+      setAvailableDays(res?.availableDates || []);
     });
   }, [year, month]);
 
@@ -96,59 +96,59 @@ async function handleBook() {
   }
 
   // Month grid
-  function renderMonth() {
-    const firstDay = new Date(year, month - 1, 1);
-    const lastDay = new Date(year, month, 0);
+function renderMonth() {
+  const firstDay = new Date(year, month - 1, 1);
+  const lastDay = new Date(year, month, 0);
 
-    const days = [];
-    for (let i = 1; i <= lastDay.getDate(); i++) {
-      const d = `${year}-${String(month).padStart(2, "0")}-${String(i).padStart(2, "0")}`;
-      const isAvailable = availableDays.includes(d);
+  const days = [];
 
-      days.push(
-        <div
-          key={i}
-          onClick={() => isAvailable && setSelectedDay(d)}
-          style={{
-            padding: 8,
-            textAlign: "center",
-            cursor: isAvailable ? "pointer" : "default",
-            background: isAvailable ? "#e6fffa" : "#f8fafc",
-            borderRadius: 6,
-            border: "1px solid #e2e8f0"
-          }}
-        >
-          <div style={{ opacity: isAvailable ? 1 : 0.4 }}>{i}</div>
-          {isAvailable && (
-            <div
-              style={{
-                width: 8,
-                height: 8,
-                background: "#0d9488",
-                borderRadius: "50%",
-                margin: "4px auto 0"
-              }}
-            />
-          )}
-        </div>
-      );
-    }
+  for (let i = 1; i <= lastDay.getDate(); i++) {
+    const d = `${year}-${String(month).padStart(2, "0")}-${String(i).padStart(2, "0")}`;
 
-    return (
-      <div>
-        <h2 className="text-xl font-bold mb-2">{today.toLocaleString("default", { month: "long" })}</h2>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(7, 1fr)",
-            gap: 6
-          }}
-        >
-          {days}
-        </div>
+    // 🎯 FIX: use availableDates
+    const isAvailable = availableDays.includes(d);
+
+    days.push(
+      <div
+        key={i}
+        onClick={() => isAvailable && setSelectedDay(d)}
+        style={{
+          padding: 8,
+          textAlign: "center",
+          cursor: isAvailable ? "pointer" : "default",
+          background: isAvailable ? "#e6fffa" : "#f8fafc",
+          borderRadius: 6,
+          border: "1px solid #e2e8f0"
+        }}
+      >
+        <div style={{ opacity: isAvailable ? 1 : 0.4 }}>{i}</div>
+
+        {isAvailable && (
+          <div
+            style={{
+              width: 8,
+              height: 8,
+              background: "#0d9488",
+              borderRadius: "50%",
+              margin: "4px auto 0"
+            }}
+          />
+        )}
       </div>
     );
   }
+
+  return (
+    <div>
+      <h2 className="text-xl font-bold mb-2">
+        {today.toLocaleString("default", { month: "long" })}
+      </h2>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
+        {days}
+      </div>
+    </div>
+  );
+}
 
   // Timeslots list
   function renderSlots() {
