@@ -168,7 +168,7 @@ export default function ProductsPage() {
         City: formData.City,
         State: formData.State,
         PostalCode: formData.PostalCode,
-        Phone: formData.Phonen
+        Phone: formData.Phone
       })
     });
     if (!res.ok) {
