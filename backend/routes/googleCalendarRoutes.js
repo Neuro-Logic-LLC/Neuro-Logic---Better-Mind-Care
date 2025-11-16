@@ -21,9 +21,12 @@ const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } = process.
   try {
     if (typeof loadSSMParams === 'function') await loadSSMParams();
     if (typeof initKnex === 'function') await initKnex();
-    console.log('Google Calendar System OAuth ready');
+
+    await loadSystemOAuth();
+
+    console.log('System Google OAuth loaded AFTER SSM+DB ready');
   } catch (err) {
-    console.error('Bootstrap error:', err);
+    console.error('[SYSTEM GOOGLE OAUTH INIT ERROR]', err);
   }
 })();
 
@@ -74,7 +77,6 @@ async function loadSystemOAuth() {
   systemOAuth = oauth;
 }
 
-loadSystemOAuth().catch(console.error);
 
 // Refresh system token if needed
 async function refreshSystemTokenIfNeeded() {
