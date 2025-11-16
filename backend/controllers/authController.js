@@ -139,7 +139,8 @@ const user = await knex('users')
       id: user.id,
       email: user.email_canon,
       role_name: user.role_id,
-      is_email_confirmed: user.is_active
+      is_email_confirmed: user.is_active,
+      has_paid: user.has_paid === true
     };
 
     const body = { message: 'MFA code sent' };
