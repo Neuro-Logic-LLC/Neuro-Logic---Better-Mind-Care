@@ -1,18 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 import {
   fetchAvailabilityRange,
   createMeeting
-} from "../../calendarApi/calendarApi";
+} from '../../calendarApi/calendarApi';
+
+import { useAuth } from '../../auth/AuthContext';
 
 // You will add fetchDayAvailability on backend or reuse /availability?date=YYYY-MM-DD
 async function fetchDayAvailability(date) {
   const res = await fetch(`/api/google-calendar/availability?date=${date}`, {
-    credentials: "include"
+    credentials: 'include'
   });
   return res.json();
 }
 
 export default function PatientBooking() {
+  const { user } = useAuth();
   const today = new Date();
 
   const [year, setYear] = useState(today.getFullYear());
@@ -23,21 +26,32 @@ export default function PatientBooking() {
   const [slots, setSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
 
-  const [bookingName, setBookingName] = useState("");
-  const [bookingEmail, setBookingEmail] = useState("");
+  const [bookingName, setBookingName] = useState('');
+  const [bookingEmail, setBookingEmail] = useState('');
   const [confirmScreen, setConfirmScreen] = useState(null);
 
   function formatDateKey(date) {
     return date.toISOString().slice(0, 10);
   }
 
+  useEffect(() => {
+    if (user) {
+      setBookingName(`${user.first_name} ${user.last_name}`.trim());
+      setBookingEmail(user.email);
+    }
+  }, [user]);
   // Load availability for month
   useEffect(() => {
-    const start = `${year}-${String(month).padStart(2, "0")}-01`;
+    const start = `${year}-${String(month).padStart(2, '0')}-01`;
     const end = new Date(year, month, 0).toISOString().slice(0, 10);
 
     fetchAvailabilityRange(start, end).then((res) => {
-      setAvailableDays(res?.availableDates || []);
+      // FIX: convert backend format to what the UI expects
+      const onlyAvailable = (res?.days || [])
+        .filter((d) => d.available)
+        .map((d) => d.date);
+
+      setAvailableDays(onlyAvailable);
     });
   }, [year, month]);
 
@@ -49,31 +63,31 @@ export default function PatientBooking() {
     });
   }, [selectedDay]);
 
-async function handleBook() {
-  if (!bookingName.trim() || !bookingEmail.trim()) {
-    alert("Name and email are required.");
-    return;
+  async function handleBook() {
+    if (!bookingName.trim() || !bookingEmail.trim()) {
+      alert('Name and email are required.');
+      return;
+    }
+
+    const payload = {
+      summary: 'Telehealth Appointment',
+      start_time: selectedSlot.start,
+      end_time: selectedSlot.end,
+      patientName: bookingName,
+      patientEmail: bookingEmail,
+
+      // ⬅️ FIX: Add calendarId!!
+      calendarId: 'primary'
+    };
+
+    try {
+      const res = await createMeeting(payload);
+      setConfirmScreen(res);
+    } catch (err) {
+      console.error(err);
+      alert('Sorry, that time was just taken.');
+    }
   }
-
-  const payload = {
-    summary: "Telehealth Appointment",
-    start_time: selectedSlot.start,
-    end_time: selectedSlot.end,
-    patientName: bookingName,
-    patientEmail: bookingEmail,
-
-    // ⬅️ FIX: Add calendarId!!
-    calendarId: "primary"
-  };
-
-  try {
-    const res = await createMeeting(payload);
-    setConfirmScreen(res);
-  } catch (err) {
-    console.error(err);
-    alert("Sorry, that time was just taken.");
-  }
-}
 
   // Confirmation screen
   if (confirmScreen) {
@@ -96,65 +110,74 @@ async function handleBook() {
   }
 
   // Month grid
-function renderMonth() {
-  const firstDay = new Date(year, month - 1, 1);
-  const lastDay = new Date(year, month, 0);
+  function renderMonth() {
+    const firstDay = new Date(year, month - 1, 1);
+    const lastDay = new Date(year, month, 0);
 
-  const days = [];
+    const days = [];
 
-  for (let i = 1; i <= lastDay.getDate(); i++) {
-    const d = `${year}-${String(month).padStart(2, "0")}-${String(i).padStart(2, "0")}`;
+    for (let i = 1; i <= lastDay.getDate(); i++) {
+      const d = `${year}-${String(month).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
 
-    // 🎯 FIX: use availableDates
-    const isAvailable = availableDays.includes(d);
+      // 🎯 FIX: use availableDates
+      const isAvailable = availableDays.includes(d);
 
-    days.push(
-      <div
-        key={i}
-        onClick={() => isAvailable && setSelectedDay(d)}
-        style={{
-          padding: 8,
-          textAlign: "center",
-          cursor: isAvailable ? "pointer" : "default",
-          background: isAvailable ? "#e6fffa" : "#f8fafc",
-          borderRadius: 6,
-          border: "1px solid #e2e8f0"
-        }}
-      >
-        <div style={{ opacity: isAvailable ? 1 : 0.4 }}>{i}</div>
+      days.push(
+        <div
+          key={i}
+          onClick={() => isAvailable && setSelectedDay(d)}
+          style={{
+            padding: 8,
+            textAlign: 'center',
+            cursor: isAvailable ? 'pointer' : 'default',
+            background: isAvailable ? '#e6fffa' : '#f8fafc',
+            borderRadius: 6,
+            border: '1px solid #e2e8f0'
+          }}
+        >
+          <div style={{ opacity: isAvailable ? 1 : 0.4 }}>{i}</div>
 
-        {isAvailable && (
-          <div
-            style={{
-              width: 8,
-              height: 8,
-              background: "#0d9488",
-              borderRadius: "50%",
-              margin: "4px auto 0"
-            }}
-          />
-        )}
+          {isAvailable && (
+            <div
+              style={{
+                width: 8,
+                height: 8,
+                background: '#0d9488',
+                borderRadius: '50%',
+                margin: '4px auto 0'
+              }}
+            />
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        <h2 className="text-xl font-bold mb-2">
+          {today.toLocaleString('default', { month: 'long' })}
+        </h2>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(7, 1fr)',
+            gap: 6
+          }}
+        >
+          {days}
+        </div>
       </div>
     );
   }
-
-  return (
-    <div>
-      <h2 className="text-xl font-bold mb-2">
-        {today.toLocaleString("default", { month: "long" })}
-      </h2>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
-        {days}
-      </div>
-    </div>
-  );
-}
 
   // Timeslots list
   function renderSlots() {
     return (
       <div>
-        <button className="btn btn-outline-teal mb-4" onClick={() => setSelectedDay(null)}>
+        <button
+          className="btn btn-outline-teal mb-4"
+          onClick={() => setSelectedDay(null)}
+        >
           ← Back to month
         </button>
 
@@ -162,18 +185,18 @@ function renderMonth() {
           {new Date(selectedDay).toLocaleDateString()}
         </h3>
 
-        <div style={{ display: "grid", gap: 10 }}>
+        <div style={{ display: 'grid', gap: 10 }}>
           {slots.length ? (
             slots.map((slot) => (
               <button
                 key={slot.start}
                 className="btn btn-secondary"
-                style={{ width: "100%" }}
+                style={{ width: '100%' }}
                 onClick={() => setSelectedSlot(slot)}
               >
                 {new Date(slot.start).toLocaleTimeString([], {
-                  hour: "numeric",
-                  minute: "2-digit"
+                  hour: 'numeric',
+                  minute: '2-digit'
                 })}
               </button>
             ))
@@ -189,7 +212,10 @@ function renderMonth() {
   function renderBooking() {
     return (
       <div className="max-w-md mx-auto">
-        <button className="btn btn-outline-teal mb-4" onClick={() => setSelectedSlot(null)}>
+        <button
+          className="btn btn-outline-teal mb-4"
+          onClick={() => setSelectedSlot(null)}
+        >
           ← Back to times
         </button>
 
@@ -199,6 +225,7 @@ function renderMonth() {
 
         <label>Name</label>
         <input
+          style={{ display: 'none' }}
           className="input mb-2"
           value={bookingName}
           onChange={(e) => setBookingName(e.target.value)}
@@ -206,12 +233,15 @@ function renderMonth() {
 
         <label>Email</label>
         <input
+          style={{ display: 'none' }}
           className="input mb-4"
           type="email"
           value={bookingEmail}
           onChange={(e) => setBookingEmail(e.target.value)}
         />
-
+        <div className="mb-4 text-gray-600 text-sm">
+          Booking as <strong>{bookingName}</strong> ({bookingEmail})
+        </div>
         <button className="btn btn-primary w-full" onClick={handleBook}>
           Confirm Booking
         </button>
