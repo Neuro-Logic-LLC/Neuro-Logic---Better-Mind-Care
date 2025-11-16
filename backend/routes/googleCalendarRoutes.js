@@ -40,7 +40,10 @@ async function loadSystemOAuth() {
   const knex = await initKnex();
   const row = await knex('system_google_tokens').first();
 
-  if (!row) throw new Error('system_google_tokens table empty');
+if (!row) {
+  console.warn('No system Google tokens stored. System OAuth not active yet.');
+  return; // <-- THIS is the fix
+}
 
   const oauth = new google.auth.OAuth2(
     GOOGLE_CLIENT_ID,
