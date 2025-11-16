@@ -7,7 +7,7 @@ const initKnex = require('../db/initKnex');
 const loadSSMParams = require('../utils/loadSSMParams');
 
 // ---------------------- CONFIG ----------------------
-const CALENDAR_ID = 'bmc-calendar-access@tactical-prism-468521-f6.iam.gserviceaccount.com';
+const CALENDAR_ID = 'c_1881m5n5lf6ccjl6hhkho39p8h7eq@resource.calendar.google.com';
 const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } = process.env;
 
 // ---------------------- HELPERS ----------------------
