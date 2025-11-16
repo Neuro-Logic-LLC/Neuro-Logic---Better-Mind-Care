@@ -231,4 +231,74 @@ router.get('/google/callback', async (req, res, next) => {
   }
 });
 
+
+const { google } = require("googleapis");
+
+const SYSTEM_SCOPES = [
+  "openid",
+  "email",
+  "profile",
+  "https://www.googleapis.com/auth/calendar.events"
+];
+
+const sysOauth = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI_SYSTEM // <-- MUST be separate from user redirect URI
+);
+
+// STEP 1: Start system OAuth 
+router.get("/system/google", async (req, res) => {
+  try {
+    const url = sysOauth.generateAuthUrl({
+      access_type: "offline",
+      prompt: "consent",
+      scope: SYSTEM_SCOPES
+    });
+
+    return res.redirect(url);
+  } catch (err) {
+    console.error("SYSTEM OAUTH START ERROR:", err);
+    return res.status(500).send("System OAuth failed");
+  }
+});
+
+// STEP 2: Handle callback from Google
+router.get("/system/google/callback", async (req, res) => {
+  try {
+    const { code, error } = req.query;
+    if (error) return res.status(400).send(`OAuth error: ${error}`);
+    if (!code) return res.status(400).send("Missing code");
+
+    const knex = await require("../db/initKnex")();
+
+    // Exchange code for tokens
+    const { tokens } = await sysOauth.getToken(code);
+
+    if (!tokens.refresh_token) {
+      return res.status(400).send(
+        "No refresh token returned. Google requires prompt=consent. Try again."
+      );
+    }
+
+    // Clear old system token
+    await knex("system_google_tokens").del();
+
+    // Store new system tokens
+    await knex("system_google_tokens").insert({
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      expiry: new Date(tokens.expiry_date),
+      created_at: knex.fn.now(),
+      updated_at: knex.fn.now()
+    });
+
+    return res.send("System Google OAuth completed! Tokens stored.");
+  } catch (err) {
+    console.error("SYSTEM OAUTH CALLBACK ERROR:", err);
+    return res.status(500).send("System OAuth callback failed");
+  }
+});
+
+
 module.exports = router;
