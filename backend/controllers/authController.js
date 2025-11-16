@@ -168,8 +168,8 @@ exports.logout = async (req, res) => {
   // These must match issueSessionCookie() exactly
   const commonOpts = {
     httpOnly: true,
-    secure: isHttps,
-    sameSite: isProd ? 'none' : 'lax',
+    secure: true,
+    sameSite:  'none',
     path: '/',
     domain: isProd ? '.bettermindcare.com' : undefined
   };

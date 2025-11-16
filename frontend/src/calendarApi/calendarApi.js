@@ -38,32 +38,54 @@ export async function fetchEvents(
   }
 }
 
+export async function fetchAvailabilityRange(start, end) {
+  const res = await fetch(
+    `/api/google-calendar/availability-range?start=${start}&end=${end}`,
+    { credentials: 'include' }
+  );
+  return res.json();
+}
+
+export async function fetchDayAvailability(date) {
+  const res = await fetch(
+    `/api/google-calendar/availability?date=${encodeURIComponent(date)}`,
+    { credentials: 'include' }
+  );
+
+  if (!res.ok) {
+    console.error("Failed to load day availability:", await res.text());
+    return { slots: [] };
+  }
+
+  return res.json();
+}
+
 export async function createMeeting(payload = {}) {
   const timeZone =
     payload.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const normalized = {
-    summary: payload.summary || payload.title || "(No title)",
-    description: payload.description || "",
-    start_time: payload.start_time,    // backend expects this
-    end_time: payload.end_time,        // backend expects this
+    summary: payload.summary || payload.title || '(No title)',
+    description: payload.description || '',
+    start_time: payload.start_time, // backend expects this
+    end_time: payload.end_time, // backend expects this
     time_zone: timeZone,
     patient_email: payload.patientEmail,
     patient_name: payload.patientName
   };
 
   console.log(normalized);
-  
-  const res = await fetch("/api/google-calendar/create-meeting", {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(normalized),
+
+  const res = await fetch('/api/google-calendar/create-meeting', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(normalized)
   });
 
   if (!res.ok) {
-    console.error("Meeting creation failed:", await res.text());
-    throw new Error("Google Calendar rejected the request");
+    console.error('Meeting creation failed:', await res.text());
+    throw new Error('Google Calendar rejected the request');
   }
 
   return res.json();
@@ -101,31 +123,31 @@ export async function deleteEvent(calendarId, id) {
   return j;
 }
 
-// export async function fetchPaidCalendarAccess(
-//   userId,
-//   productKey,
-//   start_time,
-//   end_time,
-//   patient_email,
-//   patient_name
-// ) {
-//   const params = new URLSearchParams({ userId, productKey });
-//   if (start_time) params.append('start_time', start_time);
-//   if (end_time) params.append('end_time', end_time);
-//   if (patient_email) params.append('patient_email', patient_email);
-//   if (patient_name) params.append('patient_name', patient_name);
+export async function fetchPaidCalendarAccess(
+  userId,
+  productKey,
+  start_time,
+  end_time,
+  patient_email,
+  patient_name
+) {
+  const params = new URLSearchParams({ userId, productKey });
+  if (start_time) params.append('start_time', start_time);
+  if (end_time) params.append('end_time', end_time);
+  if (patient_email) params.append('patient_email', patient_email);
+  if (patient_name) params.append('patient_name', patient_name);
 
-//   const res = await fetch(
-//     `/api/google-calendar/calendar-access?${params.toString()}`,
-//     {
-//       credentials: 'include'
-//     }
-//   );
+  const res = await fetch(
+    `/api/google-calendar/calendar-access?${params.toString()}`,
+    {
+      credentials: 'include'
+    }
+  );
 
-//   const data = await res.json();
-//   if (res.status === 401) throw new Error('google_reauth');
-//   if (res.status === 402) throw new Error('Payment required');
-//   if (!res.ok) throw new Error(data.error || 'calendar_access_failed');
+  const data = await res.json();
+  if (res.status === 401) throw new Error('google_reauth');
+  if (res.status === 402) throw new Error('Payment required');
+  if (!res.ok) throw new Error(data.error || 'calendar_access_failed');
 
-//   return data; // contains join_url, html_link, start, end
-// }
+  return data; // contains join_url, html_link, start, end
+}

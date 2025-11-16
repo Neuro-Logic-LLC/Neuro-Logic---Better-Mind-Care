@@ -2,6 +2,9 @@ const { google } = require('googleapis');
 const crypto = require('crypto');
 const { getGoogleCalendar: getHybridCalendar } = require('../lib/googleCalendarClient');
 
+
+
+
 function overlaps(aStart, aEnd, bStart, bEnd) {
   return Math.max(+aStart, +bStart) < Math.min(+aEnd, +bEnd);
 }
@@ -11,6 +14,8 @@ async function listGoogleEvents(req, { calendarId, timeMin, timeMax, includePast
   const calendar = await getHybridCalendar(req);
   const userEmail = req.session?.user?.email;
   console.log(userEmail);
+  console.log("SYSTEM OAUTH LOADED?", systemOAuth ? "YES" : "NO");
+console.log("SYSTEM OAUTH CREDS:", systemOAuth?.credentials);
   const targetCalendar =
     calendarId && calendarId !== 'primary'
       ? calendarId
