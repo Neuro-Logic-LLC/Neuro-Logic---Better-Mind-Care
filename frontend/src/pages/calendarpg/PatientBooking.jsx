@@ -6,7 +6,7 @@ import {
 
 import { useAuth } from '../../auth/AuthContext';
 
-// You will add fetchDayAvailability on backend or reuse /availability?date=YYYY-MM-DD
+// Fetch slots for a specific day
 async function fetchDayAvailability(date) {
   const res = await fetch(`/api/google-calendar/availability?date=${date}`, {
     credentials: 'include'
@@ -30,23 +30,20 @@ export default function PatientBooking() {
   const [bookingEmail, setBookingEmail] = useState('');
   const [confirmScreen, setConfirmScreen] = useState(null);
 
-  function formatDateKey(date) {
-    return date.toISOString().slice(0, 10);
-  }
-
+  // Autofill patient name/email
   useEffect(() => {
     if (user) {
       setBookingName(`${user.first_name} ${user.last_name}`.trim());
       setBookingEmail(user.email);
     }
   }, [user]);
-  // Load availability for month
+
+  // Load available days for month
   useEffect(() => {
     const start = `${year}-${String(month).padStart(2, '0')}-01`;
     const end = new Date(year, month, 0).toISOString().slice(0, 10);
 
     fetchAvailabilityRange(start, end).then((res) => {
-      // FIX: convert backend format to what the UI expects
       const onlyAvailable = (res?.days || [])
         .filter((d) => d.available)
         .map((d) => d.date);
@@ -55,7 +52,7 @@ export default function PatientBooking() {
     });
   }, [year, month]);
 
-  // Load timeslots for selected day
+  // Load slots for selected day
   useEffect(() => {
     if (!selectedDay) return;
     fetchDayAvailability(selectedDay).then((res) => {
@@ -75,8 +72,6 @@ export default function PatientBooking() {
       end_time: selectedSlot.end,
       patientName: bookingName,
       patientEmail: bookingEmail,
-
-      // ⬅️ FIX: Add calendarId!!
       calendarId: 'primary'
     };
 
@@ -111,15 +106,12 @@ export default function PatientBooking() {
 
   // Month grid
   function renderMonth() {
-    const firstDay = new Date(year, month - 1, 1);
     const lastDay = new Date(year, month, 0);
 
     const days = [];
 
     for (let i = 1; i <= lastDay.getDate(); i++) {
       const d = `${year}-${String(month).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-
-      // 🎯 FIX: use availableDates
       const isAvailable = availableDays.includes(d);
 
       days.push(
@@ -154,9 +146,43 @@ export default function PatientBooking() {
 
     return (
       <div>
-        <h2 className="text-xl font-bold mb-2">
-          {today.toLocaleString('default', { month: 'long' })}
-        </h2>
+        <div className="flex items-center justify-between mb-3">
+          <button
+            className="btn btn-outline-teal"
+            onClick={() => {
+              if (month === 1) {
+                setMonth(12);
+                setYear(year - 1);
+              } else {
+                setMonth(month - 1);
+              }
+            }}
+          >
+            ←
+          </button>
+
+          <h2 className="text-xl font-bold">
+            {new Date(year, month - 1, 1).toLocaleString('default', {
+              month: 'long',
+              year: 'numeric'
+            })}
+          </h2>
+
+          <button
+            className="btn btn-outline-teal"
+            onClick={() => {
+              if (month === 12) {
+                setMonth(1);
+                setYear(year + 1);
+              } else {
+                setMonth(month + 1);
+              }
+            }}
+          >
+            →
+          </button>
+        </div>
+
         <div
           style={{
             display: 'grid',
@@ -173,9 +199,9 @@ export default function PatientBooking() {
   // Timeslots list
   function renderSlots() {
     return (
-      <div>
+      <div style={{ textAlign: 'center', maxWidth: 300, margin: '0 auto' }}>
         <button
-          className="btn btn-outline-teal mb-4"
+          className="btn btn-outline-teal mb-4 mx-auto"
           onClick={() => setSelectedDay(null)}
         >
           ← Back to month
@@ -208,43 +234,55 @@ export default function PatientBooking() {
     );
   }
 
-  // Booking info step
+  // Booking step
+  // Booking step
   function renderBooking() {
     return (
-      <div className="max-w-md mx-auto">
+      <div className="max-w-md mx-auto text-center">
         <button
           className="btn btn-outline-teal mb-4"
+          style={{ marginLeft: 'auto', marginRight: 'auto' }}
           onClick={() => setSelectedSlot(null)}
         >
           ← Back to times
         </button>
 
-        <h3 className="text-xl font-bold mb-4">
+        <h3 className="text-xl font-bold mb-6">
           {new Date(selectedSlot.start).toLocaleString()}
         </h3>
 
-        <label style={{ display: 'none' }}>Name</label>
-        <input
-          style={{ display: 'none' }}
-          className="input mb-2"
-          value={bookingName}
-          onChange={(e) => setBookingName(e.target.value)}
-        />
+        {/* Hidden inputs (still needed for state) */}
+        <input type="hidden" value={bookingName} />
+        <input type="hidden" value={bookingEmail} />
 
-        <label style={{ display: 'none' }}>Email</label>
-        <input
-          style={{ display: 'none' }}
-          className="input mb-4"
-          type="email"
-          value={bookingEmail}
-          onChange={(e) => setBookingEmail(e.target.value)}
-        />
-        <div className="mb-4 text-gray-600 text-sm">
-          Booking as <strong>{bookingName}</strong> ({bookingEmail})
+        <div
+          style={{
+            background: '#ffffff',
+            padding: '20px',
+            borderRadius: '12px',
+            boxShadow: '0 3px 12px rgba(0,0,0,0.1)',
+            maxWidth: '350px',
+            margin: '0 auto',
+            textAlign: 'center'
+          }}
+        >
+          <div className="mb-4 text-gray-600 text-sm">
+            Booking as <strong>{bookingName}</strong> ({bookingEmail})
+          </div>
+
+          <button
+            className="btn btn-primary"
+            style={{
+              width: '100%',
+              padding: '12px',
+              fontSize: '1rem',
+              borderRadius: '8px'
+            }}
+            onClick={handleBook}
+          >
+            Confirm Booking
+          </button>
         </div>
-        <button className="btn btn-primary w-full" onClick={handleBook}>
-          Confirm Booking
-        </button>
       </div>
     );
   }
