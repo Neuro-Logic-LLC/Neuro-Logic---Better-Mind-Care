@@ -118,7 +118,7 @@ const user = await knex('users')
     console.log('DEBUG MFA email:', {
       email: user.email,
       email_canon: user.email_canon,
-      toAddress,
+      toAddress: toAddress,
       reqEmail: email
     });
 
