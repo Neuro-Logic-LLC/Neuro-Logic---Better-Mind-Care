@@ -173,25 +173,26 @@ export default function PatientBooking() {
   // Timeslots list
   function renderSlots() {
     return (
-      <div>
+      <div style={{ textAlign: 'center' }}>
         <button
           className="btn btn-outline-teal mb-4"
           onClick={() => setSelectedDay(null)}
+          style={{ margin: '0 auto', display: 'inline-flex', alignItems: 'center', gap: 8 }}
         >
           ← Back to month
         </button>
 
-        <h3 className="font-bold text-lg mb-4">
+        <h3 className="font-bold text-lg mb-4" style={{ textAlign: 'center' }}>
           {new Date(selectedDay).toLocaleDateString()}
         </h3>
 
-        <div style={{ display: 'grid', gap: 10 }}>
+        <div style={{ display: 'grid', gap: 10, justifyItems: 'center' }}>
           {slots.length ? (
             slots.map((slot) => (
               <button
                 key={slot.start}
                 className="btn btn-secondary"
-                style={{ width: '100%' }}
+                style={{ minWidth: 220, padding: '0.75rem 1.5rem' }}
                 onClick={() => setSelectedSlot(slot)}
               >
                 {new Date(slot.start).toLocaleTimeString([], {
