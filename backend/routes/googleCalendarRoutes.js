@@ -233,10 +233,7 @@ router.get('/availability-range', verifyToken, async (req, res) => {
     });
 
     const busy = fb.data.calendars[CALENDAR_ID]?.busy || [];
-    const busyRanges = busy.map(b => [
-      new Date(b.start).getTime(),
-      new Date(b.end).getTime()
-    ]);
+    const busyRanges = busy.map(b => [new Date(b.start).getTime(), new Date(b.end).getTime()]);
 
     const days = [];
     const slots = {};
@@ -246,17 +243,15 @@ router.get('/availability-range', verifyToken, async (req, res) => {
     const endMs = new Date(end).getTime();
 
     function isTaken(t0, t1) {
-      return busyRanges.some(([b0, b1]) =>
-        Math.max(t0, b0) < Math.min(t1, b1)
-      );
+      return busyRanges.some(([b0, b1]) => Math.max(t0, b0) < Math.min(t1, b1));
     }
 
     while (cursor <= endMs) {
       const d = new Date(cursor);
       const dateStr = d.toISOString().slice(0, 10);
 
-      const officeStart = new Date(`${dateStr}T09:00:00`).getTime();
-      const officeEnd = new Date(`${dateStr}T17:00:00`).getTime();
+      const officeStart = new Date(`${dateStr}T09:00:00-06:00`).getTime();
+      const officeEnd = new Date(`${dateStr}T17:00:00-06:00`).getTime();
 
       const daySlots = [];
 
@@ -283,18 +278,22 @@ router.get('/availability-range', verifyToken, async (req, res) => {
       cursor += dayMs;
     }
 
-// ✅ ADD THIS — the new clean response
-const availableDates = days
-  .filter(d => d.available)
-  .map(d => d.date);
+    // ✅ ADD THIS — the new clean response
+    const availableDates = days.filter(d => d.available).map(d => d.date);
 
-res.json({ days, availableDates, slots });
-
+    res.json({ days, availableDates, slots });
   } catch (e) {
     console.error('availability-range error:', e);
     res.status(500).json({ error: String(e?.message || e) });
   }
 });
+
+function officeWindow(dateStr) {
+  return {
+    start: new Date(`${dateStr}T09:00:00-06:00`).getTime(),
+    end: new Date(`${dateStr}T17:00:00-06:00`).getTime()
+  };
+}
 
 // Get Availability
 router.get('/availability', verifyToken, async (req, res) => {
@@ -304,12 +303,11 @@ router.get('/availability', verifyToken, async (req, res) => {
   try {
     const { date } = req.query;
     const slotMins = 30;
-
     if (!date) return res.status(400).json({ error: 'date required (YYYY-MM-DD)' });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth });
 
-    // 🔥 Ask Google what’s busy on that day
+    // Pull only real busy blocks
     const fb = await calendar.freebusy.query({
       requestBody: {
         timeMin: new Date(`${date}T00:00:00Z`).toISOString(),
@@ -318,23 +316,22 @@ router.get('/availability', verifyToken, async (req, res) => {
       }
     });
 
-    const busy = fb.data.calendars[CALENDAR_ID]?.busy || [];
-    const busyRanges = busy.map(b => [
+    const actualBusy = fb.data.calendars[CALENDAR_ID]?.busy || [];
+
+    // Use CST explicitly
+    const officeStart = new Date(`${date}T09:00:00-06:00`).getTime();
+    const officeEnd = new Date(`${date}T17:00:00-06:00`).getTime();
+
+    const busyRanges = actualBusy.map(b => [
       new Date(b.start).getTime(),
       new Date(b.end).getTime()
     ]);
 
     function isTaken(t0, t1) {
-      return busyRanges.some(([b0, b1]) =>
-        Math.max(t0, b0) < Math.min(t1, b1)
-      );
+      return busyRanges.some(([b0, b1]) => Math.max(t0, b0) < Math.min(t1, b1));
     }
 
-    const officeStart = new Date(`${date}T09:00:00`).getTime();
-    const officeEnd = new Date(`${date}T17:00:00`).getTime();
-
     const slots = [];
-
     for (let t0 = officeStart; t0 + slotMins * 60000 <= officeEnd; t0 += slotMins * 60000) {
       const t1 = t0 + slotMins * 60000;
       if (!isTaken(t0, t1)) {
@@ -346,7 +343,6 @@ router.get('/availability', verifyToken, async (req, res) => {
     }
 
     res.json({ date, slots });
-
   } catch (e) {
     console.error('availability error:', e);
     res.status(500).json({ error: String(e?.message || e) });

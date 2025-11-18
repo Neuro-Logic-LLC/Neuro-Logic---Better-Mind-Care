@@ -1,0 +1,121 @@
+.account-setup-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: #0e5a63;
+}
+
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+/* ─── Top row layout ───────────────────────────── */
+.top-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-end;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+}
+
+.form-group label {
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #444;
+}
+
+.form-group input,
+.form-group select {
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+/* Caregiver toggle */
+.caregiver-toggle {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  white-space: nowrap;
+}
+
+/* ─── Caregiver section ─────────────────────────── */
+.caregiver-box {
+  border: 1px solid #dcdcdc;
+  border-radius: 12px;
+  padding: 1.5rem;
+  background: #f9f9f9;
+}
+
+.caregiver-box h2 {
+  margin-bottom: 1rem;
+  font-size: 20px;
+}
+
+.cg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
+}
+
+/* Submit area */
+.submit-wrap {
+  margin-top: 1rem;
+}
+
+/* Center the whole page block */
+.account-setup-container {
+  text-align: center;
+}
+
+/* Keep labels + inputs aligned left inside centered container */
+.account-form,
+.form-group,
+.caregiver-box {
+  text-align: left;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Make top row spacing cleaner */
+.top-row {
+  justify-content: center;
+  gap: 2rem;
+}
+
+/* Improve spacing between form fields */
+.form-group {
+  margin-bottom: 0.5rem;
+}
+
+/* Center caregiver box and widen spacing */
+.caregiver-box {
+  max-width: 650px;
+  margin-top: 1.5rem;
+}
+
+/* Add a bit more breathing room inside caregiver fields */
+.cg-grid {
+  gap: 1.6rem;
+}
+
+/* Center the submit button */
+.submit-wrap {
+  text-align: center;
+  margin-top: 2rem;
+}
