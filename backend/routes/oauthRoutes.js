@@ -240,8 +240,7 @@ const SYSTEM_SCOPES = [
   "profile",
   "https://www.googleapis.com/auth/calendar.events",
   "https://www.googleapis.com/auth/calendar.readonly",
-  "https://www.googleapis.com/auth/calendar.freebusy",
-  "https://www.googleapis.com/auth/calendar"
+  "https://www.googleapis.com/auth/calendar.freebusy"
 
 ];
 

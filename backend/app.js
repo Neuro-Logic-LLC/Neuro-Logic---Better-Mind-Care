@@ -307,6 +307,7 @@ app.use('/api/google-calendar', require('./routes/googleCalendarRoutes'));
 app.use('/api/intake', require('./routes/intakeRoutes'));
 app.use('/api/oauth', require('./routes/oauthRoutes'));
 app.use('/api/evexia-import', require('./routes/evexiaImportRoutes'));
+app.use('/api/newsletter', require('./routes/newsletterRoutes'));
 
 // ---- Static files ----
 

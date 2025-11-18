@@ -522,4 +522,56 @@ router.delete('/events/:id', verifyToken, async (req, res) => {
   }
 });
 
+// Calendar Management Routes (using systemOAuth for admin tasks)
+router.get('/calendars', verifyToken, async (req, res) => {
+  // Only allow admins or specific users
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'admin_required' });
+  }
+
+  try {
+    const calendar = google.calendar({ version: 'v3', auth: systemOAuth });
+    const { data } = await calendar.calendarList.list();
+    res.json({ calendars: data.items });
+  } catch (e) {
+    console.error('calendars list error:', e);
+    res.status(500).json({ error: String(e?.message || e) });
+  }
+});
+
+router.post('/calendars', verifyToken, async (req, res) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'admin_required' });
+  }
+
+  try {
+    const { summary } = req.body;
+    const calendar = google.calendar({ version: 'v3', auth: systemOAuth });
+    const { data } = await calendar.calendars.insert({
+      requestBody: { summary }
+    });
+    res.json({ calendar: data });
+  } catch (e) {
+    console.error('create calendar error:', e);
+    res.status(500).json({ error: String(e?.message || e) });
+  }
+});
+
+router.delete('/calendars/:id', verifyToken, async (req, res) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'admin_required' });
+  }
+
+  try {
+    const calendar = google.calendar({ version: 'v3', auth: systemOAuth });
+    await calendar.calendars.delete({
+      calendarId: req.params.id
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('delete calendar error:', e);
+    res.status(500).json({ error: String(e?.message || e) });
+  }
+});
+
 module.exports = router;
