@@ -39,10 +39,11 @@ export default function SuccessPage() {
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
       <Link
-        to="/order"
+      
+        to="/admin/dashboard"
         className="inline-block rounded-xl border border-gray-900 px-4 py-2 font-semibold"
       >
-        Back to products
+        Go to Dashboard
       </Link>
     </div>
   );

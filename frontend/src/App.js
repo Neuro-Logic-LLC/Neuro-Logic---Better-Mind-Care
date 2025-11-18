@@ -43,6 +43,7 @@ import CheckoutStep from './pages/NewCheckoutPages/CheckoutStep';
 import SignupProvider from './pages/NewCheckoutPages/SignupContext';
 import PatientOrders from './pages/evexiapatientorderspg/EvexiaPatientOrders';
 import PatientRequisitionViewer from './pages/patientrequisitionviewerpg/PatientRequisitionViewer';
+import StepThreeAccountSetup from './pages/stepthreepg/Step3AccountSetup';
 
 function App() {
   return (
@@ -168,7 +169,7 @@ function App() {
                 {/* ✅ Your 2-step flow */}
                 <Route path="/join" element={<EmailStep />} />
                 <Route path="/join/checkout" element={<CheckoutStep />} />
-
+                <Route path="/account-info" element={<StepThreeAccountSetup />} />
                 {/* optional 404 */}
                 {/* <Route path="*" element={<NotFound />} /> */}
               </Routes>

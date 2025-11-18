@@ -67,20 +67,20 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-const user = await knex('users')
-    .join('roles', 'users.role_id', 'roles.id')
-    .select(
+    const user = await knex('users')
+      .join('roles', 'users.role_id', 'roles.id')
+      .select(
         'users.id',
         'users.email',
         'users.email_canon',
-        'users.password', 
+        'users.password',
         'users.role_id',
         'roles.role_name',
         'users.is_email_confirmed'
-    )
-    .where({ 'users.email_hash': identHash(email) })
-    .andWhere('users.is_deleted', false)
-    .first();
+      )
+      .where({ 'users.email_hash': identHash(email) })
+      .andWhere('users.is_deleted', false)
+      .first();
 
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
@@ -140,7 +140,7 @@ const user = await knex('users')
       email: user.email_canon,
       role_name: user.role_id,
       is_email_confirmed: user.is_active,
-      has_paid: user.has_paid 
+      has_paid: user.has_paid
     };
 
     const body = { message: 'MFA code sent' };
@@ -169,7 +169,7 @@ exports.logout = async (req, res) => {
   const commonOpts = {
     httpOnly: true,
     secure: true,
-    sameSite:  'none',
+    sameSite: 'none',
     path: '/',
     domain: isProd ? '.bettermindcare.com' : undefined
   };
@@ -685,7 +685,6 @@ exports.verifyMfa = async (req, res) => {
         role: user.role_name
       }
     });
-
   } catch (err) {
     console.error('MFA verification error:', err);
     return res.status(500).json({ error: 'Server error' });
@@ -930,42 +929,59 @@ exports.updateMyProfile = async (req, res) => {
 
 exports.publicSignup = async (req, res) => {
   const knex = await initKnex();
+
   const {
     email,
     password,
-    first_name = '',
-    last_name = '',
-    phone = ''
-    // gender = ''   // if you want gender optional, add it back and insert only if non-empty
+    first_name,
+    last_name,
+    phone,
+    gender,
+    dob,
+    is_caregiver,
+    cg_first,
+    cg_last,
+    cg_phone,
+    cg_email
   } = req.body || {};
 
+  const caregiver = is_caregiver === "1";
+
   try {
-    // required only
-    if (!email || !password || !first_name || !last_name || !phone) {
-      return res.status(400).json({ error: 'missing_fields' });
+    // Required for all signups
+    if (!email || !password || !dob || !gender || !first_name || !last_name || !phone) {
+      return res.status(400).json({ error: "missing_fields" });
     }
 
-    // minimal policy: length >= 8, no special-char requirement
+    // Required only for caregivers
+    if (caregiver && (!cg_first || !cg_last || !cg_phone || !cg_email)) {
+      return res.status(400).json({ error: "missing_caregiver_fields" });
+    }
+
+    // Password strength
     if (
-      typeof password !== 'string' ||
+      typeof password !== "string" ||
       password.length < 8 ||
       !/[!@#$%^&*(),.?":{}|<>]/.test(password)
     ) {
       return res.status(400).json({
-        error:
-          'Weak password: Password must be at least 8 characters long and include uppercase, lowercase, number, and one special character.',
-        detail: 'Password must be at least 8 characters and include one special character.'
+        error: "weak_password",
+        detail: "Password must be at least 8 characters and contain one special character."
       });
     }
 
     const key = process.env.PGPCRYPTO_KEY;
-    if (!key) return res.status(500).json({ error: 'Server misconfiguration' });
+    if (!key) return res.status(500).json({ error: "Server misconfiguration" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const roleRow = await knex('roles').select('id').where({ role_name: 'Patient' }).first();
+    const roleRow = await knex("roles")
+      .select("id")
+      .where({ role_name: "Patient" })
+      .first();
+
     if (!roleRow) {
-      return res.status(400).json({ error: 'Default role not found' });
+      return res.status(400).json({ error: "Default role not found" });
     }
 
     const confirmationToken = uuidv4();
@@ -973,9 +989,10 @@ exports.publicSignup = async (req, res) => {
 
     const eCanon = canon(String(email).trim().toLowerCase());
 
-    const [created] = await knex('users')
-      .returning(['id'])
+    const [created] = await knex("users")
+      .returning(["id"])
       .insert({
+        username: eCanon, // auto-assign username == email_canon
         password: hashedPassword,
         role_id: roleRow.id,
         member_since: knex.fn.now(),
@@ -987,35 +1004,40 @@ exports.publicSignup = async (req, res) => {
         confirmation_token_hash: tokenHash,
 
         // encrypted PII
-        email: knex.raw('pgp_sym_encrypt(?, ?)', [eCanon, key]),
-        first_name: knex.raw('pgp_sym_encrypt(?, ?)', [first_name, key]),
-        last_name: knex.raw('pgp_sym_encrypt(?, ?)', [last_name, key]),
-        phone: knex.raw('pgp_sym_encrypt(?, ?)', [phone, key]),
-        // if you add gender back:
-        // gender: gender ? knex.raw('pgp_sym_encrypt(?, ?)', [gender, key]) : null,
+        email: knex.raw("pgp_sym_encrypt(?, ?)", [eCanon, key]),
+        dob: knex.raw("pgp_sym_encrypt(?, ?)", [dob, key]),
+        gender: knex.raw("pgp_sym_encrypt(?, ?)", [gender, key]),
+        first_name: knex.raw("pgp_sym_encrypt(?, ?)", [first_name, key]),
+        last_name: knex.raw("pgp_sym_encrypt(?, ?)", [last_name, key]),
+        phone: knex.raw("pgp_sym_encrypt(?, ?)", [phone, key]),
 
-        // fast lookups
+        is_caregiver: caregiver,
+        cg_first: caregiver ? knex.raw("pgp_sym_encrypt(?, ?)", [cg_first, key]) : null,
+        cg_last: caregiver ? knex.raw("pgp_sym_encrypt(?, ?)", [cg_last, key]) : null,
+        cg_phone: caregiver ? knex.raw("pgp_sym_encrypt(?, ?)", [cg_phone, key]) : null,
+        cg_email: caregiver ? knex.raw("pgp_sym_encrypt(?, ?)", [cg_email, key]) : null,
+
         email_canon: eCanon,
         email_hash: identHash(eCanon)
       });
 
-    await knex('audit_log').insert({
+    await knex("audit_log").insert({
       user_id: created.id,
-      action: 'SELF_SIGNUP',
+      action: "SELF_SIGNUP",
       description: `New public signup: ${eCanon}`,
-      ip_address: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+      ip_address: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
       timestamp: knex.fn.now()
     });
 
     await sendEmailConfirmation(eCanon, confirmationToken);
 
-    return res.status(201).json({ message: 'Signup successful. Please confirm your email.' });
+    return res.status(201).json({ message: "Signup successful. Please confirm your email." });
   } catch (err) {
-    if (err && err.code === '23505') {
-      return res.status(409).json({ error: 'Email already exists' });
+    if (err && err.code === "23505") {
+      return res.status(409).json({ error: "Email already exists" });
     }
-    console.error('signup failed', err);
-    return res.status(500).json({ error: 'Server Error' });
+    console.error("signup failed", err);
+    return res.status(500).json({ error: "Server Error" });
   }
 };
 
@@ -1285,5 +1307,34 @@ exports.oauthCallback = async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'OAuth link failed' });
+  }
+};
+
+exports.checkAndValidateEmailExists = async (req, res) => {
+  const knex = await initKnex();
+  const rawEmail = (req.query.email || '').trim();
+
+  if (!rawEmail) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  try {
+    //User.Email+tag@gmail.com
+    // useremail@gmail.com
+    // user.email@gmail.com
+    // USEREMAIL@GMAIL.COM   all these should be treated as the same email canonical value
+
+    const emailCanon = canon(rawEmail);
+    // Quick regex — prevents garbage requests or enumeration vectors
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+      return res.json({ exists: false });
+    }
+
+    const user = await knex('users').where({ email_canon: emailCanon }).first();
+
+    return res.json({ exists: !!user });
+  } catch (err) {
+    console.error("❌ Check email exists error: user doesn't exist or other error", err);
+    return res.status(500).json({ error: 'Server error' });
   }
 };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Card from '../../components/cards/Card';
 import './productsPage.css';
+import { useSignup } from '../NewCheckoutPages/SignupContext';
 
 const PRODUCTS = [
   {
@@ -12,56 +13,22 @@ const PRODUCTS = [
     summary:
       'Take control of your cognitive future with a comprehensive, science-based approach to brain health.',
     details: [
+      { title: 'Brain Health Session', body: 'Private 30–60-minute consult.' },
       {
-        title: 'Brain Health Session',
-        body: 'Private 30–60-minute consult to explore your brain health risks, lifestyle, and goals.'
+        title: '25+ Biomarkers',
+        body: 'Inflammation, metabolism, nutrients, etc.'
       },
       {
-        title: '25+ Biomarker Lab Panel',
-        body: 'Blood test covering your inflammation, metabolism, key nutrients, hormones, and other factors tied to Alzheimer’s risk and brain performance.'
-      },
-      {
-        title: '72-Point Cognitive Risk Scan',
-        body: 'Deep analysis of your Alzheimer’s-related risk factors — across genetic, vascular, metabolic, medications, toxicity and lifestyle domains.'
+        title: '72-Point Risk Scan',
+        body: 'Deep Alzheimer’s-related analysis.'
       },
       {
         title: 'Personalized Risk Report',
-        body: 'Clear breakdown of your brain health status and what’s driving risk — delivered in a simple, actionable format.'
+        body: 'Clear breakdown, simple format.'
       },
-      {
-        title: 'Risk Reduction Plan',
-        body: 'Your customized strategy to help slow, stop, or reverse key drivers of cognitive decline.'
-      }
+      { title: 'Risk Reduction Plan', body: 'Customized prevention strategy.' }
     ]
   }
-  // {
-  //   key: 'APOE',
-  //   name: 'APOE Gene Test',
-  //   tagline: 'Understand your genetic risk for Alzheimer’s.',
-  //   amount: 12500,
-  //   summary:
-  //     'Genetic insight to tailor your prevention strategy with precision.',
-  //   details: [
-  //     {
-  //       title: 'DNA-Based Guidance',
-  //       body: 'Gain clarity on your APOE status so you can personalize nutrition, lifestyle, and clinical follow-up with confidence.'
-  //     }
-  //   ]
-  // },
-  // {
-  //   key: 'PTAU',
-  //   name: 'p-Tau217 Alzheimer’s Risk Marker',
-  //   tagline: 'Detect early Alzheimer’s-related brain changes.',
-  //   amount: 29400,
-  //   summary:
-  //     'Advanced blood test that closely mirrors PET scan findings for early detection.',
-  //   details: [
-  //     {
-  //       title: 'Leading Indicator',
-  //       body: 'Measure a highly specific biomarker tied to amyloid and tau accumulation so you can monitor changes years before symptoms appear.'
-  //     }
-  //   ]
-  // }
 ];
 
 const OPTIONAL_ADDONS = [
@@ -70,17 +37,8 @@ const OPTIONAL_ADDONS = [
     flag: 'apoe',
     name: 'APOE Gene Test',
     priceLabel: '$0',
-    description:
-      'Understand your genetic risk for Alzheimer’s and tailor your prevention strategy accordingly.'
+    description: 'Understand your genetic risk for Alzheimer’s.'
   }
-  // {
-  //   key: 'PTAU',
-  //   flag: 'ptau',
-  //   name: 'p-Tau217 Alzheimer’s Risk Marker',
-  //   priceLabel: '$294',
-  //   description:
-  //     'Advanced blood test to detect early Alzheimer’s-related brain changes — shown in research to align up to 90% with PET scans.'
-  // }
 ];
 
 const usd = (cents) =>
@@ -89,136 +47,91 @@ const usd = (cents) =>
 export default function ProductsPage() {
   const [loadingKey, setLoadingKey] = useState('');
   const [expandedKey, setExpandedKey] = useState(null);
-  const [selectedAddons, setSelectedAddons] = useState({
-    apoe: false,
-    ptau: false
-  });
-  const [formData, setFormData] = useState({
-    FirstName: '',
-    LastName: '',
-    DOB: '',
-    Gender: '',
-    EmailAddress: '',
-    StreetAddress: '',
-    City: '',
-    State: '',
-    PostalCode: '',
-    Phone: ''
-  });
+  const [selectedAddons, setSelectedAddons] = useState({ apoe: false });
+  const { state } = useSignup();
+  const [email, setEmail] = useState(state.email || '');
+
 
   async function createCheckout(flags, product) {
     const baseUrl = window.location.origin;
-    const success_url = `${baseUrl}/success`;
-    const cancel_url = `${baseUrl}/cancel-order`;
 
-    // If you have an email/user/order in app state, add it to metadata here
-    const meta = {
-      source: 'ProductsPage',
-      app: 'BetterMindCare',
-      env: process.env.NODE_ENV === 'production' ? 'prod' : 'dev',
-
-      // Patient details
-      FirstName: formData.FirstName,
-      LastName: formData.LastName,
-      DOB: formData.DOB,
-      Gender: formData.Gender,
-      EmailAddress: formData.EmailAddress,
-      StreetAddress: formData.StreetAddress,
-      City: formData.City,
-      State: formData.State,
-      PostalCode: formData.PostalCode,
-      Phone: formData.Phone,
-
-      // Product details
-      productKey: product.key,
-      productName: product.name,
-      productAmount: product.amount,
-      apoeAddon: selectedAddons.apoe ? 'true' : 'false',
-      ptauAddon: selectedAddons.ptau ? 'true' : 'false',
-
-      // System/debug info
-      timestamp: new Date().toISOString(),
-      browser: navigator.userAgent,
-      referrer: document.referrer || '',
-      campaign: localStorage.getItem('campaign') || ''
+    const payload = {
+      customer_email: email || undefined,
+      ...flags,
+      success_url: `${baseUrl}/success`,
+      cancel_url: `${baseUrl}/cancel-order`,
+      meta: {
+        source: 'ProductsPage',
+        product_key: product.key,
+        product_name: product.name,
+        apoe_addon: selectedAddons.apoe ? '1' : '0'
+      }
     };
 
-    console.log('[checkout] formData before submit:', formData);
-    console.log('[checkout] meta about to send:', meta);
-
-    if (!formData.FirstName || !formData.LastName || !formData.EmailAddress) {
-      alert(
-        'Please fill in your name and email before proceeding to checkout.'
-      );
-      return;
-    }
     const res = await fetch('/api/stripe/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...flags,
-        success_url,
-        cancel_url,
-        FirstName: formData.FirstName,
-        LastName: formData.LastName,
-        DOB: formData.DOB,
-        Gender: formData.Gender,
-        EmailAddress: formData.EmailAddress,
-        StreetAddress: formData.StreetAddress,
-        City: formData.City,
-        State: formData.State,
-        PostalCode: formData.PostalCode,
-        Phone: formData.Phone
-      })
+      body: JSON.stringify(payload)
     });
+
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       throw new Error(data.error || `Checkout failed with ${res.status}`);
     }
 
     const data = await res.json();
-    if (!data?.url) throw new Error('No redirect URL from server');
     window.location.href = data.url;
   }
-  const toggleDetails = (productKey) => {
-    setExpandedKey((current) => (current === productKey ? null : productKey));
-  };
 
   const toggleAddon = (flag) => {
     setSelectedAddons((prev) => ({ ...prev, [flag]: !prev[flag] }));
   };
 
-  // map product to request flags your backend expects
+  const toggleDetails = (productKey) => {
+    setExpandedKey((current) => (current === productKey ? null : productKey));
+  };
+
   const buy = async (productKey) => {
     try {
-      setLoadingKey(productKey);
-
-      // Find the product object by key
-      const product = PRODUCTS.find((p) => p.key === productKey);
-      if (!product) {
-        throw new Error(`Product not found for key: ${productKey}`);
+      if (!email.trim()) {
+        alert('Enter your email before continuing.');
+        return;
       }
 
-      // Define flags based on what was selected
+      setLoadingKey(productKey);
+
+      const product = PRODUCTS.find((p) => p.key === productKey);
+      if (!product) throw new Error(`Product not found: ${productKey}`);
+
       const flags = {
         brainhealth: product.key === 'BRAINHEALTH',
-        ...(selectedAddons.apoe ? { apoe: true } : {}),
-        ...(selectedAddons.ptau ? { ptau: true } : {})
+        ...(selectedAddons.apoe ? { apoe: true } : {})
       };
 
-      // Pass both flags and product into createCheckout
       await createCheckout(flags, product);
-    } catch (e) {
-      alert(e.message || 'Something went wrong');
+    } catch (err) {
+      alert(err.message || 'Something went wrong');
       setLoadingKey('');
     }
   };
 
   return (
     <div className="products-page">
+      {/* Email (Step 2 requirement) */}
+      <section className="products-form">
+        <h3>Your Email</h3>
+        <p>This email will be used for your receipt and account setup.</p>
+        <input
+          type="email"
+          placeholder="your@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </section>
+
       <section className="products-hero">
         <h1>BetterMindCare — Order Tests</h1>
-        <p>Pick a test and you’ll be taken to secure Stripe Checkout to pay.</p>
+        <p>Pick a test and proceed to secure Stripe Checkout.</p>
       </section>
 
       <section className="products-grid">
@@ -238,9 +151,7 @@ export default function ProductsPage() {
                 <button
                   type="button"
                   onClick={() => toggleDetails(product.key)}
-                  className={`product-card__toggle ${
-                    expandedKey === product.key ? 'is-open' : ''
-                  }`}
+                  className={`product-card__toggle ${expandedKey === product.key ? 'is-open' : ''}`}
                   aria-expanded={expandedKey === product.key}
                 >
                   <span>What’s Included</span>
@@ -248,9 +159,7 @@ export default function ProductsPage() {
                 </button>
 
                 <div
-                  className={`product-card__details ${
-                    expandedKey === product.key ? 'is-open' : ''
-                  }`}
+                  className={`product-card__details ${expandedKey === product.key ? 'is-open' : ''}`}
                 >
                   <ul>
                     {product.details.map((item) => (
@@ -279,13 +188,9 @@ export default function ProductsPage() {
           </Card>
         ))}
       </section>
+
       <section className="products-addons">
         <h3>Optional Add-Ons</h3>
-        <p>
-          Select one or more add-ons with the Brain Health Blueprint to
-          customize your package. Add-ons are only available alongside the core
-          product.
-        </p>
 
         <ul className="products-addons__list">
           {OPTIONAL_ADDONS.map((addon) => (

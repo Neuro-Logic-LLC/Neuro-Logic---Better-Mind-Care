@@ -321,4 +321,7 @@ router.post('/resend-confirmation', authController.resendEmailConfirmation);
 // ✅ SuperAdmin-only Hard Delete
 router.delete("/admin/user/hard-delete/:id", verifyToken, authController.hardDeleteUser);
 
+
+router.get("/check-email-exists", authController.checkAndValidateEmailExists);
+
 module.exports = router;

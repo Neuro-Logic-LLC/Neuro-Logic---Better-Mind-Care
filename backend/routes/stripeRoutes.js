@@ -79,6 +79,9 @@ router.post('/checkout', express.json(), async (req, res) => {
       apoe,
       ptau,
       customer_email,
+      customer_first_name,
+      customer_last_name,
+      customer_phone,
       success_url,
       cancel_url,
       meta = {},
@@ -121,9 +124,10 @@ router.post('/checkout', express.json(), async (req, res) => {
       env: IS_PROD ? 'prod' : 'dev',
       ...meta,
       // Add Evexia patient fields here
-      FirstName: req.body.FirstName ?? meta.FirstName,
-      LastName: req.body.LastName ?? meta.LastName,
+      FirstName: req.body.customer_first_name ?? meta.FirstName,
+      LastName: req.body.customer_last_name ?? meta.LastName,
       DOB: req.body.DOB ?? meta.DOB,
+      join_email: req.body.EmailAddress ?? meta.EmailAddress,
       Gender: req.body.Gender ?? meta.Gender,
       EmailAddress: req.body.EmailAddress ?? meta.EmailAddress,
       StreetAddress: req.body.StreetAddress ?? meta.StreetAddress,
@@ -157,16 +161,26 @@ router.post('/checkout', express.json(), async (req, res) => {
       success_url: successUrl,
       cancel_url: cancelUrl,
 
-      // ✅ Force Stripe to ask for name, email, phone, and address
       billing_address_collection: 'required',
-      customer_creation: 'always',
       phone_number_collection: { enabled: true },
-      shipping_address_collection: { allowed_countries: ['US'] },
 
-      // ✅ Ensures we have a customer record for webhook retrieval
+      shipping_address_collection: { allowed_countries: ['US'] },
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: 'fixed_amount',
+            fixed_amount: { amount: 0, currency: 'usd' },
+            display_name: 'Standard Shipping'
+          }
+        }
+      ],
+
+      customer_creation: 'always',
+      expand: ['customer_details', 'shipping'],
+
       customer_email: customer_email || undefined,
 
-      // ✅ Keep your custom metadata
+      // ONLY metadata — nothing else
       metadata: finalMeta
     });
 

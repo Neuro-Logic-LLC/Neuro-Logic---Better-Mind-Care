@@ -209,7 +209,15 @@ export default function PatientBooking() {
         </button>
 
         <h3 className="font-bold text-lg mb-4">
-          {new Date(selectedDay + 'T12:00:00').toLocaleDateString()}
+          {new Date(selectedDay + 'T00:00:00-06:00').toLocaleDateString(
+            'en-US',
+            {
+              timeZone: 'America/Chicago',
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            }
+          )}
         </h3>
 
         <div style={{ display: 'grid', gap: 10, justifyItems: 'center' }}>
@@ -221,7 +229,8 @@ export default function PatientBooking() {
                 style={{ minWidth: 220, padding: '0.75rem 1.5rem' }}
                 onClick={() => setSelectedSlot(slot)}
               >
-                {new Date(slot.start).toLocaleTimeString([], {
+                {new Date(slot.start).toLocaleTimeString('en-US', {
+                  timeZone: 'America/Chicago',
                   hour: 'numeric',
                   minute: '2-digit'
                 })}
@@ -247,10 +256,13 @@ export default function PatientBooking() {
         >
           ← Back to times
         </button>
-
-        <h3 className="text-xl font-bold mb-6">
-          {new Date(selectedSlot.start.replace('Z', '')).toLocaleString()}
-        </h3>
+        {selectedSlot && (
+          <h3 className="text-xl font-bold mb-6">
+            {new Date(selectedSlot.start).toLocaleString('en-US', {
+              timeZone: 'America/Chicago'
+            })}
+          </h3>
+        )}
 
         {/* Hidden inputs (still needed for state) */}
         <input type="hidden" value={bookingName} />

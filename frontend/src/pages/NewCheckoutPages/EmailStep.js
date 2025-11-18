@@ -12,15 +12,51 @@ export default function EmailStep() {
   const { state, setField } = useSignup();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
+  const [checking, setChecking] = useState(false);
+
   const navigate = useNavigate();
 
-  const submit = (e) => {
+  async function checkAndValidateEmailExists(email) {
+    try {
+      const res = await fetch(
+        `/api/auth/check-email-exists?email=${encodeURIComponent(email)}`,
+        { method: 'GET' }
+      );
+      const data = await res.json();
+      return !!data.exists;
+    } catch (err) {
+      console.error('Email check failed:', err);
+      return false;
+    }
+  }
+
+  const submit = async (e) => {
     e.preventDefault();
-    if (!/^[^\s@]+@[^\s@]+\.(com|org|net|edu|gov)$/i.test(email.trim())) {
+    setError('');
+
+    const trimmed = email.trim();
+
+    // Basic validation
+    if (!/^[^\s@]+@[^\s@]+\.(com|org|net|edu|gov)$/i.test(trimmed)) {
       return setError('Enter a valid .com or .org email.');
     }
-    setField('email', email.trim());
-    navigate('/join/checkout');
+
+    setChecking(true);
+
+    // Server-side duplicate check
+    const exists = await checkAndValidateEmailExists(trimmed);
+
+    if (exists) {
+      setChecking(false);
+      return setError(
+        'This email is already registered. Please sign in instead.'
+      );
+    }
+
+    // Store email and move forward
+    setField('email', trimmed);
+    setChecking(false);
+    navigate('/account-info');
   };
 
   return (
