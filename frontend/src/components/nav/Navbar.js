@@ -117,7 +117,7 @@ function Navbar() {
                 </Link>
               </li>
               <li role="none">
-                <Link role="menuitem" to="/appointments" onClick={() => setMenuOpen(false)}>
+                <Link role="menuitem" to="/google-calendar" onClick={() => setMenuOpen(false)}>
                   Appointments
                 </Link>
               </li>
