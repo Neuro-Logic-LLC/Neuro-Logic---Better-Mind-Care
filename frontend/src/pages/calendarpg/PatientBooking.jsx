@@ -208,7 +208,14 @@ export default function PatientBooking() {
         </button>
 
         <h3 className="font-bold text-lg mb-4">
-          {new Date(selectedDay + 'T12:00:00').toLocaleDateString()}
+          {new Date(selectedSlot.start).toLocaleString('en-US', {
+            timeZone: 'America/Chicago',
+            hour: 'numeric',
+            minute: 'numeric',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          })}
         </h3>
 
         <div style={{ display: 'grid', gap: 10 }}>
