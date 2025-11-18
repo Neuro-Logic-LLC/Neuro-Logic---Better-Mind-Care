@@ -44,6 +44,10 @@ import SignupProvider from './pages/NewCheckoutPages/SignupContext';
 import PatientOrders from './pages/evexiapatientorderspg/EvexiaPatientOrders';
 import PatientRequisitionViewer from './pages/patientrequisitionviewerpg/PatientRequisitionViewer';
 import StepThreeAccountSetup from './pages/stepthreepg/Step3AccountSetup';
+import Account from './pages/accountpg/Account';
+import Support from './pages/supportpg/Support';
+import Messages from './pages/messagespg/Messages';
+import Appointments from './pages/appointmentspg/Appointments';
 
 function App() {
   return (
@@ -170,6 +174,10 @@ function App() {
                 <Route path="/join" element={<EmailStep />} />
                 <Route path="/join/checkout" element={<CheckoutStep />} />
                 <Route path="/account-info" element={<StepThreeAccountSetup />} />
+                <Route path="/account" element={<Account />} />
+                <Route path="/support" element={<Support />} />
+                <Route path="/messages" element={<Messages />} />
+                <Route path="/appointments" element={<Appointments />} />
                 {/* optional 404 */}
                 {/* <Route path="*" element={<NotFound />} /> */}
               </Routes>
