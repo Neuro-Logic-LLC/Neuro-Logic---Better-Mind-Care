@@ -124,6 +124,7 @@ router.post('/checkout', express.json(), async (req, res) => {
       FirstName: req.body.FirstName ?? meta.FirstName,
       LastName: req.body.LastName ?? meta.LastName,
       DOB: req.body.DOB ?? meta.DOB,
+      join_email: req.body.EmailAddress ?? meta.EmailAddress,
       Gender: req.body.Gender ?? meta.Gender,
       EmailAddress: req.body.EmailAddress ?? meta.EmailAddress,
       StreetAddress: req.body.StreetAddress ?? meta.StreetAddress,

@@ -98,73 +98,112 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
     const knex = await initKnex();
     const sig = req.headers['stripe-signature'];
     const whSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
     const event = stripe.webhooks.constructEvent(req.body, sig, whSecret);
+
     console.log('[webhook] ✅ Verified event:', event.type);
 
-    // Handle completed checkout
+    // ----------------------------------------------------
+    // 1. CHECKOUT SESSION COMPLETED  (creates the payment row)
+    // ----------------------------------------------------
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
-      console.log('[webhook] checkout.session.completed fired:', session.id);
+
+      const email =
+        session.customer_details?.email ||
+        session.customer_email ||
+        null;
+
+      let userId = null;
+
+      if (email) {
+        const user = await knex('users').where({ email }).first();
+        if (user) {
+          userId = user.id;
+          console.log('[webhook] 🔗 session linked to user:', userId);
+        }
+      }
 
       const insertData = {
         stripe_session_id: session.id,
         stripe_payment_intent_id: session.payment_intent || null,
-        product_key: session.metadata?.productKey || '',
+        product_key: session.metadata?.product_key || session.metadata?.productKey || '',
         amount: session.amount_total / 100,
         currency: session.currency,
         status: session.payment_status || 'unknown',
+        customer_email: email,
         metadata: JSON.stringify(session.metadata || {}),
         evexia_processed: false,
         created_at: new Date(),
         updated_at: new Date()
       };
 
-      if (session.metadata?.user_id && session.metadata.user_id !== 'null') {
-        insertData.user_id = session.metadata.user_id;
-      }
+      if (userId) insertData.user_id = userId;
 
       await knex('stripe_payments').insert(insertData);
       console.log('[webhook] ✅ Inserted payment (session.completed):', session.id);
     }
 
-    // Handle charge succeeded / updated (contains billing + shipping info)
-    if (event.type === 'charge.succeeded' || event.type === 'charge.updated') {
+    // ----------------------------------------------------
+    // 2. CHARGE SUCCEEDED = REAL PAYMENT CAPTURE CONFIRMED
+    // ----------------------------------------------------
+    if (event.type === 'charge.succeeded') {
       const charge = event.data.object;
-      console.log('[webhook] charge event received:', charge.id);
 
-      const billing = charge.billing_details || {};
-      const shipping = charge.shipping || {};
+      const email =
+        charge.billing_details?.email ||
+        charge.receipt_email ||
+        charge.metadata?.EmailAddress ||
+        null;
 
-      const customerData = {
-        billing_name: billing.name || '',
-        billing_email: billing.email || '',
-        billing_phone: billing.phone || '',
-        billing_address: billing.address || {},
-        shipping_name: shipping.name || '',
-        shipping_phone: shipping.phone || '',
-        shipping_address: shipping.address || {}
-      };
+      if (!email) {
+        console.log('[webhook] ⚠ No email on charge.succeeded');
+        return res.sendStatus(200);
+      }
 
-      // Update existing payment record using the payment_intent
-      if (charge.payment_intent) {
-        await knex('stripe_payments')
-          .where({ stripe_payment_intent_id: charge.payment_intent })
+      if (!charge.paid || charge.status !== 'succeeded') {
+        console.log('[webhook] ⚠ Charge not actually paid, skipping');
+        return res.sendStatus(200);
+      }
+
+      // Try to match a user
+      let userId = null;
+      const user = await knex('users').where({ email }).first();
+      if (user) {
+        userId = user.id;
+        console.log('[webhook] 🔗 charge linked to user:', userId);
+
+        await knex('users')
+          .where({ id: userId })
           .update({
-            metadata: knex.raw('metadata || ?::jsonb', JSON.stringify({ customer: customerData })),
+            has_paid: true,
             updated_at: new Date()
           });
-        console.log(
-          '[webhook] ✅ Updated metadata with billing/shipping for intent',
-          charge.payment_intent
-        );
       }
+
+      // Update the stripe_payments row
+      await knex('stripe_payments')
+        .where({ stripe_payment_intent_id: charge.payment_intent })
+        .update({
+          user_id: userId,
+          customer_email: email,
+          paid_at: new Date(),
+          updated_at: new Date(),
+          metadata: knex.raw(
+            'metadata || ?::jsonb',
+            JSON.stringify({
+              billing_email: email,
+              paid: true
+            })
+          )
+        });
+
+      console.log('[webhook] ✅ Payment fully updated + linked:', charge.payment_intent);
     }
 
-    res.sendStatus(200);
+    return res.sendStatus(200);
   } catch (err) {
     console.error('[webhook] ❌ Failed:', err.message);
-    res.status(400).send(`Webhook Error: ${err.message}`);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 });
 
