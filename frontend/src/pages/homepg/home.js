@@ -20,7 +20,7 @@ function Home() {
         <section className="hero-section">
           <h1>Welcome to your Better Mind Care Dashboard</h1>
           <p>
-            This is your private home base for everything related to your brain health journey — appointments, reports, and important updates. Once your lab results or brain health report are ready, you’ll find them here.
+            This is your private home base for everything related to your brain health journey, including appointments, reports, and important updates. Once your lab results or brain health report are ready, you’ll find them here.
           </p>
           <div className="privacy-notice">
             <div className="privacy-item">

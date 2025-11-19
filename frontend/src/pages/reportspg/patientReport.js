@@ -200,7 +200,7 @@ function PatientReport() {
   const sections = Array.isArray(report.sections) ? report.sections : [];
   const footerBanner =
     report.footerBanner ||
-    'Educational wellness content — not medical advice. See full disclaimer on page 1.';
+    'Educational wellness content. Not medical advice. See full disclaimer on page 1.';
 
   return (
     <div style={{ background: 'linear-gradient(to top, var(--seafoam), white)', minHeight: '100vh' }}>

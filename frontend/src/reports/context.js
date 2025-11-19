@@ -6,7 +6,7 @@ export const DEFAULT_GLOBAL_DISCLAIMER =
   'This educational report is not a diagnosis or a substitute for personalized medical advice. Please consult your licensed healthcare provider before making changes to your care plan.';
 
 export const DEFAULT_FOOTER_BANNER =
-  'Educational wellness content — not medical advice. See the full disclaimer on page 1.';
+  'Educational wellness content. Not medical advice. See the full disclaimer on page 1.';
 
 const INTRO_TEMPLATES = {
   prevention: (firstName) =>
@@ -19,7 +19,7 @@ const INTRO_TEMPLATES = {
 
 const SUMMARY_TEMPLATES = {
   prevention:
-    'Because your goals are prevention-oriented, we start with everyday levers you can control—sleep, stress, nutrition, activity, and targeted lab screening. These touchpoints help us detect subtle shifts early.',
+    'Because your goals are prevention-oriented, we start with everyday levers you can control: sleep, stress, nutrition, activity, and targeted lab screening. These touchpoints help us detect subtle shifts early.',
   symptom:
     'Because you reported active symptoms or a diagnosis, this plan balances clinical follow-up with tools that help you and your care partners feel supported. We spotlight high-impact actions and specialists to engage next.',
   default:

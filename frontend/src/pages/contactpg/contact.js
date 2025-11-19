@@ -9,7 +9,7 @@ function Contact() {
       <h1>Contact Us</h1>
       <p>
         We’re here to help. Whether you have questions about your intake, your
-        report, or just need a human to talk to — we’ve got your back.
+        report, or just need a human to talk to. We’ve got your back.
       </p>
 
        <div className="contact-section">

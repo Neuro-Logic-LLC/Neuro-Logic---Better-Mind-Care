@@ -130,7 +130,7 @@ export default function ProductsPage() {
       </section>
 
       <section className="products-hero">
-        <h1>BetterMindCare — Order Tests</h1>
+        <h1>BetterMindCare: Order Tests</h1>
         <p>Pick a test and proceed to secure Stripe Checkout.</p>
       </section>
 

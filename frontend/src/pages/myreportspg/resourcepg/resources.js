@@ -42,7 +42,7 @@ function Resources() {
             oil, and fatty fish
           </li>
           <li>
-            ✅ Get 7–9 hours of sleep — poor sleep accelerates memory loss
+            ✅ Get 7-9 hours of sleep. Poor sleep accelerates memory loss
           </li>
           <li>✅ Consider vitamin D and B-complex if levels are low</li>
           <li>
@@ -65,7 +65,7 @@ function Resources() {
             dashboard.
           </li>
           <li>
-            <strong>Is my data safe?</strong> Yes — we’re fully HIPAA compliant
+            <strong>Is my data safe?</strong> Yes. We’re fully HIPAA compliant
             and encrypt all personal data.
           </li>
           <li>
