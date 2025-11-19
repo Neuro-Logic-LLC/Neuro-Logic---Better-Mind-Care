@@ -29,3 +29,30 @@ a.btn:active {
   margin: 0 auto;
   color: var(--color-muted);
 }
+
+.privacy-notice {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 600px;
+  margin-top: 2rem;
+}
+
+.lock-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.privacy-notice p {
+  font-size: 1rem;
+  margin: 0;
+  text-align: left;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .privacy-notice {
+    flex-direction: column;
+    text-align: center;
+  }
+}
