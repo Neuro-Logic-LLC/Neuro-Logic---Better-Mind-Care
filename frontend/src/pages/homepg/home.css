@@ -59,57 +59,6 @@ a.btn:active {
   font-weight: 500;
 }
 
-/* Features Section */
-.features-section {
-  padding: 4rem 2rem;
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.feature-card-link {
-  text-decoration: none;
-  display: block;
-}
-
-.feature-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  transition: transform 0.2s, box-shadow 0.2s;
-  height: 100%;
-}
-
-.feature-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-}
-
-.feature-card h3 {
-  color: var(--teal);
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
-}
-
-.feature-card p {
-  color: var(--charcoal);
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
-}
-
-.card-subtitle {
-  color: #666;
-  font-size: 0.9rem;
-  line-height: 1.4;
-}
-
 @media (max-width: 768px) {
   .privacy-notice {
     align-items: center;
