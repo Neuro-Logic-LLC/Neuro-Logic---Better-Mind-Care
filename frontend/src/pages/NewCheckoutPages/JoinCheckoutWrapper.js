@@ -4,12 +4,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import CheckoutStep from './CheckoutStep';
 import { useSignup } from './SignupContext';
 
-
-
-export const stripePromise = loadStripe(
-  process.env.REACT_APP_STRIPE_PUBLIC_KEY_TEST
-);
-
+export const stripePromise = loadStripe(process.env.STRIPE_PUBLISHABLE_KEY);
 
 export default function JoinCheckoutWrapper() {
   const { state } = useSignup();
@@ -18,26 +13,26 @@ export default function JoinCheckoutWrapper() {
   const [clientSecret, setClientSecret] = useState(null);
   const fetched = useRef(false);
 
-useEffect(() => {
-  if (!email) return;
-  if (fetched.current) return;
-  fetched.current = true;
+  useEffect(() => {
+    if (!email) return;
+    if (fetched.current) return;
+    fetched.current = true;
 
-  async function fetchIntent() {
-    const res = await fetch('/api/stripe/setup-intent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
+    async function fetchIntent() {
+      const res = await fetch('/api/stripe/setup-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
 
-    const data = await res.json();
-    console.log(data);
-    console.log("SetupIntent clientSecret:", data.clientSecret);
-    setClientSecret(data.clientSecret);
-  }
+      const data = await res.json();
+      console.log(data);
+      console.log('SetupIntent clientSecret:', data.clientSecret);
+      setClientSecret(data.clientSecret);
+    }
 
-  fetchIntent();
-}, [email]);
+    fetchIntent();
+  }, [email]);
 
   const options = useMemo(() => {
     return clientSecret ? { clientSecret } : null;
