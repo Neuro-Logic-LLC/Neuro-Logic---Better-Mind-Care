@@ -90,6 +90,31 @@ function Home() {
             </div>
           </div>
         </section>
+
+        <section className="features-section bg-gradient-teal">
+          <div className="features-grid">
+            <div className="feature-card">
+              <h3>Personalized Reports</h3>
+              <p>Get detailed health insights</p>
+              <p className="card-subtitle">Receive comprehensive reports based on your lab results and health data.</p>
+            </div>
+            <div className="feature-card">
+              <h3>Expert Guidance</h3>
+              <p>Connect with specialists</p>
+              <p className="card-subtitle">Access personalized recommendations from Alzheimer's care experts.</p>
+            </div>
+            <div className="feature-card">
+              <h3>Secure & Private</h3>
+              <p>Your data is protected</p>
+              <p className="card-subtitle">All information is encrypted and handled with the highest privacy standards.</p>
+            </div>
+            <div className="feature-card">
+              <h3>Easy Access</h3>
+              <p>Manage your health online</p>
+              <p className="card-subtitle">View reports, schedule appointments, and communicate from anywhere.</p>
+            </div>
+          </div>
+        </section>
       </main>
     );
   }
