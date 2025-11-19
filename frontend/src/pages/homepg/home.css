@@ -66,9 +66,9 @@ a.btn:active {
 
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
@@ -79,35 +79,57 @@ a.btn:active {
 
 .feature-card {
   background: #fff;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(23, 109, 129, 0.1);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 8px 32px rgba(23, 109, 129, 0.08);
   text-align: center;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.3s ease;
   height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--teal), var(--gold-amber));
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .feature-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 60px rgba(23, 109, 129, 0.15);
+  border-color: rgba(23, 109, 129, 0.2);
+}
+
+.feature-card:hover::before {
+  opacity: 1;
 }
 
 .feature-card h3 {
   color: var(--teal);
   margin-bottom: 1rem;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
+  font-weight: 700;
 }
 
 .feature-card p {
   color: var(--charcoal);
   margin-bottom: 0.5rem;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  font-weight: 500;
 }
 
 .card-subtitle {
   color: #666;
-  font-size: 0.9rem;
-  line-height: 1.4;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 @media (max-width: 768px) {
