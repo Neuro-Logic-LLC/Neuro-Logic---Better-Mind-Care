@@ -59,15 +59,14 @@ const S = {
 };
 
 export default function CheckoutStep() {
-  const { state } = useSignup();
+  const { state, setField } = useSignup();
   const navigate = useNavigate();
 
-  // cart selection
   const [cart, setCart] = useState({
     CORE: false,
     APOE: false,
     NEURO: false,
-    BUNDLE_CORE_APOE: false,
+    BUNDLE_CORE_APOE: false
   });
 
   const [agreeTos, setAgreeTos] = useState(false);
@@ -75,7 +74,6 @@ export default function CheckoutStep() {
   const [error, setError] = useState('');
 
   const email = state.email || '';
-  console.log('CheckoutStep email:', email);
 
   useEffect(() => {
     if (!email) navigate('/join');
@@ -85,7 +83,6 @@ export default function CheckoutStep() {
     setCart((prev) => {
       const next = { ...prev, [key]: val };
 
-      // auto rules
       if (key === 'BUNDLE_CORE_APOE' && val) {
         next.CORE = false;
         next.APOE = false;
@@ -107,83 +104,24 @@ export default function CheckoutStep() {
       (cart.APOE ? PRICES.APOE : 0) +
       (cart.NEURO ? PRICES.NEURO : 0);
 
-  async function postJson(url, body) {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify(body)
-    });
-
-    const text = await res.text();
-    let data;
-
-    try {
-      data = text ? JSON.parse(text) : {};
-    } catch {
-      data = { raw: text };
+  // validation BEFORE touching Stripe
+  function validateBeforeStripe() {
+    if (!(cart.BUNDLE_CORE_APOE || cart.CORE || cart.APOE || cart.NEURO)) {
+      return 'Pick at least one item.';
     }
-
-    return { res, data };
+    if (!agreeTos) {
+      return 'You must accept the terms.';
+    }
+    return null;
   }
 
-  async function startStripeCheckout() {
-    const baseUrl = window.location.origin;
+  // receives { customerId, paymentMethod } from PaymentForm
+  function handlePaymentCollected({ customerId, paymentMethod }) {
+    setField('stripeCustomerId', customerId);
+    setField('stripePaymentMethod', paymentMethod);
+    setField('totalCents', totalCents);
 
-    const payload = {
-      brainhealth: Boolean(cart.CORE || cart.BUNDLE_CORE_APOE),
-      apoe: Boolean(cart.APOE || cart.BUNDLE_CORE_APOE),
-      ptau: false, // disabled until backend supports it
-
-      customer_email: email,
-
-      success_url: `${baseUrl}/success`,
-      cancel_url: `${baseUrl}/cancel-order`,
-
-      meta: {
-        source: 'JoinCheckout',
-        ui_core: cart.CORE ? '1' : '0',
-        ui_apoe: cart.APOE ? '1' : '0',
-        ui_neuro: cart.NEURO ? '1' : '0',
-        ui_bundle_core_apoe: cart.BUNDLE_CORE_APOE ? '1' : '0'
-      }
-    };
-
-    let { res, data } = await postJson('/api/stripe/checkout', payload);
-    if (res.status === 404)
-      ({ res, data } = await postJson('/stripe/checkout', payload));
-
-    if (!res.ok)
-      throw new Error(
-        data?.error ||
-          data?.message ||
-          data?.raw ||
-          `Stripe checkout failed (${res.status})`
-      );
-
-    if (!data?.url) throw new Error('No redirect URL from server');
-
-    window.location.href = data.url;
-  }
-
-  async function submit() {
-    try {
-      setLoading(true);
-      setError('');
-
-      if (!(cart.BUNDLE_CORE_APOE || cart.CORE || cart.APOE || cart.NEURO)) {
-        throw new Error('Pick at least one item.');
-      }
-
-      if (!agreeTos) {
-        throw new Error('You must accept the terms.');
-      }
-
-      await startStripeCheckout();
-    } catch (err) {
-      setError(String(err.message || err));
-      setLoading(false);
-    }
+    navigate('/account-info');
   }
 
   return (
@@ -207,10 +145,7 @@ export default function CheckoutStep() {
         </label>
 
         <label
-          style={{
-            ...S.checkboxRow,
-            opacity: cart.BUNDLE_CORE_APOE ? 0.6 : 1
-          }}
+          style={{ ...S.checkboxRow, opacity: cart.BUNDLE_CORE_APOE ? 0.6 : 1 }}
         >
           <input
             type="checkbox"
@@ -218,17 +153,12 @@ export default function CheckoutStep() {
             disabled={cart.BUNDLE_CORE_APOE}
             onChange={(e) => toggle('CORE', e.target.checked)}
           />
-          <span style={{ flex: 1 }}>
-            Brain Health & Prevention Assessment
-          </span>
+          <span style={{ flex: 1 }}>Brain Health & Prevention Assessment</span>
           <span>{usd(PRICES.CORE)}</span>
         </label>
 
         <label
-          style={{
-            ...S.checkboxRow,
-            opacity: cart.BUNDLE_CORE_APOE ? 0.6 : 1
-          }}
+          style={{ ...S.checkboxRow, opacity: cart.BUNDLE_CORE_APOE ? 0.6 : 1 }}
         >
           <input
             type="checkbox"
@@ -267,7 +197,8 @@ export default function CheckoutStep() {
             and{' '}
             <Link to="/privacy" target="_blank" rel="noreferrer">
               Privacy Policy
-            </Link>.
+            </Link>
+            .
           </span>
         </label>
       </div>
@@ -276,14 +207,23 @@ export default function CheckoutStep() {
 
       {/* Pay */}
       <div style={{ marginTop: 16 }}>
-        <PaymentForm
-          amountLabel={usd(totalCents)}
-          disabled={loading}
-          onPay={submit}
-        />
-        {loading && (
-          <p style={{ fontSize: 14, color: '#6b7280', marginTop: 8 }}>
-            Processing…
+        {totalCents > 0 ? (
+          <PaymentForm
+            amountLabel={usd(totalCents)}
+            disabled={loading}
+            onBeforeSubmit={() => {
+              const v = validateBeforeStripe();
+              if (v) {
+                setError(v);
+                return false;
+              }
+              return true;
+            }}
+            onCollected={handlePaymentCollected}
+          />
+        ) : (
+          <p style={{ color: '#999', marginTop: 12 }}>
+            Select at least one test to continue.
           </p>
         )}
       </div>

@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { useSignup } from '../NewCheckoutPages/SignupContext';
 import { PrimaryButton } from '../../components/button/Buttons';
 
-
 export default function StepThreeAccountSetup() {
   const { state, setField } = useSignup();
   const navigate = useNavigate();
@@ -20,10 +19,10 @@ export default function StepThreeAccountSetup() {
     cgLast: '',
     cgPhone: '',
     cgEmail: '',
-    username: '' // stays hidden
+    username: ''
   });
 
-  // Auto-generate hidden username from email (email_canon later)
+  // Auto-fill hidden username
   useEffect(() => {
     if (state.email) {
       const suggested = state.email.trim().toLowerCase();
@@ -36,36 +35,92 @@ export default function StepThreeAccountSetup() {
   const toggleCaregiver = () =>
     setLocal({ ...local, isCaregiver: !local.isCaregiver });
 
-  const submit = (e) => {
-    e.preventDefault();
+  async function postJson(url, body) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify(body)
+    });
 
-    // Save required fields to context
-    setField('dob', local.dob);
-    setField('gender', local.gender);
-    setField('isCaregiver', local.isCaregiver);
+    const text = await res.text();
+    let data;
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = { raw: text };
+    }
+    return { res, data };
+  }
 
-    // Save hidden username to context if you still need it
-    setField('username', local.username);
+  async function chargeUser() {
+    const { stripeCustomerId, stripePaymentMethod, totalCents } = state;
 
-    if (local.isCaregiver) {
-      setField('cgFirst', local.cgFirst);
-      setField('cgLast', local.cgLast);
-      setField('cgPhone', local.cgPhone);
-      setField('cgEmail', local.cgEmail);
+    if (!stripeCustomerId || !stripePaymentMethod) {
+      throw new Error("Payment details missing — go back to checkout.");
     }
 
-    // Store password securely in sessionStorage for later
-    sessionStorage.setItem('TEMP_PASSWORD', password);
+    const body = {
+      customerId: stripeCustomerId,
+      paymentMethod: stripePaymentMethod,
+      amountCents: totalCents,
+      meta: {
+        EmailAddress: state.email,
+        DOB: local.dob,
+        Gender: local.gender,
+        isCaregiver: local.isCaregiver ? "1" : "0",
+        cgFirst: local.cgFirst,
+        cgLast: local.cgLast,
+        Phone: local.cgPhone,
+        PostalCode: state.billingZip || '',
+        join_source: "JoinStepThree"
+      }
+    };
 
-    navigate('/join/checkout');
-  };
+    const { res, data } = await postJson("/api/stripe/charge-after-setup", body);
+
+    if (!res.ok) {
+      throw new Error(data.error || "Payment failed");
+    }
+
+    return data;
+  }
+
+  async function submit(e) {
+    e.preventDefault();
+
+    try {
+      // Save all fields to context
+      setField("dob", local.dob);
+      setField("gender", local.gender);
+      setField("isCaregiver", local.isCaregiver);
+      setField("username", local.username);
+
+      if (local.isCaregiver) {
+        setField("cgFirst", local.cgFirst);
+        setField("cgLast", local.cgLast);
+        setField("cgPhone", local.cgPhone);
+        setField("cgEmail", local.cgEmail);
+      }
+
+      sessionStorage.setItem("TEMP_PASSWORD", password);
+
+      // NOW run the actual charge
+      await chargeUser();
+
+      navigate("/success");
+    } catch (err) {
+      console.error(err);
+      alert("Payment couldn’t complete: " + err.message);
+      navigate("/join/checkout");
+    }
+  }
 
   return (
     <div className="account-setup-container">
       <h1 className="page-title">Account Setup</h1>
 
       <form onSubmit={submit} className="account-form">
-        {/* Top row */}
         <div className="top-row">
           <div className="form-group">
             <label>Date of Birth</label>
@@ -106,7 +161,6 @@ export default function StepThreeAccountSetup() {
           </div>
         </div>
 
-        {/* Caregiver box */}
         {local.isCaregiver && (
           <div className="caregiver-box">
             <h2>Caregiver Information</h2>
@@ -157,7 +211,7 @@ export default function StepThreeAccountSetup() {
         )}
 
         <div className="submit-wrap">
-          <PrimaryButton type="submit">Continue</PrimaryButton>
+          <PrimaryButton type="submit">Finish</PrimaryButton>
         </div>
       </form>
     </div>
