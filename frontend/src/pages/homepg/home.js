@@ -10,18 +10,17 @@ import './home.css';
 
 function Home() {
   const { user } = useAuth();
-  const isLoggedIn = !!user;
+  const isLoggedIn = true; // Dev bypass
 
-  // Temporarily show dashboard for testing
-  if (true) {
+  if (isLoggedIn) {
     // Dashboard for logged-in users
     return (
       <main className="main-content">
         <DividerWave />
         <section className="hero-section">
-          <h1>Welcome to Your Better Mind Care Dashboard</h1>
+          <h1>Welcome to your Better Mind Care Dashboard</h1>
           <p>
-            This will work after you log in. The Better Mind Care Dashboard is your secure portal for viewing your appointments, messages, lab results, and your personalized Brain Health Report.
+            This is your private home base for everything related to your brain health journey — appointments, reports, and important updates. Once your lab results or brain health report are ready, you’ll find them here.
           </p>
           <div className="privacy-notice">
             <div className="privacy-item">

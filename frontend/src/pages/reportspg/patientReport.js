@@ -82,33 +82,34 @@ function PatientReport() {
         title: "Patient Report",
         generatedAt: new Date().toISOString(),
         sections: [
-          {
-            slug: "overview",
-            title: "Overview",
-            html: "<p>This is the overview section with some <strong>bold text</strong> and a <a href='https://example.com' target='_blank' rel='noopener noreferrer'>link</a>.</p>"
-          },
-          {
-            slug: "recommendations",
-            title: "Personalized Recommendations",
-            html: "<p>Here are some recommendations.</p><ul><li>Recommendation 1</li><li>Recommendation 2</li></ul>"
-          },
-          {
-            slug: "supplements",
-            title: "Supplements",
-            html: "<p>Supplements info here.</p>"
-          },
-          {
-            slug: "test-results",
-            title: "Test Results",
-            html: "<p>Test results data.</p>"
-          },
-          {
-            slug: "faq-dictionary",
-            title: "FAQs and Dictionary",
-            html: "<p>FAQs here.</p>"
-          }
+           {
+             slug: "overview",
+             title: "Overview",
+             html: "<p>This is the overview section with some <strong>bold text</strong> and a <a href='https://example.com' target='_blank' rel='noopener noreferrer'>link</a>.</p>"
+           },
+           {
+             slug: "recommendations",
+             title: "Your Personalized Recommendations",
+             html: "<p>Here are some recommendations.</p><ul><li>Recommendation 1</li><li>Recommendation 2</li></ul>"
+           },
+           {
+             slug: "supplements",
+             title: "Supplement Guidance",
+             html: "<p>Supplements info here.</p>"
+           },
+           {
+             slug: "test-results",
+             title: "Your Test Results",
+             html: "<p>Test results data.</p>"
+           },
+           {
+             slug: "faq-dictionary",
+             title: "FAQs & Definitions",
+             html: "<p>FAQs here.</p>"
+           }
         ],
-        pdfUrl: "#"
+        pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+        intro: "This report is based on your lab results, intake information, and evidence-informed cognitive risk analysis. Use the table of contents to navigate through your personalized recommendations."
       };
       setReport(mockReport);
       setLoading(false);
@@ -164,8 +165,32 @@ function PatientReport() {
     return (
       <div className="patient-report-page">
         <p>{error || 'No report yet.'}</p>
-        <button className="btn" type="button" onClick={() => navigate('/')}>
-          Go back
+        <button
+          className="btn"
+          type="button"
+          onClick={() => navigate('/')}
+          style={{
+            border: '2px solid var(--teal)',
+            color: 'var(--teal)',
+            background: 'transparent',
+            padding: '0.4rem 0.8rem',
+            borderRadius: '4px',
+            textDecoration: 'none',
+            fontWeight: '600',
+            fontSize: '0.8rem',
+            display: 'inline-block',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = 'var(--teal)';
+            e.target.style.color = 'white';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'transparent';
+            e.target.style.color = 'var(--teal)';
+          }}
+        >
+          ← Go back
         </button>
       </div>
     );
@@ -177,21 +202,50 @@ function PatientReport() {
     'Educational wellness content — not medical advice. See full disclaimer on page 1.';
 
   return (
-    <div className="bg-gradient-teal" style={{ minHeight: '100vh' }}>
+    <div style={{ background: 'linear-gradient(to top, var(--seafoam), white)', minHeight: '100vh' }}>
       <main className="patient-report-page">
         <header className="report-page__header">
           <div>
-            <h1>{report.title || 'Patient Report'}</h1>
+            <h1 style={{ marginBottom: '2rem' }}>Your Personalized Brain Health Report</h1>
             <p className="timestamp">{report.generatedAt ? new Date(report.generatedAt).toLocaleDateString() : ''}</p>
             {report.pdfUrl && (
-              <a href={report.pdfUrl} download className="btn-primary">
-                Download PDF
+              <a
+                href={report.pdfUrl}
+                download
+                className="btn"
+                style={{
+                  border: '2px solid var(--teal)',
+                  color: 'var(--teal)',
+                  background: 'transparent',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontWeight: '600',
+                  display: 'inline-block',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = 'var(--teal)';
+                  e.target.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                  e.target.style.color = 'var(--teal)';
+                }}
+              >
+                Download as PDF
               </a>
             )}
           </div>
-        </header>
+         </header>
 
-      {report.globalDisclaimer && (
+         {report.intro && (
+           <section className="report-intro">
+             <p>{report.intro}</p>
+           </section>
+         )}
+
+       {report.globalDisclaimer && (
         <section className="report-banner" aria-label="Global disclaimer">
           <p>{report.globalDisclaimer}</p>
         </section>

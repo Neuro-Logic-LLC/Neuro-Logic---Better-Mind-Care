@@ -87,8 +87,8 @@ html {
   margin: 0;
   color: var(--teal);
   font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
-  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
-  font-weight: 700;
+  font-size: clamp(1.2rem, 3vw, 2.2rem);
+  font-weight: 800;
 }
 
 .report-section__body {
@@ -168,7 +168,7 @@ html {
 }
 
 .toc li {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 
 .toc a {
@@ -197,6 +197,15 @@ html {
 }
 
 /* ===== Print-friendly ===== */
+@media (max-width: 768px) {
+  .patient-report-page {
+    padding: 2.5rem 1rem;
+  }
+  .report-section__header h2 {
+    font-size: 1.4rem !important;
+  }
+}
+
 @media print {
   .patient-report-page {
     max-width: 100%;

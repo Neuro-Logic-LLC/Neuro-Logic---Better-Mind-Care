@@ -6,11 +6,9 @@ import './resources.css';
 function Resources() {
   return (
     <div className="resources-page">
-      <h1>Care & Brain Health Resources</h1>
+      <h1>Helpful Resources</h1>
       <p>
-        This page offers research-backed information, prevention tips, and
-        answers to common questions. Everything here reflects the same logic and
-        values that guide our Patient Reports.
+        Explore articles, FAQs, and expert-written content to help you understand your results and support your brain health journey.
       </p>
 
       <section className="resource-section">

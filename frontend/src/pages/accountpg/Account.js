@@ -53,8 +53,7 @@ function Account() {
   return (
     <div className="account-page">
       <div className="account-content">
-        <h1>Account Settings</h1>
-        <p>Manage your account information and preferences.</p>
+        <h1>Your Account</h1>
 
       <form onSubmit={handleSubmit} className="account-form">
         <section className="account-section">
@@ -77,7 +76,7 @@ function Account() {
               required
             />
             <InputText
-              label="Email"
+              label="Update Your Email Address"
               id="email"
               name="email"
               type="email"
@@ -86,7 +85,7 @@ function Account() {
               required
             />
             <InputText
-              label="Phone"
+              label="Update Your Phone Number"
               id="phone"
               name="phone"
               type="tel"
@@ -98,6 +97,7 @@ function Account() {
 
         <section className="account-section">
           <h2>Communication Preferences</h2>
+          <p>Choose how you’d like us to contact you about updates, results, and important reminders.</p>
           <div className="checkbox-group">
             <label className="checkbox-label">
               <input
@@ -199,30 +199,27 @@ function Account() {
             <div className="appointments-widget">
               {/* TODO: Connect to calendar API to pull real appointment data and link to appointment pages */}
               {/* Mock appointments data - replace with real API call */}
-              <div className="appointment-item upcoming" onClick={() => navigate('/intake-form')} style={{cursor: 'pointer'}}>
-                <div className="appointment-details">
-                  <strong>Intake Appointment</strong>
-                  <p>October 15, 2025 at 2:00 PM PST</p>
-                </div>
-              </div>
-              <div className="appointment-item upcoming" onClick={() => navigate('/screening-order')} style={{cursor: 'pointer'}}>
-                <div className="appointment-details">
-                  <strong>Lab Appointment</strong>
-                  <p>October 20, 2025 at 10:00 AM PST - Better Mind Care Lab</p>
-                </div>
-              </div>
-              <div className="appointment-item past" onClick={() => navigate('/patient-booking')} style={{cursor: 'pointer'}}>
-                <div className="appointment-details">
-                  <strong>Initial Consultation</strong>
-                  <p>September 1, 2025 at 3:00 PM PST</p>
-                </div>
-              </div>
+               <div className="appointment-item upcoming" onClick={() => navigate('/intake-form')} style={{cursor: 'pointer'}}>
+                 <div className="appointment-details">
+                   <p>Intake Call: Tuesday, October 15, 2025 at 2:00 PM (PST)</p>
+                 </div>
+               </div>
+               <div className="appointment-item upcoming" onClick={() => navigate('/screening-order')} style={{cursor: 'pointer'}}>
+                 <div className="appointment-details">
+                   <p>Lab Appointment: October 20, 2025 at Better Mind Care Lab</p>
+                 </div>
+               </div>
+               <div className="appointment-item past" onClick={() => navigate('/patient-booking')} style={{cursor: 'pointer'}}>
+                 <div className="appointment-details">
+                   <p>Completed: September 1, 2025</p>
+                 </div>
+               </div>
             </div>
           ) : (
-            <p className="no-appointments">You don't have any upcoming appointments right now.</p>
+             <p className="no-appointments">You don’t have any upcoming appointments scheduled. We’ll add them here as soon as they’re confirmed.</p>
           )}
-          <p className="reschedule-text">
-            To make changes to your appointment, contact support at support@bettermindcare.com and we'll help you reschedule.
+           <p className="reschedule-text">
+             To make changes to your appointment, contact support at support@bettermindcare.com and we’ll help you reschedule.
           </p>
         </section>
 
@@ -260,11 +257,10 @@ function Account() {
         </section>
 
         <section className="account-section danger-zone">
-          <h2>Cancel Account</h2>
+          <h2>Cancel My Account</h2>
           <p>This action cannot be undone. All your data will be permanently deleted.</p>
-          <button type="button" className="btn-danger" onClick={() => alert('Cancel account coming soon')}>
-            <img src={LogOutIcon} alt="" className="btn-icon" />
-            Cancel Account
+          <button type="button" className="btn-danger" onClick={() => alert('Are you sure you want to cancel your account? Canceling will remove access to your dashboard and future updates.')}>
+            Cancel My Account
           </button>
         </section>
 

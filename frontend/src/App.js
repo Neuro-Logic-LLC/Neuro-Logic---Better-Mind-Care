@@ -30,6 +30,7 @@ import ForgotPassword from './pages/forgotpasswordpg/ForgotPassword';
 import ResetPassword from './pages/resetpasswordpg/ResetPassword';
 import ConfirmEmail from './pages/confirmemailpg/ConfirmEmail';
 import GoogleCalendar from './pages/calendarpg/GoogleCalendar';
+import PatientBooking from './pages/calendarpg/PatientBooking';
 import SuccessPage from './pages/successpg/Success';
 import CancelPage from './pages/cancelpg/Cancel';
 import CheckoutPage from './pages/checkoutpg/Checkout';
@@ -71,7 +72,15 @@ function App() {
                   path="/evexia-lab-results"
                   element={<EvexiaLabReport />}
                 />
-                <Route path="/google-calendar" element={<GoogleCalendar />} />
+                 <Route path="/google-calendar" element={<GoogleCalendar />} />
+                 <Route
+                   path="/patient-booking"
+                   element={
+                     <ProtectedRoute>
+                       <PatientBooking />
+                     </ProtectedRoute>
+                   }
+                 />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/success" element={<SuccessPage />} />
                 <Route path="/cancel-order" element={<CancelPage />} />
@@ -87,18 +96,22 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path="/intake-form"
-                  element={
-                    <ProtectedRoute>
-                      <IntakeForm />
-                    </ProtectedRoute>
-                  }
-                />
                  <Route
-                   path="/reports/:reportId"
-                   element={<PatientReport />}
+                   path="/intake-form"
+                   element={
+                     <ProtectedRoute>
+                       <IntakeForm />
+                     </ProtectedRoute>
+                   }
                  />
+                  <Route
+                    path="/report"
+                    element={<PatientReport />}
+                  />
+                  <Route
+                    path="/reports/:reportId"
+                    element={<PatientReport />}
+                  />
                  <Route
                    path="/my-reports"
                    element={

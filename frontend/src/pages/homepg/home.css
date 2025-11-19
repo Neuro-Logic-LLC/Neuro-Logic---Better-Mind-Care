@@ -88,7 +88,7 @@ a.btn:active {
   background: #fff;
   border: 1px solid rgba(23, 109, 129, 0.1);
   border-radius: 20px;
-  padding: 2.5rem;
+  padding: 2.25rem;
   box-shadow: 0 8px 32px rgba(23, 109, 129, 0.08);
   text-align: center;
   transition: all 0.3s ease;
@@ -140,6 +140,9 @@ a.btn:active {
 }
 
 @media (max-width: 768px) {
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
   .privacy-notice {
     align-items: center;
   }
