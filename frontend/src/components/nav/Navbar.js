@@ -94,16 +94,16 @@ function Navbar() {
         </div>
         {/* MENU - App pages */}
         <ul className="navbar-right" role="menubar" aria-label="Primary">
+          <li role="none">
+            <Link role="menuitem" to={isLoggedIn ? "/support" : "/contact"} onClick={() => setMenuOpen(false)}>
+              Support / Help
+            </Link>
+          </li>
           {isLoggedIn && (
             <>
               <li role="none">
                 <Link role="menuitem" to="/account" onClick={() => setMenuOpen(false)}>
                   Account
-                </Link>
-              </li>
-              <li role="none">
-                <Link role="menuitem" to="/support" onClick={() => setMenuOpen(false)}>
-                  Support / Help
                 </Link>
               </li>
               <li role="none">
