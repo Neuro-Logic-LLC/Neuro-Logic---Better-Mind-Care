@@ -49,6 +49,7 @@ import Support from './pages/supportpg/Support';
 import Messages from './pages/messagespg/Messages';
 import Article from './pages/myreportspg/articles/Article';
 
+
 function App() {
   return (
     <AuthProvider>
@@ -122,6 +123,7 @@ function App() {
                     path="/resources/articles/:slug"
                     element={<Article />}
                   />
+
                 <Route
                   path="/admin/dashboard"
                   element={

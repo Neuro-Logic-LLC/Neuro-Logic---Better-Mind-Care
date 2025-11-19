@@ -41,68 +41,6 @@ function Resources() {
           </section>
 
           <section className="resource-section">
-            <h2>Frequently Asked Questions</h2>
-            <div className="faq-list">
-              <div className="faq-item">
-                <div className="faq-question">What happens after my intake?</div>
-                <div className="faq-answer">We analyze your health data and generate a personalized report with recommendations.</div>
-              </div>
-              <div className="faq-item">
-                <div className="faq-question">Do I have to order labs?</div>
-                <div className="faq-answer">Labs are optional but recommended. If triggered by your answers, they'll appear in your dashboard.</div>
-              </div>
-              <div className="faq-item">
-                <div className="faq-question">Is my data safe?</div>
-                <div className="faq-answer">Yes — we're fully HIPAA compliant and encrypt all personal data.</div>
-              </div>
-              <div className="faq-item">
-                <div className="faq-question">Can I retake the cognition test?</div>
-                <div className="faq-answer">Yes. Reach out to our support team or check your dashboard for test access.</div>
-              </div>
-              <div className="faq-item">
-                <div className="faq-question">How do I access my Brain Health Report?</div>
-                <div className="faq-answer">After your intake and lab results are reviewed, your personalized report will appear in the Reports & Labs section. You'll be able to read it online or download a PDF.</div>
-              </div>
-              <div className="faq-item">
-                <div className="faq-question">Will I be notified when new information is added to my dashboard?</div>
-                <div className="faq-answer">Yes. If a new report or direct message is posted, you'll receive a simple email letting you know something is waiting for you in your dashboard.</div>
-              </div>
-              <div className="faq-item">
-                <div className="faq-question">Where can I see my upcoming appointments?</div>
-                <div className="faq-answer">Your intake and lab appointments appear in the Appointments section. Past appointments will be shown in gray.</div>
-              </div>
-              <div className="faq-item">
-                <div className="faq-question">I'm a caregiver. Can I manage a family member's account here?</div>
-                <div className="faq-answer">Yes. Many people use the dashboard to help a loved one stay organized. You'll find patient-specific fields under Account Settings.</div>
-              </div>
-              <div className="faq-item">
-                <div className="faq-question">When will my lab results be ready?</div>
-                <div className="faq-answer">Lab results typically appear within 3–10 business days depending on the tests ordered. As soon as they're processed, they will automatically show up in Reports & Labs.</div>
-              </div>
-              <div className="faq-item">
-                <div className="faq-question">What should I do if something in my report doesn't make sense?</div>
-                <div className="faq-answer">Each section includes clear explanations, definitions, and clinician-written guidance. If you need more clarity, reach out through Support and we'll point you in the right direction.</div>
-              </div>
-              <div className="faq-item">
-                <div className="faq-question">How do I update my email, phone number, or communication preferences?</div>
-                <div className="faq-answer">Go to Account Settings. All of your personal and communication information can be updated there.</div>
-              </div>
-              <div className="faq-item">
-                <div className="faq-question">How do I reschedule an appointment?</div>
-                <div className="faq-answer">At this time, appointment changes are handled through our support team. You'll find instructions in the Appointments section.</div>
-              </div>
-              <div className="faq-item">
-                <div className="faq-question">How do I download my lab PDFs?</div>
-                <div className="faq-answer">Lab PDFs appear in your Reports & Labs list. Click any lab item to download it directly.</div>
-              </div>
-              <div className="faq-item">
-                <div className="faq-question">What happens to my data if I cancel my account?</div>
-                <div className="faq-answer">We permanently delete your information from our system. You'll be logged out automatically once the process is complete.</div>
-              </div>
-            </div>
-          </section>
-
-          <section className="resource-section">
             <h2>Learn More</h2>
             <div className="articles-list">
               <div className="article-link">
