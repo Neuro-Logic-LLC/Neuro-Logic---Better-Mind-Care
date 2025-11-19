@@ -52,8 +52,8 @@ import Article from './pages/myreportspg/articles/Article';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <div className="AppShell">
           <Navbar />
           <main className="PageBody">
@@ -194,8 +194,8 @@ function App() {
           </main>
           <Footer />
         </div>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
