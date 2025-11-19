@@ -12,7 +12,8 @@ function Home() {
   const { user } = useAuth();
   const isLoggedIn = !!user;
 
-  if (isLoggedIn) {
+  // Temporarily show dashboard for testing
+  if (true) {
     // Dashboard for logged-in users
     return (
       <main className="main-content">
