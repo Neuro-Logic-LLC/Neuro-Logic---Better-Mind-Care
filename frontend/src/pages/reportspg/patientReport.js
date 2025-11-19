@@ -2,6 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './patientReport.css';
 
+const TableOfContents = ({ sections }) => {
+  return (
+    <nav className="toc">
+      <h3>Table of Contents</h3>
+      <ul>
+        {sections.map((section) => (
+          <li key={section.slug}>
+            <a href={`#${section.slug}`}>{section.title}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+};
+
 const renderItems = (items = []) => {
   if (!Array.isArray(items) || items.length === 0) return null;
   return (
@@ -176,13 +191,15 @@ function PatientReport() {
           </div>
         </header>
 
-        {report.globalDisclaimer && (
-          <section className="report-banner" aria-label="Global disclaimer">
-            <p>{report.globalDisclaimer}</p>
-          </section>
-        )}
+      {report.globalDisclaimer && (
+        <section className="report-banner" aria-label="Global disclaimer">
+          <p>{report.globalDisclaimer}</p>
+        </section>
+      )}
 
-        {sections.map((section) => (
+      <TableOfContents sections={sections} />
+
+      {sections.map((section) => (
           <Section
             key={section.slug || section.title}
             section={section}

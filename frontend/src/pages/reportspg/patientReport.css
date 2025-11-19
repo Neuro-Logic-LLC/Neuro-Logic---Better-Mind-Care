@@ -1,4 +1,7 @@
 /* ===== Patient Report Page (brand-updated) ===== */
+html {
+  scroll-behavior: smooth;
+}
 .patient-report-page {
   max-width: 840px;
   margin: 0 auto 4rem;
@@ -140,6 +143,42 @@
   border-top: 1px solid color-mix(in oklab, var(--soft-blue) 35%, white);
   font-size: 0.86rem;
   color: color-mix(in oklab, var(--charcoal) 70%, white);
+}
+
+/* ===== Table of Contents ===== */
+.toc {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--soft-white);
+  border: 1px solid color-mix(in oklab, var(--soft-blue) 45%, white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.toc h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  color: var(--teal);
+}
+
+.toc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc li {
+  margin-bottom: 0.5rem;
+}
+
+.toc a {
+  color: var(--charcoal);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.toc a:hover {
+  color: var(--teal);
 }
 
 /* ===== Actions ===== */
