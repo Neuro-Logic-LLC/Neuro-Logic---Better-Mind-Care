@@ -97,7 +97,7 @@ a.btn:active {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--teal), var(--gold-amber));
+  background: linear-gradient(90deg, var(--teal), var(--seafoam));
   opacity: 0;
   transition: opacity 0.3s ease;
 }
