@@ -56,7 +56,7 @@ export default function EmailStep() {
     // Store email and move forward
     setField('email', trimmed);
     setChecking(false);
-    navigate('/account-info');
+    navigate('/join/checkout');
   };
 
   return (
