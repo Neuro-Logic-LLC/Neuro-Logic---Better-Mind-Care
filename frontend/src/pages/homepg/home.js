@@ -35,7 +35,7 @@ function Home() {
           </div>
         </section>
 
-        <section className="features-section bg-gradient-teal">
+        <section className="features-section">
           <div className="features-grid">
             <Link to="/my-reports" className="feature-card-link">
               <div className="feature-card">
@@ -91,7 +91,7 @@ function Home() {
           </div>
         </section>
 
-        <section className="features-section bg-gradient-teal">
+        <section className="features-section">
           <div className="features-grid">
             <div className="feature-card">
               <h3>Personalized Reports</h3>
