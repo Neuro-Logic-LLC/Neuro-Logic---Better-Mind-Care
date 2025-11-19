@@ -213,14 +213,7 @@ function App() {
                      </ProtectedRoute>
                    }
                  />
-                 <Route
-                   path="/support"
-                   element={
-                     <ProtectedRoute>
-                       <Support />
-                     </ProtectedRoute>
-                   }
-                 />
+                 <Route path="/support" element={<Support />} />
                  <Route
                    path="/messages"
                    element={
