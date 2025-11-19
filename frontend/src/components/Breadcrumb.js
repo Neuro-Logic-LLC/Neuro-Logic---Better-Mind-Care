@@ -13,7 +13,7 @@ const Breadcrumb = ({ items }) => {
                 <span className="breadcrumb-separator"> &gt; </span>
               </>
             ) : (
-              <span className="breadcrumb-current">{item.label}</span>
+              <span className="breadcrumb-current" aria-current="page">{item.label}</span>
             )}
           </li>
         ))}

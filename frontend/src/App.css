@@ -354,6 +354,22 @@ tbody tr + tr td {
   }
 }
 
+/* ====== Skip Link ====== */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--teal);
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 1000;
+  border-radius: 4px;
+}
+.skip-link:focus {
+  top: 6px;
+}
+
 /* ====== Breadcrumbs ====== */
 .breadcrumb {
   margin-bottom: 1rem;

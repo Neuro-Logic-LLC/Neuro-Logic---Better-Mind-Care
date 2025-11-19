@@ -47,17 +47,20 @@ function Contact() {
         </p>
       </div>
 
-      <div className="feedback-form">
-        <h3 style={{ marginBottom: '2rem' }}>Send Us a Message</h3>
-        <form>
-          <input type="text" placeholder="Your Name" required />
-          <input type="email" placeholder="Your Email" required />
-          <textarea placeholder="Your Message" rows="5" required></textarea>
-          <button type="submit" className="btn">
-            Send Message
-          </button>
-        </form>
-      </div>
+       <div className="feedback-form">
+         <h3 style={{ marginBottom: '2rem' }}>Send Us a Message</h3>
+         <form>
+           <label htmlFor="contact-name" className="sr-only">Your Name</label>
+           <input id="contact-name" type="text" placeholder="Your Name" required />
+           <label htmlFor="contact-email" className="sr-only">Your Email</label>
+           <input id="contact-email" type="email" placeholder="Your Email" required />
+           <label htmlFor="contact-message" className="sr-only">Your Message</label>
+           <textarea id="contact-message" placeholder="Your Message" rows="5" required></textarea>
+           <button type="submit" className="btn">
+             Send Message
+           </button>
+         </form>
+       </div>
     </div>
   );
 }

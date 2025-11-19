@@ -53,11 +53,12 @@ import Article from './pages/myreportspg/articles/Article';
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
+    <AuthProvider>
+      <Router>
         <div className="AppShell">
+          <a href="#main-content" className="skip-link">Skip to main content</a>
           <Navbar />
-          <main className="PageBody">
+          <main id="main-content" className="PageBody">
             {/* ✅ Provider goes OUTSIDE <Routes>, not inside */}
             <SignupProvider>
               <Routes>
