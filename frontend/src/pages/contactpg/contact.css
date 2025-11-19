@@ -8,6 +8,10 @@
   font-family: var(--font-body, 'Open Sans', sans-serif);
 }
 
+.contact-page h3 {
+  color: var(--charcoal);
+}
+
 .contact-section {
   margin-top: 2rem;
 }

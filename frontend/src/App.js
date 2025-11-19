@@ -56,7 +56,7 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="AppShell">
-          <a href="#main-content" className="skip-link">Skip to main content</a>
+          <a href="#main-content" className="skip-link sr-only">Skip to main content</a>
           <Navbar />
           <main id="main-content" className="PageBody">
             {/* ✅ Provider goes OUTSIDE <Routes>, not inside */}
@@ -230,8 +230,8 @@ function App() {
           </main>
           <Footer />
         </div>
-      </AuthProvider>
     </Router>
+  </AuthProvider>
   );
 }
 
