@@ -104,14 +104,22 @@ function App() {
                      </ProtectedRoute>
                    }
                  />
-                  <Route
-                    path="/report"
-                    element={<PatientReport />}
-                  />
-                  <Route
-                    path="/reports/:reportId"
-                    element={<PatientReport />}
-                  />
+                   <Route
+                     path="/report"
+                     element={
+                       <ProtectedRoute>
+                         <PatientReport />
+                       </ProtectedRoute>
+                     }
+                   />
+                   <Route
+                     path="/reports/:reportId"
+                     element={
+                       <ProtectedRoute>
+                         <PatientReport />
+                       </ProtectedRoute>
+                     }
+                   />
                  <Route
                    path="/my-reports"
                    element={
@@ -197,9 +205,30 @@ function App() {
                 <Route path="/join" element={<EmailStep />} />
                 <Route path="/join/checkout" element={<CheckoutStep />} />
                 <Route path="/account-info" element={<StepThreeAccountSetup />} />
-                <Route path="/account" element={<Account />} />
-                <Route path="/support" element={<Support />} />
-                <Route path="/messages" element={<Messages />} />
+                 <Route
+                   path="/account"
+                   element={
+                     <ProtectedRoute>
+                       <Account />
+                     </ProtectedRoute>
+                   }
+                 />
+                 <Route
+                   path="/support"
+                   element={
+                     <ProtectedRoute>
+                       <Support />
+                     </ProtectedRoute>
+                   }
+                 />
+                 <Route
+                   path="/messages"
+                   element={
+                     <ProtectedRoute>
+                       <Messages />
+                     </ProtectedRoute>
+                   }
+                 />
                 {/* optional 404 */}
                 {/* <Route path="*" element={<NotFound />} /> */}
               </Routes>
