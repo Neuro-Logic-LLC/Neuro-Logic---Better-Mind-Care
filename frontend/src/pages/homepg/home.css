@@ -54,7 +54,7 @@ a.btn:active {
 .privacy-notice p {
   font-size: 1rem;
   margin: 0;
-  text-align: left;
+  text-align: center;
   color: var(--charcoal); /* Dark color for visibility */
   font-weight: 500;
 }
@@ -65,9 +65,6 @@ a.btn:active {
   }
   .privacy-item {
     flex-direction: column;
-    text-align: center;
-  }
-  .privacy-notice p {
     text-align: center;
   }
 }
