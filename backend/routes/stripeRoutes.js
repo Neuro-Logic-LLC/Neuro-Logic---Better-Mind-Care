@@ -250,7 +250,6 @@ router.post('/setup-intent', express.json(), async (req, res) => {
         usage: 'off_session',
         confirm: false,
         automatic_payment_methods: { enabled: true },
-        payment_method_types: ['card'],
         metadata: { app: 'BetterMindCare', env: IS_PROD ? 'prod' : 'dev', ...meta }
       });
     }
