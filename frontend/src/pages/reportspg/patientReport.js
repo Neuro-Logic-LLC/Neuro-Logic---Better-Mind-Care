@@ -22,23 +22,17 @@ const renderItems = (items = []) => {
 const Section = ({ section, fallbackFooter }) => {
   if (!section) return null;
   const footer = section.footer || fallbackFooter;
-  if (
-    !section.body &&
-    (!Array.isArray(section.items) || section.items.length === 0)
-  ) {
+  if (!section.html) {
     return null;
   }
 
   return (
-    <section className="report-section" id={section.id}>
+    <section className="report-section" id={section.slug}>
       <h2>{section.title}</h2>
-      {section.body && (
-        <div
-          className="report-section__body"
-          dangerouslySetInnerHTML={{ __html: section.body }}
-        />
-      )}
-      {renderItems(section.items)}
+      <div
+        className="report-section__body"
+        dangerouslySetInnerHTML={{ __html: section.html }}
+      />
       <div className="section-footer">{footer}</div>
     </section>
   );
@@ -65,8 +59,43 @@ function PatientReport() {
       return;
     }
 
-    // If no id and no report, nothing to load
+    // If no id and no report, use mock data for testing
     if (!reportId) {
+      // Mock data matching spec
+      const mockReport = {
+        id: "mock-uuid",
+        title: "Patient Report",
+        generatedAt: new Date().toISOString(),
+        sections: [
+          {
+            slug: "overview",
+            title: "Overview",
+            html: "<p>This is the overview section with some <strong>bold text</strong> and a <a href='https://example.com' target='_blank' rel='noopener noreferrer'>link</a>.</p>"
+          },
+          {
+            slug: "recommendations",
+            title: "Personalized Recommendations",
+            html: "<p>Here are some recommendations.</p><ul><li>Recommendation 1</li><li>Recommendation 2</li></ul>"
+          },
+          {
+            slug: "supplements",
+            title: "Supplements",
+            html: "<p>Supplements info here.</p>"
+          },
+          {
+            slug: "test-results",
+            title: "Test Results",
+            html: "<p>Test results data.</p>"
+          },
+          {
+            slug: "faq-dictionary",
+            title: "FAQs and Dictionary",
+            html: "<p>FAQs here.</p>"
+          }
+        ],
+        pdfUrl: "#"
+      };
+      setReport(mockReport);
       setLoading(false);
       return;
     }
@@ -133,33 +162,35 @@ function PatientReport() {
     'Educational wellness content — not medical advice. See full disclaimer on page 1.';
 
   return (
-    <main className="patient-report-page">
-      <header className="report-page__header">
-        <div>
-          <h1>
-            Patient Report{' '}
-            {report.isDraft && (
-              <span className="report-badge report-badge--draft">Draft</span>
+    <div className="bg-gradient-teal" style={{ minHeight: '100vh' }}>
+      <main className="patient-report-page">
+        <header className="report-page__header">
+          <div>
+            <h1>{report.title || 'Patient Report'}</h1>
+            <p className="timestamp">{report.generatedAt ? new Date(report.generatedAt).toLocaleDateString() : ''}</p>
+            {report.pdfUrl && (
+              <a href={report.pdfUrl} download className="btn-primary">
+                Download PDF
+              </a>
             )}
-          </h1>
-          <p className="timestamp">{report.reportDate || ''}</p>
-        </div>
-      </header>
+          </div>
+        </header>
 
-      {report.globalDisclaimer && (
-        <section className="report-banner" aria-label="Global disclaimer">
-          <p>{report.globalDisclaimer}</p>
-        </section>
-      )}
+        {report.globalDisclaimer && (
+          <section className="report-banner" aria-label="Global disclaimer">
+            <p>{report.globalDisclaimer}</p>
+          </section>
+        )}
 
-      {sections.map((section) => (
-        <Section
-          key={section.id || section.title}
-          section={section}
-          fallbackFooter={footerBanner}
-        />
-      ))}
-    </main>
+        {sections.map((section) => (
+          <Section
+            key={section.slug || section.title}
+            section={section}
+            fallbackFooter={footerBanner}
+          />
+        ))}
+      </main>
+    </div>
   );
 }
 
