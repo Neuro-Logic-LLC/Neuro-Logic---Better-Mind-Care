@@ -2,10 +2,15 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Breadcrumb from '../../components/Breadcrumb';
 
 function Support() {
   return (
     <div className="support-page">
+      <Breadcrumb items={[
+        { label: 'Home', path: '/' },
+        { label: 'Support & Help' }
+      ]} />
       <h1>Support & Help</h1>
       <p>Find answers to common questions and get the help you need.</p>
 

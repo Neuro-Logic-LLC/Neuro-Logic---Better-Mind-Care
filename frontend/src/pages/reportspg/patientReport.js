@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Breadcrumb from '../../components/Breadcrumb';
 import './patientReport.css';
 
 const TableOfContents = ({ sections }) => {
@@ -203,10 +204,15 @@ function PatientReport() {
 
   return (
     <div style={{ background: 'linear-gradient(to top, var(--seafoam), white)', minHeight: '100vh' }}>
-      <main className="patient-report-page">
-        <header className="report-page__header">
-          <div>
-            <h1 style={{ marginBottom: '2rem' }}>Your Personalized Brain Health Report</h1>
+       <main className="patient-report-page">
+         <header className="report-page__header">
+           <Breadcrumb items={[
+             { label: 'Home', path: '/' },
+             { label: 'Reports', path: '/my-reports' },
+             { label: 'Patient Report' }
+           ]} />
+           <div>
+             <h1 style={{ marginBottom: '2rem' }}>Your Personalized Brain Health Report</h1>
             <p className="timestamp">{report.generatedAt ? new Date(report.generatedAt).toLocaleDateString() : ''}</p>
             {report.pdfUrl && (
               <a

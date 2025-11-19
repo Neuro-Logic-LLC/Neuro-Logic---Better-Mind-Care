@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import Breadcrumb from '../../components/Breadcrumb';
 import InputText from '../../components/inputs/InputText';
 import LockNKeyIcon from '../../assets/icons/LockNKeyIcon.png';
 import CircleCheckIcon from '../../assets/icons/CircleCheckIcon.png';
@@ -53,6 +54,10 @@ function Account() {
   return (
     <div className="account-page">
       <div className="account-content">
+        <Breadcrumb items={[
+          { label: 'Home', path: '/' },
+          { label: 'Account' }
+        ]} />
         <h1>Your Account</h1>
 
       <form onSubmit={handleSubmit} className="account-form">

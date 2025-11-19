@@ -1,6 +1,7 @@
 /** @format */
 
 import React from 'react';
+import Breadcrumb from '../../components/Breadcrumb';
 
 function Messages() {
   // Sample messages - in real app, this would come from API
@@ -31,6 +32,10 @@ function Messages() {
   return (
     <div className="messages-page" style={{ background: 'linear-gradient(to top, var(--seafoam), white)', minHeight: '100vh' }}>
       <style>{`@media (max-width: 768px) { .messages-page h1 { text-align: center; } }`}</style>
+      <Breadcrumb items={[
+        { label: 'Home', path: '/' },
+        { label: 'Messages' }
+      ]} />
       <h1>Messages from Better Mind Care</h1>
 
       <div className="messages-list" style={{ maxWidth: '800px', margin: '0 auto' }}>

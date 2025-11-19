@@ -353,3 +353,35 @@ tbody tr + tr td {
     scroll-behavior: auto !important;
   }
 }
+
+/* ====== Breadcrumbs ====== */
+.breadcrumb {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+.breadcrumb-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+}
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+}
+.breadcrumb-item a {
+  color: var(--teal);
+  text-decoration: none;
+}
+.breadcrumb-item a:hover {
+  text-decoration: underline;
+}
+.breadcrumb-current {
+  color: var(--color-text);
+  font-weight: 500;
+}
+.breadcrumb-separator {
+  color: var(--color-muted);
+  margin: 0 0.5rem;
+}
