@@ -36,7 +36,7 @@ a.btn:active {
   align-items: center;
   gap: 1rem;
   max-width: 600px;
-  margin-top: 2rem;
+  margin: 2rem auto 0;
 }
 
 .privacy-item {
@@ -47,8 +47,8 @@ a.btn:active {
 }
 
 .privacy-icon {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
 }
 
 .privacy-notice p {
