@@ -45,15 +45,11 @@ import SignupProvider from './pages/NewCheckoutPages/SignupContext';
 import PatientOrders from './pages/evexiapatientorderspg/EvexiaPatientOrders';
 import PatientRequisitionViewer from './pages/patientrequisitionviewerpg/PatientRequisitionViewer';
 import StepThreeAccountSetup from './pages/stepthreepg/Step3AccountSetup';
-<<<<<<< HEAD
 import Account from './pages/accountpg/Account';
 import Support from './pages/supportpg/Support';
 import Messages from './pages/messagespg/Messages';
 import Article from './pages/myreportspg/articles/Article';
 import JoinCheckoutWrapper from './pages/NewCheckoutPages/JoinCheckoutWrapper';
-=======
-import JoinCheckoutWrapper from './pages/NewCheckoutPages/JoinCheckoutWrapper';
->>>>>>> origin/main
 
 
 function App() {
