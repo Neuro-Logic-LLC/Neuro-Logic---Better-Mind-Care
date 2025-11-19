@@ -102,24 +102,41 @@ router.post('/lab-result-webhook', express.raw({ type: '*/*' }), async (req, res
         console.error('[evexia webhook async error]', (e && e.stack) || e);
       }
 
-      // Decode and store PDF if present
-      if (payload?.Report) {
-        const pdfBuffer = Buffer.from(payload.Report, 'base64');
-        await knex('lab_results')
-          .insert({
-            patient_id: payload.PatientID,
-            patient_order_id: payload.PatientOrderID,
-            external_client_id: payload.externalClientID ?? payload.ClientID ?? null,
-            specimen: payload.Specimen ?? null,
-            create_date: payload.CreateDate ?? null,
-            collection_date: payload.CollectionDate ?? null,
-            report_pdf: pdfBuffer,
-            raw_json: payload,
-            updated_at: knex.fn.now()
-          })
-          .onConflict('patient_order_id')
-          .merge();
-      }
+       // Decode and store PDF if present
+       if (payload?.Report) {
+         const pdfBuffer = Buffer.from(payload.Report, 'base64');
+         await knex('lab_results')
+           .insert({
+             patient_id: payload.PatientID,
+             patient_order_id: payload.PatientOrderID,
+             external_client_id: payload.externalClientID ?? payload.ClientID ?? null,
+             specimen: payload.Specimen ?? null,
+             create_date: payload.CreateDate ?? null,
+             collection_date: payload.CollectionDate ?? null,
+             report_pdf: pdfBuffer,
+             raw_json: payload,
+             updated_at: knex.fn.now()
+           })
+           .onConflict('patient_order_id')
+           .merge();
+
+         // Send message to user about new lab results
+         try {
+           const user = await knex('users').where('id', payload.PatientID).first();
+           if (user) {
+             await knex('messages').insert({
+               recipient_id: user.id,
+               sender_type: 'system',
+               category: 'system_update',
+               title: 'Your Lab Results Are Ready',
+               body: 'Your lab results have been received and are now available in your Reports & Labs section. Please log in to view them.',
+               is_sent: true
+             });
+           }
+         } catch (msgError) {
+           console.error('Failed to send lab results message:', msgError);
+         }
+       }
     });
   } catch (e) {
     console.error('[evexia webhook error]', e);

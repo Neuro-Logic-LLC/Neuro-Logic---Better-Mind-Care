@@ -47,6 +47,7 @@ import StepThreeAccountSetup from './pages/stepthreepg/Step3AccountSetup';
 import Account from './pages/accountpg/Account';
 import Support from './pages/supportpg/Support';
 import Messages from './pages/messagespg/Messages';
+import Article from './pages/myreportspg/articles/Article';
 
 function App() {
   return (
@@ -101,14 +102,26 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path="/my-reports"
-                  element={
-                    <ProtectedRoute>
-                      <MyReports />
-                    </ProtectedRoute>
-                  }
-                />
+                 <Route
+                   path="/my-reports"
+                   element={
+                     <ProtectedRoute>
+                       <MyReports />
+                     </ProtectedRoute>
+                   }
+                 />
+                  <Route
+                    path="/faq"
+                    element={
+                      <ProtectedRoute>
+                        <Resources />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/resources/articles/:slug"
+                    element={<Article />}
+                  />
                 <Route
                   path="/admin/dashboard"
                   element={

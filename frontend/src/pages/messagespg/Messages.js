@@ -1,32 +1,86 @@
 /** @format */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../auth/AuthContext';
+import './messages.css';
 
 function Messages() {
-  // Sample messages - in real app, this would come from API
-  const messages = [
-    {
-      id: 1,
-      from: 'Support Team',
-      subject: 'Welcome to Better Mind Care',
-      date: '2025-11-15',
-      preview: 'Thank you for joining us. Your account is now active...'
-    },
-    {
-      id: 2,
-      from: 'Dr. Smith',
-      subject: 'Your Lab Results Are Ready',
-      date: '2025-11-10',
-      preview: 'Your recent lab results have been analyzed and are available...'
-    },
-    {
-      id: 3,
-      from: 'System',
-      subject: 'Appointment Reminder',
-      date: '2025-11-08',
-      preview: 'You have an upcoming appointment scheduled for tomorrow...'
+  const { user } = useAuth();
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (user) {
+      fetchMessages();
     }
-  ];
+  }, [user]);
+
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch('/api/messages', {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch messages');
+      }
+
+      const data = await response.json();
+      setMessages(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getSenderLabel = (senderType, category) => {
+    switch (senderType) {
+      case 'admin':
+        return 'Admin';
+      case 'clinician':
+        return 'Clinician';
+      case 'system':
+        return category === 'system_update' ? 'System Update' : 'Announcement';
+      default:
+        return 'Better Mind Care';
+    }
+  };
+
+  const getCategoryLabel = (category) => {
+    switch (category) {
+      case 'system_update':
+        return 'System Update';
+      case 'announcement':
+        return 'Announcement';
+      case 'one_to_one':
+        return 'Direct Message';
+      default:
+        return '';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="messages-page">
+        <h1>Messages</h1>
+        <p>Loading messages...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="messages-page">
+        <h1>Messages</h1>
+        <p>Error loading messages: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="messages-page">
@@ -37,17 +91,23 @@ function Messages() {
         {messages.map(message => (
           <div key={message.id} className="message-item">
             <div className="message-header">
-              <strong>{message.from}</strong>
-              <span className="message-date">{message.date}</span>
+              <strong>{getSenderLabel(message.sender_type, message.category)}</strong>
+              <span className="message-category">{getCategoryLabel(message.category)}</span>
+              <span className="message-date">
+                {new Date(message.created_at).toLocaleDateString()}
+              </span>
+              {message.is_new && <span className="new-badge">New</span>}
             </div>
-            <div className="message-subject">{message.subject}</div>
-            <div className="message-preview">{message.preview}</div>
+            <div className="message-subject">{message.title}</div>
+            <div className="message-preview" dangerouslySetInnerHTML={{
+              __html: message.body.length > 100 ? message.body.substring(0, 100) + '...' : message.body
+            }} />
           </div>
         ))}
       </div>
 
       {messages.length === 0 && (
-        <p className="no-messages">No messages at this time.</p>
+        <p className="no-messages">Updates and important notices will appear here.</p>
       )}
     </div>
   );

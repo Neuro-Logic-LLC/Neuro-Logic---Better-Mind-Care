@@ -19,6 +19,7 @@ app.set('trust proxy', 1);
 
 const stripeRoutes = require('./routes/stripeRoutes');
 const evexiaWebhookRoutes = require('./routes/evexiaWebhookRoutes');
+const messageRoutes = require('./routes/messageRoutes');
 
 // ---- HTTPS session setup ----
 if (!process.env.SESSION_SECRET) throw new Error('SESSION_SECRET missing before session()');

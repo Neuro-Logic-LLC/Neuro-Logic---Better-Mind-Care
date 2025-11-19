@@ -2,7 +2,7 @@
 function norm(s = '') {
   return s
     .replace(/\u00A0/g, ' ')
-    .replace(/[–—]/g, '-')
+    .replace(/[–-]/g, '-')
     .replace(/\r/g, '');
 }
 
@@ -111,7 +111,7 @@ function parseOrderedTests(t) {
     }
   }
 
-  // --- Pass C: fallback — find lone codes and pull nearby words as the name
+  // --- Pass C: fallback - find lone codes and pull nearby words as the name
   {
     const rxCode = /\b(\d{5,7})\b/g;
     let m;

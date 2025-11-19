@@ -1,6 +1,6 @@
 /** @format */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import InputText from '../../components/inputs/InputText';
@@ -28,13 +28,36 @@ function Account() {
     relationship: ''
   });
   const [isCaregiver, setIsCaregiver] = useState(false);
+  const [messageCount, setMessageCount] = useState(0);
 
   // TODO: Implement real API calls to check user lab status from Evexia and message counts from backend
   // Mock user status for conditional messages
   const hasOrderedLabs = false; // Replace with real check
   const labsReady = false; // Replace with real check
-  const hasMessages = true; // Replace with real check
   const hasAppointments = true; // Replace with real check - whether user has any appointments
+
+  const hasMessages = messageCount > 0;
+
+  useEffect(() => {
+    if (user) {
+      fetchMessageCount();
+    }
+  }, [user]);
+
+  const fetchMessageCount = async () => {
+    try {
+      const response = await fetch('/api/messages', {
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (response.ok) {
+        const messages = await response.json();
+        setMessageCount(messages.length);
+      }
+    } catch (error) {
+      console.error('Failed to fetch message count:', error);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -193,71 +216,7 @@ function Account() {
           </div>
         </section>
 
-        <section className="account-section">
-          <h2>Your Appointments</h2>
-          {hasAppointments ? (
-            <div className="appointments-widget">
-              {/* TODO: Connect to calendar API to pull real appointment data and link to appointment pages */}
-              {/* Mock appointments data - replace with real API call */}
-              <div className="appointment-item upcoming" onClick={() => navigate('/intake-form')} style={{cursor: 'pointer'}}>
-                <div className="appointment-details">
-                  <strong>Intake Appointment</strong>
-                  <p>October 15, 2025 at 2:00 PM PST</p>
-                </div>
-              </div>
-              <div className="appointment-item upcoming" onClick={() => navigate('/screening-order')} style={{cursor: 'pointer'}}>
-                <div className="appointment-details">
-                  <strong>Lab Appointment</strong>
-                  <p>October 20, 2025 at 10:00 AM PST - Better Mind Care Lab</p>
-                </div>
-              </div>
-              <div className="appointment-item past" onClick={() => navigate('/patient-booking')} style={{cursor: 'pointer'}}>
-                <div className="appointment-details">
-                  <strong>Initial Consultation</strong>
-                  <p>September 1, 2025 at 3:00 PM PST</p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p className="no-appointments">You don't have any upcoming appointments right now.</p>
-          )}
-          <p className="reschedule-text">
-            To make changes to your appointment, contact support at support@bettermindcare.com and we'll help you reschedule.
-          </p>
-        </section>
 
-        <section className="account-section">
-          <h2>Messages</h2>
-          <div className="messages-preview">
-            {hasMessages ? (
-              <div className="message-item">
-                <strong>Support Team</strong>
-                <span className="message-date">October 10, 2025</span>
-                <p>Your lab results are ready to view.</p>
-              </div>
-            ) : !hasOrderedLabs ? (
-              <p className="no-messages">Sign up for labs to get personalized health insights and start your journey.</p>
-            ) : !labsReady ? (
-              <p className="no-messages">Waiting on your lab results. We'll notify you as soon as they're ready.</p>
-            ) : (
-              <p className="no-messages">You have no new messages.</p>
-            )}
-          </div>
-        </section>
-
-        <section className="account-section">
-          <h2>Support</h2>
-          <div className="support-links">
-            <a href="/support" className="btn-outline">
-              <img src={HelpIcon} alt="" className="btn-icon" />
-              Help & FAQ
-            </a>
-            <a href="/contact" className="btn-outline">
-              <img src={MessagesIcon} alt="" className="btn-icon" />
-              Contact Us
-            </a>
-          </div>
-        </section>
 
         <section className="account-section danger-zone">
           <h2>Cancel Account</h2>
