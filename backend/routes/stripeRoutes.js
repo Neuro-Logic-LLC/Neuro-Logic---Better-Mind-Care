@@ -199,7 +199,7 @@ router.post('/checkout', express.json(), async (req, res) => {
 // --------------------------------------------
 //  CREATE SETUP INTENT (collect card but DO NOT charge)
 // --------------------------------------------
-router.post('/setup-intent', express.json(), async (req, res) => {
+router.post('/stripe-payment-intent', express.json(), async (req, res) => {
   try {
     const s = getStripe();
 
