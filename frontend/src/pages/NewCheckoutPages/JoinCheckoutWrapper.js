@@ -44,7 +44,7 @@ export default function JoinCheckoutWrapper() {
 
   return (
     <Elements stripe={stripePromise} options={options}>
-      <CheckoutStep />
+      <CheckoutStep clientSecret={clientSecret} />
     </Elements>
   );
 }

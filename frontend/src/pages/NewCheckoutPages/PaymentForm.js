@@ -7,6 +7,7 @@ import {
 import { PrimaryButton } from '../../components/button/Buttons';
 
 export default function PaymentForm({
+  clientSecret,
   amountLabel,
   disabled,
   onCollected,
@@ -39,7 +40,10 @@ export default function PaymentForm({
 
     const result = await stripe.confirmSetup({
       elements,
-      redirect: 'if_required'
+      clientSecret,
+      confirmParams: {
+        return_url: window.location.href
+      }
     });
 
     if (result.error) {

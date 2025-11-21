@@ -209,6 +209,7 @@ export default function CheckoutStep() {
       <div style={{ marginTop: 16 }}>
         {totalCents > 0 ? (
           <PaymentForm
+            clientSecret={state.stripeSetupIntentClientSecret}
             amountLabel={usd(totalCents)}
             disabled={loading}
             onBeforeSubmit={() => {
