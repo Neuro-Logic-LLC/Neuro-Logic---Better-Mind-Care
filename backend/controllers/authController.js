@@ -1042,59 +1042,52 @@ exports.paidSignup = async (req, res) => {
   const knex = await initKnex();
 
   try {
-    const {
-      password,
-      gender,
-      dob,
-      is_caregiver,
-      cg_first,
-      cg_last,
-      cg_phone,
-      cg_email
-    } = req.body || {};
+    const { password, gender, dob, is_caregiver, cg_first, cg_last, cg_phone, cg_email } =
+      req.body || {};
 
-    const caregiver = is_caregiver === "1" || is_caregiver === true;
+    const caregiver = is_caregiver === '1' || is_caregiver === true;
 
     // ---------------------------------------
     // 1. VALIDATE PASSWORD + USER FIELDS ONLY
     // ---------------------------------------
     if (!password || !dob || !gender) {
-      return res.status(400).json({ error: "missing_fields" });
+      return res.status(400).json({ error: 'missing_fields' });
     }
 
     if (
-      typeof password !== "string" ||
+      typeof password !== 'string' ||
       password.length < 8 ||
       !/[!@#$%^&*(),.?":{}|<>]/.test(password)
     ) {
       return res.status(400).json({
-        error: "weak_password",
-        detail: "Password must be at least 8 characters and contain one special character."
+        error: 'weak_password',
+        detail: 'Password must be at least 8 characters and contain one special character.'
       });
     }
 
     if (caregiver && (!cg_first || !cg_last || !cg_phone || !cg_email)) {
-      return res.status(400).json({ error: "missing_caregiver_fields" });
+      return res.status(400).json({ error: 'missing_caregiver_fields' });
     }
 
     // ---------------------------------------
     // 2. GET USER DATA FROM STRIPE PAYMENTS
     // ---------------------------------------
-    const paymentRow = await knex("stripe_payments")
-      .orderBy("id", "desc") // **DO NOT USE EMAIL — GET THE LATEST PAYMENT**
+    const paymentRow = await knex('stripe_payments')
+      .orderBy('id', 'desc') // **DO NOT USE EMAIL — GET THE LATEST PAYMENT**
       .first();
 
     if (!paymentRow) {
-      return res.status(400).json({ error: "payment_not_found" });
+      return res.status(400).json({ error: 'payment_not_found' });
     }
 
-    const email = paymentRow.customer_email;
+    const rawEmail = paymentRow.customer_email || '';
+    const email = canon(String(rawEmail).trim().toLowerCase());
     const first_name = paymentRow.customer_first_name;
     const last_name = paymentRow.customer_last_name;
     const phone = paymentRow.customer_phone;
 
     if (!email || !first_name || !last_name || !phone) {
-      return res.status(500).json({ error: "stripe_missing_identity" });
+      return res.status(500).json({ error: 'stripe_missing_identity' });
     }
 
     const eCanon = canon(String(email).trim().toLowerCase());
@@ -1103,17 +1096,14 @@ exports.paidSignup = async (req, res) => {
     // 3. HASH PASSWORD + LOOKUP ROLE
     // ---------------------------------------
     const key = process.env.PGPCRYPTO_KEY;
-    if (!key) return res.status(500).json({ error: "Server misconfiguration" });
+    if (!key) return res.status(500).json({ error: 'Server misconfiguration' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const roleRow = await knex("roles")
-      .select("id")
-      .where({ role_name: "Patient" })
-      .first();
+    const roleRow = await knex('roles').select('id').where({ role_name: 'Patient' }).first();
 
     if (!roleRow) {
-      return res.status(400).json({ error: "Default role not found" });
+      return res.status(400).json({ error: 'Default role not found' });
     }
 
     // ---------------------------------------
@@ -1125,8 +1115,8 @@ exports.paidSignup = async (req, res) => {
     // ---------------------------------------
     // 5. INSERT USER (using STRIPE DATA)
     // ---------------------------------------
-    const [created] = await knex("users")
-      .returning(["id"])
+    const [created] = await knex('users')
+      .returning(['id'])
       .insert({
         password: hashedPassword,
         role_id: roleRow.id,
@@ -1140,19 +1130,19 @@ exports.paidSignup = async (req, res) => {
         confirmation_token_hash: tokenHash,
 
         // encrypted fields
-        email: knex.raw("pgp_sym_encrypt(?, ?)", [eCanon, key]),
-        dob: knex.raw("pgp_sym_encrypt(?, ?)", [dob, key]),
-        gender: knex.raw("pgp_sym_encrypt(?, ?)", [gender, key]),
-        first_name: knex.raw("pgp_sym_encrypt(?, ?)", [first_name, key]),
-        last_name: knex.raw("pgp_sym_encrypt(?, ?)", [last_name, key]),
-        phone: knex.raw("pgp_sym_encrypt(?, ?)", [phone, key]),
+        email: knex.raw('pgp_sym_encrypt(?, ?)', [eCanon, key]),
+        dob: knex.raw('pgp_sym_encrypt(?, ?)', [dob, key]),
+        gender: knex.raw('pgp_sym_encrypt(?, ?)', [gender, key]),
+        first_name: knex.raw('pgp_sym_encrypt(?, ?)', [first_name, key]),
+        last_name: knex.raw('pgp_sym_encrypt(?, ?)', [last_name, key]),
+        phone: knex.raw('pgp_sym_encrypt(?, ?)', [phone, key]),
 
         // caregiver
         is_caregiver: caregiver,
-        cg_first: caregiver ? knex.raw("pgp_sym_encrypt(?, ?)", [cg_first, key]) : null,
-        cg_last: caregiver ? knex.raw("pgp_sym_encrypt(?, ?)", [cg_last, key]) : null,
-        cg_phone: caregiver ? knex.raw("pgp_sym_encrypt(?, ?)", [cg_phone, key]) : null,
-        cg_email: caregiver ? knex.raw("pgp_sym_encrypt(?, ?)", [cg_email, key]) : null,
+        cg_first: caregiver ? knex.raw('pgp_sym_encrypt(?, ?)', [cg_first, key]) : null,
+        cg_last: caregiver ? knex.raw('pgp_sym_encrypt(?, ?)', [cg_last, key]) : null,
+        cg_phone: caregiver ? knex.raw('pgp_sym_encrypt(?, ?)', [cg_phone, key]) : null,
+        cg_email: caregiver ? knex.raw('pgp_sym_encrypt(?, ?)', [cg_email, key]) : null,
 
         email_canon: eCanon,
         email_hash: identHash(eCanon)
@@ -1161,11 +1151,11 @@ exports.paidSignup = async (req, res) => {
     // ---------------------------------------
     // 6. AUDIT
     // ---------------------------------------
-    await knex("audit_log").insert({
+    await knex('audit_log').insert({
       user_id: created.id,
-      action: "PAID_SIGNUP",
+      action: 'PAID_SIGNUP',
       description: `New paid signup: ${eCanon}`,
-      ip_address: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
+      ip_address: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
       timestamp: knex.fn.now()
     });
 
@@ -1175,13 +1165,12 @@ exports.paidSignup = async (req, res) => {
     await sendEmailConfirmation(eCanon, confirmationToken);
 
     return res.status(201).json({ success: true, user_id: created.id });
-
   } catch (err) {
-    console.error("paidSignup failed", err);
-    if (err && err.code === "23505") {
-      return res.status(409).json({ error: "Email already exists" });
+    console.error('paidSignup failed', err);
+    if (err && err.code === '23505') {
+      return res.status(409).json({ error: 'Email already exists' });
     }
-    return res.status(500).json({ error: "Server Error" });
+    return res.status(500).json({ error: 'Server Error' });
   }
 };
 
