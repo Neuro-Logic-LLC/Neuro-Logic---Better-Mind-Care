@@ -945,20 +945,123 @@ exports.publicSignup = async (req, res) => {
     cg_email
   } = req.body || {};
 
-  const caregiver = is_caregiver === "1";
+  const caregiver = is_caregiver === '1';
 
   try {
     // Required for all signups
     if (!email || !password || !dob || !gender || !first_name || !last_name || !phone) {
-      return res.status(400).json({ error: "missing_fields" });
+      return res.status(400).json({ error: 'missing_fields' });
     }
 
     // Required only for caregivers
     if (caregiver && (!cg_first || !cg_last || !cg_phone || !cg_email)) {
-      return res.status(400).json({ error: "missing_caregiver_fields" });
+      return res.status(400).json({ error: 'missing_caregiver_fields' });
     }
 
     // Password strength
+    if (
+      typeof password !== 'string' ||
+      password.length < 8 ||
+      !/[!@#$%^&*(),.?":{}|<>]/.test(password)
+    ) {
+      return res.status(400).json({
+        error: 'weak_password',
+        detail: 'Password must be at least 8 characters and contain one special character.'
+      });
+    }
+
+    const key = process.env.PGPCRYPTO_KEY;
+    if (!key) return res.status(500).json({ error: 'Server misconfiguration' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const roleRow = await knex('roles').select('id').where({ role_name: 'Patient' }).first();
+
+    if (!roleRow) {
+      return res.status(400).json({ error: 'Default role not found' });
+    }
+
+    const confirmationToken = uuidv4();
+    const tokenHash = await bcrypt.hash(confirmationToken, 10);
+
+    const eCanon = canon(String(email).trim().toLowerCase());
+
+    const [created] = await knex('users')
+      .returning(['id'])
+      .insert({
+        username: eCanon, // auto-assign username == email_canon
+        password: hashedPassword,
+        role_id: roleRow.id,
+        member_since: knex.fn.now(),
+        is_active: true,
+        is_deleted: false,
+        is_email_confirmed: false,
+        date_created: knex.fn.now(),
+        date_last_modified: knex.fn.now(),
+        confirmation_token_hash: tokenHash,
+
+        // encrypted PII
+        email: knex.raw('pgp_sym_encrypt(?, ?)', [eCanon, key]),
+        dob: knex.raw('pgp_sym_encrypt(?, ?)', [dob, key]),
+        gender: knex.raw('pgp_sym_encrypt(?, ?)', [gender, key]),
+        first_name: knex.raw('pgp_sym_encrypt(?, ?)', [first_name, key]),
+        last_name: knex.raw('pgp_sym_encrypt(?, ?)', [last_name, key]),
+        phone: knex.raw('pgp_sym_encrypt(?, ?)', [phone, key]),
+
+        is_caregiver: caregiver,
+        cg_first: caregiver ? knex.raw('pgp_sym_encrypt(?, ?)', [cg_first, key]) : null,
+        cg_last: caregiver ? knex.raw('pgp_sym_encrypt(?, ?)', [cg_last, key]) : null,
+        cg_phone: caregiver ? knex.raw('pgp_sym_encrypt(?, ?)', [cg_phone, key]) : null,
+        cg_email: caregiver ? knex.raw('pgp_sym_encrypt(?, ?)', [cg_email, key]) : null,
+
+        email_canon: eCanon,
+        email_hash: identHash(eCanon)
+      });
+
+    await knex('audit_log').insert({
+      user_id: created.id,
+      action: 'SELF_SIGNUP',
+      description: `New public signup: ${eCanon}`,
+      ip_address: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+      timestamp: knex.fn.now()
+    });
+
+    await sendEmailConfirmation(eCanon, confirmationToken);
+
+    return res.status(201).json({ message: 'Signup successful. Please confirm your email.' });
+  } catch (err) {
+    if (err && err.code === '23505') {
+      return res.status(409).json({ error: 'Email already exists' });
+    }
+    console.error('signup failed', err);
+    return res.status(500).json({ error: 'Server Error' });
+  }
+};
+
+exports.paidSignup = async (req, res) => {
+  const knex = await initKnex();
+
+  try {
+    const {
+      password,
+      gender,
+      dob,
+      is_caregiver,
+      cg_first,
+      cg_last,
+      cg_phone,
+      cg_email
+    } = req.body || {};
+
+    const caregiver = is_caregiver === "1" || is_caregiver === true;
+
+    // ---------------------------------------
+    // 1. VALIDATE PASSWORD + USER FIELDS ONLY
+    // ---------------------------------------
+    if (!password || !dob || !gender) {
+      return res.status(400).json({ error: "missing_fields" });
+    }
+
     if (
       typeof password !== "string" ||
       password.length < 8 ||
@@ -970,6 +1073,35 @@ exports.publicSignup = async (req, res) => {
       });
     }
 
+    if (caregiver && (!cg_first || !cg_last || !cg_phone || !cg_email)) {
+      return res.status(400).json({ error: "missing_caregiver_fields" });
+    }
+
+    // ---------------------------------------
+    // 2. GET USER DATA FROM STRIPE PAYMENTS
+    // ---------------------------------------
+    const paymentRow = await knex("stripe_payments")
+      .orderBy("id", "desc") // **DO NOT USE EMAIL — GET THE LATEST PAYMENT**
+      .first();
+
+    if (!paymentRow) {
+      return res.status(400).json({ error: "payment_not_found" });
+    }
+
+    const email = paymentRow.customer_email;
+    const first_name = paymentRow.customer_first_name;
+    const last_name = paymentRow.customer_last_name;
+    const phone = paymentRow.customer_phone;
+
+    if (!email || !first_name || !last_name || !phone) {
+      return res.status(500).json({ error: "stripe_missing_identity" });
+    }
+
+    const eCanon = canon(String(email).trim().toLowerCase());
+
+    // ---------------------------------------
+    // 3. HASH PASSWORD + LOOKUP ROLE
+    // ---------------------------------------
     const key = process.env.PGPCRYPTO_KEY;
     if (!key) return res.status(500).json({ error: "Server misconfiguration" });
 
@@ -984,26 +1116,30 @@ exports.publicSignup = async (req, res) => {
       return res.status(400).json({ error: "Default role not found" });
     }
 
+    // ---------------------------------------
+    // 4. CREATE EMAIL CONFIRMATION TOKEN
+    // ---------------------------------------
     const confirmationToken = uuidv4();
     const tokenHash = await bcrypt.hash(confirmationToken, 10);
 
-    const eCanon = canon(String(email).trim().toLowerCase());
-
+    // ---------------------------------------
+    // 5. INSERT USER (using STRIPE DATA)
+    // ---------------------------------------
     const [created] = await knex("users")
       .returning(["id"])
       .insert({
-        username: eCanon, // auto-assign username == email_canon
         password: hashedPassword,
         role_id: roleRow.id,
         member_since: knex.fn.now(),
         is_active: true,
         is_deleted: false,
         is_email_confirmed: false,
+        has_paid: true,
         date_created: knex.fn.now(),
         date_last_modified: knex.fn.now(),
         confirmation_token_hash: tokenHash,
 
-        // encrypted PII
+        // encrypted fields
         email: knex.raw("pgp_sym_encrypt(?, ?)", [eCanon, key]),
         dob: knex.raw("pgp_sym_encrypt(?, ?)", [dob, key]),
         gender: knex.raw("pgp_sym_encrypt(?, ?)", [gender, key]),
@@ -1011,6 +1147,7 @@ exports.publicSignup = async (req, res) => {
         last_name: knex.raw("pgp_sym_encrypt(?, ?)", [last_name, key]),
         phone: knex.raw("pgp_sym_encrypt(?, ?)", [phone, key]),
 
+        // caregiver
         is_caregiver: caregiver,
         cg_first: caregiver ? knex.raw("pgp_sym_encrypt(?, ?)", [cg_first, key]) : null,
         cg_last: caregiver ? knex.raw("pgp_sym_encrypt(?, ?)", [cg_last, key]) : null,
@@ -1021,22 +1158,29 @@ exports.publicSignup = async (req, res) => {
         email_hash: identHash(eCanon)
       });
 
+    // ---------------------------------------
+    // 6. AUDIT
+    // ---------------------------------------
     await knex("audit_log").insert({
       user_id: created.id,
-      action: "SELF_SIGNUP",
-      description: `New public signup: ${eCanon}`,
+      action: "PAID_SIGNUP",
+      description: `New paid signup: ${eCanon}`,
       ip_address: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
       timestamp: knex.fn.now()
     });
 
+    // ---------------------------------------
+    // 7. SEND CONFIRMATION EMAIL
+    // ---------------------------------------
     await sendEmailConfirmation(eCanon, confirmationToken);
 
-    return res.status(201).json({ message: "Signup successful. Please confirm your email." });
+    return res.status(201).json({ success: true, user_id: created.id });
+
   } catch (err) {
+    console.error("paidSignup failed", err);
     if (err && err.code === "23505") {
       return res.status(409).json({ error: "Email already exists" });
     }
-    console.error("signup failed", err);
     return res.status(500).json({ error: "Server Error" });
   }
 };

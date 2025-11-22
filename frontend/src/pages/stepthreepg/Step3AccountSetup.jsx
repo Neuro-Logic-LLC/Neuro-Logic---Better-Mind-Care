@@ -22,12 +22,10 @@ export default function StepThreeAccountSetup() {
     username: ''
   });
 
-useEffect(() => {
-  const url = new URL(window.location.href);
-  const sessionId = url.searchParams.get('session_id');
-  
-
-}, [navigate]);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const sessionId = url.searchParams.get('session_id');
+  }, [navigate]);
 
   useEffect(() => {
     if (window.location.search.includes('session_id')) {
@@ -134,6 +132,7 @@ useEffect(() => {
     e.preventDefault();
 
     try {
+      // Save to context (optional depending on your app)
       setField('dob', local.dob);
       setField('gender', local.gender);
       setField('isCaregiver', local.isCaregiver);
@@ -146,8 +145,42 @@ useEffect(() => {
         setField('cgEmail', local.cgEmail);
       }
 
+      // Save password temporarily
       sessionStorage.setItem('TEMP_PASSWORD', password);
 
+      // ------------------------------------------------------------
+      // ⭐ CALL YOUR BACKEND TO CREATE THE ENCRYPTED USER ACCOUNT
+      // ------------------------------------------------------------
+      const signupBody = {
+        email: state.email,
+        password,
+        dob: local.dob,
+        gender: local.gender,
+
+        // match backend format:
+        is_caregiver: local.isCaregiver ? '1' : '0',
+        cg_first: local.cgFirst,
+        cg_last: local.cgLast,
+        cg_phone: local.cgPhone,
+        cg_email: local.cgEmail
+      };
+
+      const res = await fetch('/api/auth/paid-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(signupBody)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || 'Signup failed.');
+        return;
+      }
+
+      // ------------------------------------------------------------
+      // SUCCESS → redirect
+      // ------------------------------------------------------------
       navigate('/success');
     } catch (err) {
       console.error(err);

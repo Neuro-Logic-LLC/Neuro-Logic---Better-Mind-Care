@@ -253,6 +253,10 @@ router.put('/users/:id', verifyToken, authController.updateUser);
  */
 router.post('/public-signup', authController.publicSignup);
 
+router.post('/paid-signup', authController.paidSignup);
+
+
+
 /**
  * @openapi
  * /api/auth/forgot-password:

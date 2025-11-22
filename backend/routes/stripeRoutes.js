@@ -254,7 +254,7 @@ router.post('/stripe-payment-intent', express.json(), async (req, res) => {
 });
 
 // --------------------------------------------
-//  CHARGE AFTER SETUP — RUN AFTER STEP THREE
+//  CHARGE AFTER SETUP — RUN AFTER STEP THREE /// LEGACY DO NOT USE 
 // --------------------------------------------
 router.post('/charge-after-setup', express.json(), async (req, res) => {
   try {
