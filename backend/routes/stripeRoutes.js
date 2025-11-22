@@ -26,10 +26,7 @@ const stripeKey = process.env.STRIPE_SECRET_KEY;
 
 function getStripe() {
   if (!stripe) {
-    stripe = new Stripe(stripeKey, {
-      // Let Stripe use the latest compatible version with Elements
-      apiVersion: '2025-09-30.clover'
-    });
+    stripe = new new Stripe(stripeKey)
   }
   return stripe;
 }

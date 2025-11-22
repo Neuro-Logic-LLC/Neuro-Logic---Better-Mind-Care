@@ -88,9 +88,7 @@ if (!stripeKey) {
   );
 }
 
-const stripe = new Stripe(stripeKey, {
-  apiVersion: '2025-09-30.clover'
-});
+const stripe = new Stripe(stripeKey);
 
 function splitName(full) {
   if (!full) return { first: null, last: null };
