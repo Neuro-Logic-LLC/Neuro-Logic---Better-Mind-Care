@@ -177,7 +177,7 @@ router.post('/checkout', express.json(), async (req, res) => {
         }
       ],
 
-      customer_creation: 'always',
+      // customer_creation: 'always',
       expand: ['customer_details', 'shipping'],
 
       customer_email: customer_email || undefined,
@@ -254,7 +254,7 @@ router.post('/stripe-payment-intent', express.json(), async (req, res) => {
 });
 
 // --------------------------------------------
-//  CHARGE AFTER SETUP — RUN AFTER STEP THREE /// LEGACY DO NOT USE 
+//  CHARGE AFTER SETUP — RUN AFTER STEP THREE /// LEGACY DO NOT USE WITHOUT 
 // --------------------------------------------
 router.post('/charge-after-setup', express.json(), async (req, res) => {
   try {
