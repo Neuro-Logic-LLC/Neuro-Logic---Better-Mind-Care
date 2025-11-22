@@ -19,7 +19,7 @@ export default function JoinCheckoutWrapper() {
     fetched.current = true;
 
     async function fetchIntent() {
-      const res = await fetch('/api/stripe/setup-intent', {
+      const res = await fetch('/api/stripe/stripe-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
