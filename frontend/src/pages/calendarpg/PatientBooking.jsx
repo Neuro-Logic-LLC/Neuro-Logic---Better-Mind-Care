@@ -146,41 +146,43 @@ export default function PatientBooking() {
 
     return (
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <button
-            className="btn btn-outline-teal"
-            onClick={() => {
-              if (month === 1) {
-                setMonth(12);
-                setYear(year - 1);
-              } else {
-                setMonth(month - 1);
-              }
-            }}
-          >
-            ←
-          </button>
+        <div className="flex items-center justify-center gap-2 mb-3">
+           <button
+             className="btn btn-outline-teal"
+             style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', width: 'auto', flexShrink: 0 }}
+             onClick={() => {
+               if (month === 1) {
+                 setMonth(12);
+                 setYear(year - 1);
+               } else {
+                 setMonth(month - 1);
+               }
+             }}
+           >
+             ←
+           </button>
 
-          <h2 className="text-xl font-bold">
+          <h2 className="text-xl font-bold" style={{ fontSize: 'clamp(1rem, 3vw, 1.3rem)', whiteSpace: 'nowrap', flexShrink: 1 }}>
             {new Date(year, month - 1, 1).toLocaleString('default', {
               month: 'long',
               year: 'numeric'
             })}
           </h2>
 
-          <button
-            className="btn btn-outline-teal"
-            onClick={() => {
-              if (month === 12) {
-                setMonth(1);
-                setYear(year + 1);
-              } else {
-                setMonth(month + 1);
-              }
-            }}
-          >
-            →
-          </button>
+           <button
+             className="btn btn-outline-teal"
+             style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', width: 'auto', flexShrink: 0 }}
+             onClick={() => {
+               if (month === 12) {
+                 setMonth(1);
+                 setYear(year + 1);
+               } else {
+                 setMonth(month + 1);
+               }
+             }}
+           >
+             →
+           </button>
         </div>
 
         <div

@@ -30,6 +30,7 @@ import ForgotPassword from './pages/forgotpasswordpg/ForgotPassword';
 import ResetPassword from './pages/resetpasswordpg/ResetPassword';
 import ConfirmEmail from './pages/confirmemailpg/ConfirmEmail';
 import GoogleCalendar from './pages/calendarpg/GoogleCalendar';
+import PatientBooking from './pages/calendarpg/PatientBooking';
 import SuccessPage from './pages/successpg/Success';
 import CancelPage from './pages/cancelpg/Cancel';
 import CheckoutPage from './pages/checkoutpg/Checkout';
@@ -44,6 +45,10 @@ import SignupProvider from './pages/NewCheckoutPages/SignupContext';
 import PatientOrders from './pages/evexiapatientorderspg/EvexiaPatientOrders';
 import PatientRequisitionViewer from './pages/patientrequisitionviewerpg/PatientRequisitionViewer';
 import StepThreeAccountSetup from './pages/stepthreepg/Step3AccountSetup';
+import Account from './pages/accountpg/Account';
+import Support from './pages/supportpg/Support';
+import Messages from './pages/messagespg/Messages';
+import Article from './pages/myreportspg/articles/Article';
 import JoinCheckoutWrapper from './pages/NewCheckoutPages/JoinCheckoutWrapper';
 
 
@@ -52,8 +57,9 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="AppShell">
+          <a href="#main-content" className="skip-link sr-only">Skip to main content</a>
           <Navbar />
-          <main className="PageBody">
+          <main id="main-content" className="PageBody">
             {/* ✅ Provider goes OUTSIDE <Routes>, not inside */}
             <SignupProvider>
               <Routes>
@@ -68,7 +74,15 @@ function App() {
                   path="/evexia-lab-results"
                   element={<EvexiaLabReport />}
                 />
-                <Route path="/google-calendar" element={<GoogleCalendar />} />
+                 <Route path="/google-calendar" element={<GoogleCalendar />} />
+                 <Route
+                   path="/patient-booking"
+                   element={
+                     <ProtectedRoute>
+                       <PatientBooking />
+                     </ProtectedRoute>
+                   }
+                 />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/success" element={<SuccessPage />} />
                 <Route path="/cancel-order" element={<CancelPage />} />
@@ -84,30 +98,51 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path="/intake-form"
-                  element={
-                    <ProtectedRoute>
-                      <IntakeForm />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/report"
-                  element={
-                    <ProtectedRoute>
-                      <PatientReport />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/my-reports"
-                  element={
-                    <ProtectedRoute>
-                      <MyReports />
-                    </ProtectedRoute>
-                  }
-                />
+                 <Route
+                   path="/intake-form"
+                   element={
+                     <ProtectedRoute>
+                       <IntakeForm />
+                     </ProtectedRoute>
+                   }
+                 />
+                   <Route
+                     path="/report"
+                     element={
+                       <ProtectedRoute>
+                         <PatientReport />
+                       </ProtectedRoute>
+                     }
+                   />
+                   <Route
+                     path="/reports/:reportId"
+                     element={
+                       <ProtectedRoute>
+                         <PatientReport />
+                       </ProtectedRoute>
+                     }
+                   />
+                 <Route
+                   path="/my-reports"
+                   element={
+                     <ProtectedRoute>
+                       <MyReports />
+                     </ProtectedRoute>
+                   }
+                 />
+                  <Route
+                    path="/faq"
+                    element={
+                      <ProtectedRoute>
+                        <Resources />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/resources/articles/:slug"
+                    element={<Article />}
+                  />
+
                 <Route
                   path="/admin/dashboard"
                   element={
@@ -170,10 +205,24 @@ function App() {
                   path="/join/checkout"
                   element={<CheckoutStep />}
                 />
-                <Route
-                  path="/account-info"
-                  element={<StepThreeAccountSetup />}
-                />
+                <Route path="/account-info" element={<StepThreeAccountSetup />} />
+                 <Route
+                   path="/account"
+                   element={
+                     <ProtectedRoute>
+                       <Account />
+                     </ProtectedRoute>
+                   }
+                 />
+                 <Route path="/support" element={<Support />} />
+                 <Route
+                   path="/messages"
+                   element={
+                     <ProtectedRoute>
+                       <Messages />
+                     </ProtectedRoute>
+                   }
+                 />
                 {/* optional 404 */}
                 {/* <Route path="*" element={<NotFound />} /> */}
               </Routes>
@@ -181,8 +230,8 @@ function App() {
           </main>
           <Footer />
         </div>
-      </Router>
-    </AuthProvider>
+    </Router>
+  </AuthProvider>
   );
 }
 

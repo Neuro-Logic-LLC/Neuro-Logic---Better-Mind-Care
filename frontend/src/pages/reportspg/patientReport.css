@@ -1,4 +1,7 @@
 /* ===== Patient Report Page (brand-updated) ===== */
+html {
+  scroll-behavior: smooth;
+}
 .patient-report-page {
   max-width: 840px;
   margin: 0 auto 4rem;
@@ -84,8 +87,8 @@
   margin: 0;
   color: var(--teal);
   font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
-  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
-  font-weight: 700;
+  font-size: clamp(1.2rem, 3vw, 2.2rem);
+  font-weight: 800;
 }
 
 .report-section__body {
@@ -142,6 +145,42 @@
   color: color-mix(in oklab, var(--charcoal) 70%, white);
 }
 
+/* ===== Table of Contents ===== */
+.toc {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--soft-white);
+  border: 1px solid color-mix(in oklab, var(--soft-blue) 45%, white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.toc h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  color: var(--teal);
+}
+
+.toc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc li {
+  margin-bottom: 0.4rem;
+}
+
+.toc a {
+  color: var(--charcoal);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.toc a:hover {
+  color: var(--teal);
+}
+
 /* ===== Actions ===== */
 .report-actions {
   margin-top: 3rem;
@@ -158,6 +197,15 @@
 }
 
 /* ===== Print-friendly ===== */
+@media (max-width: 768px) {
+  .patient-report-page {
+    padding: 2.5rem 1rem;
+  }
+  .report-section__header h2 {
+    font-size: 1.4rem !important;
+  }
+}
+
 @media print {
   .patient-report-page {
     max-width: 100%;

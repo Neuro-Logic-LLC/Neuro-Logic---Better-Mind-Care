@@ -26,6 +26,8 @@ const API_BASE = (() => {
 
   const host = window.location.hostname;
 
+  if (host === 'localhost' || host === '127.0.0.1')
+    return ''; // use relative URLs for dev proxy
 
   if (host.includes('staging.bettermindcare.com'))
     return 'https://staging.bettermindcare.com';

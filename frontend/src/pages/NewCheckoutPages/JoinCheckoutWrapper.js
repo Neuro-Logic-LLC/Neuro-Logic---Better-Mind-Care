@@ -5,12 +5,8 @@ import CheckoutStep from './CheckoutStep';
 import { useSignup } from './SignupContext';
 import { use } from 'react';
 
-//Stripe's own documentation “Publishable keys can safely be exposed in the browser.”
-//Your publishable key is allowed to be exposed. Stripe designed it that way.
 
-export const stripePromise = loadStripe(
-  'pk_test_51S5ZjjRpCzJIcQaA7TceREs5c4Z8f6CeDIHsrwA2eB7tI6e8mmsj3XRaRulR0ZtQtSqNOJsIsKvVEakcrTc1p6Sa00Lu3Qntxa'
-);
+export const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder');
 
 export default function JoinCheckoutWrapper() {
   const { state } = useSignup();

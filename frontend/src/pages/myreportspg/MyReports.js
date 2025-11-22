@@ -78,16 +78,15 @@ function MyReports() {
 
   return (
     <div className="report-list-page">
-      <h1>My Past Reports</h1>
+      <h1>Your Reports & Documents</h1>
       {reports.length === 0 ? (
-        <p>You haven’t submitted any reports yet.</p>
+        <p>No reports are available yet. Once your lab results or personalized Brain Health Report are ready, they’ll appear here automatically.</p>
       ) : (
         <ul className="report-list">
           {reports.map((r) => (
             <li key={r.id} className="report-card">
               <p>
-                <strong>Date:</strong>{' '}
-                {new Date(r.submitted_at || r.created_at).toLocaleDateString()}
+                Added on {new Date(r.submitted_at || r.created_at).toLocaleDateString()}
               </p>
               <button className="btn" onClick={() => handleView(r)}>
                 View Report

@@ -8,7 +8,7 @@ import './termsofservice.css';
 const TermsOfService = () => (
   <main className="legal-page terms-page">
     <header className="legal-hero">
-      <h1>Terms of Service — Better Mind Care</h1>
+      <h1>Terms of Service for Better Mind Care</h1>
       <p className="legal-updated">Last Updated: October 2025</p>
       <p className="legal-summary">
         By accessing or using Better Mind Care’s website, software, reports,

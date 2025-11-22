@@ -69,10 +69,10 @@ async function loadSSMIntoEnv(pathPrefix) {
   }
 
   // Verify they exist
-  if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
-    console.warn('⚠️  SSL key/cert not found, falling back to HTTP.');
+  if (!fs.existsSync(keyPath) || !fs.existsSync(certPath) || process.env.NODE_ENV !== 'production') {
+    console.warn('⚠️  SSL key/cert not found or dev mode, falling back to HTTP.');
     app.listen(PORT, () => {
-      console.log(`🚀 HTTPS server running on http://localhost:${PORT}`);
+      console.log(`🚀 HTTP server running on http://localhost:${PORT}`);
     });
     return;
   }

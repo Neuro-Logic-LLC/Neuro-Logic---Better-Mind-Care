@@ -6,11 +6,9 @@ import './resources.css';
 function Resources() {
   return (
     <div className="resources-page">
-      <h1>Care & Brain Health Resources</h1>
+      <h1>Helpful Resources</h1>
       <p>
-        This page offers research-backed information, prevention tips, and
-        answers to common questions. Everything here reflects the same logic and
-        values that guide our Patient Reports.
+        Explore articles, FAQs, and expert-written content to help you understand your results and support your brain health journey.
       </p>
 
       <section className="resource-section">
@@ -44,7 +42,7 @@ function Resources() {
             oil, and fatty fish
           </li>
           <li>
-            ✅ Get 7–9 hours of sleep — poor sleep accelerates memory loss
+            ✅ Get 7-9 hours of sleep. Poor sleep accelerates memory loss
           </li>
           <li>✅ Consider vitamin D and B-complex if levels are low</li>
           <li>
@@ -67,7 +65,7 @@ function Resources() {
             dashboard.
           </li>
           <li>
-            <strong>Is my data safe?</strong> Yes — we’re fully HIPAA compliant
+            <strong>Is my data safe?</strong> Yes. We’re fully HIPAA compliant
             and encrypt all personal data.
           </li>
           <li>

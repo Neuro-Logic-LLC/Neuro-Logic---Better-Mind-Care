@@ -1,6 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Breadcrumb from '../../components/Breadcrumb';
 import './patientReport.css';
+
+const TableOfContents = ({ sections }) => {
+  return (
+    <nav className="toc">
+      <h3>Table of Contents</h3>
+      <ul>
+        {sections.map((section) => (
+          <li key={section.slug}>
+            <a href={`#${section.slug}`}>{section.title}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+};
 
 const renderItems = (items = []) => {
   if (!Array.isArray(items) || items.length === 0) return null;
@@ -22,23 +38,17 @@ const renderItems = (items = []) => {
 const Section = ({ section, fallbackFooter }) => {
   if (!section) return null;
   const footer = section.footer || fallbackFooter;
-  if (
-    !section.body &&
-    (!Array.isArray(section.items) || section.items.length === 0)
-  ) {
+  if (!section.html) {
     return null;
   }
 
   return (
-    <section className="report-section" id={section.id}>
+    <section className="report-section" id={section.slug}>
       <h2>{section.title}</h2>
-      {section.body && (
-        <div
-          className="report-section__body"
-          dangerouslySetInnerHTML={{ __html: section.body }}
-        />
-      )}
-      {renderItems(section.items)}
+      <div
+        className="report-section__body"
+        dangerouslySetInnerHTML={{ __html: section.html }}
+      />
       <div className="section-footer">{footer}</div>
     </section>
   );
@@ -65,8 +75,44 @@ function PatientReport() {
       return;
     }
 
-    // If no id and no report, nothing to load
+    // If no id and no report, use mock data for testing
     if (!reportId) {
+      // Mock data matching spec
+      const mockReport = {
+        id: "mock-uuid",
+        title: "Patient Report",
+        generatedAt: new Date().toISOString(),
+        sections: [
+           {
+             slug: "overview",
+             title: "Overview",
+             html: "<p>This is the overview section with some <strong>bold text</strong> and a <a href='https://example.com' target='_blank' rel='noopener noreferrer'>link</a>.</p>"
+           },
+           {
+             slug: "recommendations",
+             title: "Your Personalized Recommendations",
+             html: "<p>Here are some recommendations.</p><ul><li>Recommendation 1</li><li>Recommendation 2</li></ul>"
+           },
+           {
+             slug: "supplements",
+             title: "Supplement Guidance",
+             html: "<p>Supplements info here.</p>"
+           },
+           {
+             slug: "test-results",
+             title: "Your Test Results",
+             html: "<p>Test results data.</p>"
+           },
+           {
+             slug: "faq-dictionary",
+             title: "FAQs & Definitions",
+             html: "<p>FAQs here.</p>"
+           }
+        ],
+        pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+        intro: "This report is based on your lab results, intake information, and evidence-informed cognitive risk analysis. Use the table of contents to navigate through your personalized recommendations."
+      };
+      setReport(mockReport);
       setLoading(false);
       return;
     }
@@ -120,8 +166,32 @@ function PatientReport() {
     return (
       <div className="patient-report-page">
         <p>{error || 'No report yet.'}</p>
-        <button className="btn" type="button" onClick={() => navigate('/')}>
-          Go back
+        <button
+          className="btn"
+          type="button"
+          onClick={() => navigate('/')}
+          style={{
+            border: '2px solid var(--teal)',
+            color: 'var(--teal)',
+            background: 'transparent',
+            padding: '0.4rem 0.8rem',
+            borderRadius: '4px',
+            textDecoration: 'none',
+            fontWeight: '600',
+            fontSize: '0.8rem',
+            display: 'inline-block',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = 'var(--teal)';
+            e.target.style.color = 'white';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'transparent';
+            e.target.style.color = 'var(--teal)';
+          }}
+        >
+          ← Go back
         </button>
       </div>
     );
@@ -130,36 +200,74 @@ function PatientReport() {
   const sections = Array.isArray(report.sections) ? report.sections : [];
   const footerBanner =
     report.footerBanner ||
-    'Educational wellness content — not medical advice. See full disclaimer on page 1.';
+    'Educational wellness content. Not medical advice. See full disclaimer on page 1.';
 
   return (
-    <main className="patient-report-page">
-      <header className="report-page__header">
-        <div>
-          <h1>
-            Patient Report{' '}
-            {report.isDraft && (
-              <span className="report-badge report-badge--draft">Draft</span>
+    <div style={{ background: 'linear-gradient(to top, var(--seafoam), white)', minHeight: '100vh' }}>
+       <main className="patient-report-page">
+         <header className="report-page__header">
+           <Breadcrumb items={[
+             { label: 'Home', path: '/' },
+             { label: 'Reports', path: '/my-reports' },
+             { label: 'Patient Report' }
+           ]} />
+           <div>
+             <h1 style={{ marginBottom: '2rem' }}>Your Personalized Brain Health Report</h1>
+            <p className="timestamp">{report.generatedAt ? new Date(report.generatedAt).toLocaleDateString() : ''}</p>
+            {report.pdfUrl && (
+              <a
+                href={report.pdfUrl}
+                download
+                className="btn"
+                style={{
+                  border: '2px solid var(--teal)',
+                  color: 'var(--teal)',
+                  background: 'transparent',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontWeight: '600',
+                  display: 'inline-block',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = 'var(--teal)';
+                  e.target.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                  e.target.style.color = 'var(--teal)';
+                }}
+              >
+                Download as PDF
+              </a>
             )}
-          </h1>
-          <p className="timestamp">{report.reportDate || ''}</p>
-        </div>
-      </header>
+          </div>
+         </header>
 
-      {report.globalDisclaimer && (
+         {report.intro && (
+           <section className="report-intro">
+             <p>{report.intro}</p>
+           </section>
+         )}
+
+       {report.globalDisclaimer && (
         <section className="report-banner" aria-label="Global disclaimer">
           <p>{report.globalDisclaimer}</p>
         </section>
       )}
 
+      <TableOfContents sections={sections} />
+
       {sections.map((section) => (
-        <Section
-          key={section.id || section.title}
-          section={section}
-          fallbackFooter={footerBanner}
-        />
-      ))}
-    </main>
+          <Section
+            key={section.slug || section.title}
+            section={section}
+            fallbackFooter={footerBanner}
+          />
+        ))}
+      </main>
+    </div>
   );
 }
 

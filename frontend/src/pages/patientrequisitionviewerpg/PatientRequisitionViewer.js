@@ -248,7 +248,7 @@ export default function PatientRequisitionViewer() {
           <ul style={{ marginTop: 12, paddingLeft: 20 }}>
             {drawCenters.map((dc) => (
               <li key={dc.DrawCenterID}>
-                <strong>{dc.Name}</strong> — {dc.Address}, {dc.City}, {dc.State} {dc.Zip}
+                <strong>{dc.Name}</strong>, {dc.Address}, {dc.City}, {dc.State} {dc.Zip}
                 <br />
                 <small>
                   {dc.Phone} ·{' '}

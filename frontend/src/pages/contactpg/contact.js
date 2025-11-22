@@ -9,22 +9,22 @@ function Contact() {
       <h1>Contact Us</h1>
       <p>
         We’re here to help. Whether you have questions about your intake, your
-        report, or just need a human to talk to — we’ve got your back.
+        report, or just need a human to talk to. We’ve got your back.
       </p>
 
-      <div className="contact-section">
-        <h3>📧 Email</h3>
-        <p>
-          <a href="mailto:support@BetterMindCare.com">
-            support@bettermindcare.com
-          </a>
-        </p>
-        {/* Need to link to Jim's Google Calendar */}
-        <h3>📞 Phone</h3>
+       <div className="contact-section">
+         <h3>Email</h3>
+         <p>
+           <a href="mailto:support@BetterMindCare.com">
+             support@bettermindcare.com
+           </a>
+         </p>
+         {/* Need to link to Jim's Google Calendar */}
+         <h3>Phone</h3>
 
-        <p>(760) 331-3116</p>
+         <p>(760) 331-3116</p>
 
-        <h3>📅 Schedule a Meeting</h3>
+         <h3>Schedule a Meeting</h3>
         {/* // UPDATE WITH JIM'S GOOGLE CALENDARID LINK */}
         {/* Once authenticated by Google Calendar, users can book a time directly.
 				Go to calendar.google.com
@@ -47,17 +47,20 @@ function Contact() {
         </p>
       </div>
 
-      <div className="feedback-form">
-        <h3 style={{ marginBottom: '2rem' }}>Send Us a Message</h3>
-        <form>
-          <input type="text" placeholder="Your Name" required />
-          <input type="email" placeholder="Your Email" required />
-          <textarea placeholder="Your Message" rows="5" required></textarea>
-          <button type="submit" className="btn">
-            Send Message
-          </button>
-        </form>
-      </div>
+       <div className="feedback-form">
+         <h3 style={{ marginBottom: '2rem' }}>Send Us a Message</h3>
+         <form>
+           <label htmlFor="contact-name" className="sr-only">Your Name</label>
+           <input id="contact-name" type="text" placeholder="Your Name" required />
+           <label htmlFor="contact-email" className="sr-only">Your Email</label>
+           <input id="contact-email" type="email" placeholder="Your Email" required />
+           <label htmlFor="contact-message" className="sr-only">Your Message</label>
+           <textarea id="contact-message" placeholder="Your Message" rows="5" required></textarea>
+           <button type="submit" className="btn">
+             Send Message
+           </button>
+         </form>
+       </div>
     </div>
   );
 }
