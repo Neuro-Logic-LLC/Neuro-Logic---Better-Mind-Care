@@ -5,6 +5,7 @@ import CheckoutStep from './CheckoutStep';
 import { useSignup } from './SignupContext';
 
 export const stripePromise = loadStripe(process.env.STRIPE_PUBLISHABLE_KEY);
+export const elements = useElements();
 
 export default function JoinCheckoutWrapper() {
   const { state } = useSignup();

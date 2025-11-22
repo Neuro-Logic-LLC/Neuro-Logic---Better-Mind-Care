@@ -5,7 +5,7 @@ import {
   PaymentElement
 } from '@stripe/react-stripe-js';
 import { PrimaryButton } from '../../components/button/Buttons';
-import Stripe from 'stripe';
+
 
 export default function PaymentForm({
   clientSecret,
@@ -15,10 +15,8 @@ export default function PaymentForm({
   onBeforeSubmit
 }) {
 
+  const stripe = useStripe();
 
-  const stripeKey = process.env.STRIPE_SECRET_KEY;
-  const stripe = require('stripe')(stripeKey);
-  
   const elements = useElements();
 
   const [error, setError] = useState('');
