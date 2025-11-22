@@ -4,8 +4,9 @@ import { loadStripe } from '@stripe/stripe-js';
 import CheckoutStep from './CheckoutStep';
 import { useSignup } from './SignupContext';
 
-export const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
-export const elements = useElements();
+export const stripePromise = loadStripe(
+  process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY
+);
 
 export default function JoinCheckoutWrapper() {
   const { state } = useSignup();
@@ -27,8 +28,7 @@ export default function JoinCheckoutWrapper() {
       });
 
       const data = await res.json();
-      console.log(data);
-      console.log('SetupIntent clientSecret:', data.clientSecret);
+      console.log('SetupIntent data:', data);
       setClientSecret(data.clientSecret);
     }
 
@@ -45,7 +45,7 @@ export default function JoinCheckoutWrapper() {
 
   return (
     <Elements stripe={stripePromise} options={options}>
-      <CheckoutStep clientSecret={clientSecret} />
+      <CheckoutStep />
     </Elements>
   );
 }
