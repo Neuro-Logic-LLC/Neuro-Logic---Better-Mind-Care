@@ -5,7 +5,7 @@ import CheckoutStep from './CheckoutStep';
 import { useSignup } from './SignupContext';
 
 export const stripePromise = loadStripe(
-  process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY
+  "pk_test_51S5ZjjRpCzJIcQaA7TceREs5c4Z8f6CeDIHsrwA2eB7tI6e8mmsj3XRaRulR0ZtQtSqNOJsIsKvVEakcrTc1p6Sa00Lu3Qntxa"
 );
 
 export default function JoinCheckoutWrapper() {
