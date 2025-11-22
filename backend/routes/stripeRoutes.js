@@ -24,9 +24,10 @@ const pickBaseUrl = () =>
 let stripe;
 const stripeKey = process.env.STRIPE_SECRET_KEY;
 
+
 function getStripe() {
   if (!stripe) {
-    stripe = new new Stripe(stripeKey)
+    stripe = require('stripe')(stripeKey);
   }
   return stripe;
 }

@@ -88,7 +88,7 @@ if (!stripeKey) {
   );
 }
 
-const stripe = new Stripe(stripeKey);
+const stripe = require('stripe')(stripeKey);
 
 function splitName(full) {
   if (!full) return { first: null, last: null };

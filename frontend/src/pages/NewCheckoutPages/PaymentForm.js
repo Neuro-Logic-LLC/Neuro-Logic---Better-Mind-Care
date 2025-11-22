@@ -13,7 +13,7 @@ export default function PaymentForm({
   onCollected,
   onBeforeSubmit
 }) {
-  const stripe = useStripe();
+  const stripe = require('stripe')(stripeKey);
   const elements = useElements();
 
   const [error, setError] = useState('');
