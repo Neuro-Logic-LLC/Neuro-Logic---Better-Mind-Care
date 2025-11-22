@@ -9,10 +9,11 @@ function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   console.log(user);
+  console.log(JSON.stringify(user, null, 2));
   return (
     <div className="dashboard-page">
       <h1 className="title-text">Welcome to Your Dashboard</h1>
-      {user.first_name + ' ' + user.last_name}
+      {user.email}
 
       {user?.role?.toLowerCase() === 'patient' && (
         <div

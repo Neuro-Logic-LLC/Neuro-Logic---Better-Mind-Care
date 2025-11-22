@@ -28,9 +28,23 @@ export default function StepThreeAccountSetup() {
   }, [navigate]);
 
   useEffect(() => {
-    if (window.location.search.includes('session_id')) {
+    const url = new URL(window.location.href);
+    const sessionId = url.searchParams.get('session_id');
+    if (!sessionId) return;
+
+    async function load() {
+      const res = await fetch(`/api/stripe/session/${sessionId}`);
+      const data = await res.json();
+
+      setField('customerId', data.customerId);
+      setField('paymentIntentId', data.paymentIntentId);
+      setField('email', data.email);
+
+      // NOW strip session_id safely
       window.history.replaceState({}, '', '/account-info');
     }
+
+    load();
   }, []);
 
   // Auto-fill hidden username

@@ -1042,7 +1042,7 @@ exports.paidSignup = async (req, res) => {
   const knex = await initKnex();
 
   try {
-    const { password, gender, dob, is_caregiver, cg_first, cg_last, cg_phone, cg_email } =
+    const { password, gender, dob, is_caregiver, cg_first, cg_last, cg_phone, cg_email} =
       req.body || {};
 
     const caregiver = is_caregiver === '1' || is_caregiver === true;
@@ -1072,25 +1072,25 @@ exports.paidSignup = async (req, res) => {
     // ---------------------------------------
     // 2. GET USER DATA FROM STRIPE PAYMENTS
     // ---------------------------------------
+    const { email: postedEmail } = req.body;
+    const eCanon = canon(String(postedEmail).trim().toLowerCase());
+
     const paymentRow = await knex('stripe_payments')
-      .orderBy('id', 'desc') // **DO NOT USE EMAIL — GET THE LATEST PAYMENT**
+      .whereRaw('LOWER(customer_email) = ?', [eCanon])
+      .orderBy('id', 'desc')
       .first();
 
     if (!paymentRow) {
       return res.status(400).json({ error: 'payment_not_found' });
     }
 
-    const rawEmail = paymentRow.customer_email || '';
-    const email = canon(String(rawEmail).trim().toLowerCase());
     const first_name = paymentRow.customer_first_name;
     const last_name = paymentRow.customer_last_name;
     const phone = paymentRow.customer_phone;
 
-    if (!email || !first_name || !last_name || !phone) {
+    if (!eCanon || !first_name || !last_name || !phone) {
       return res.status(500).json({ error: 'stripe_missing_identity' });
     }
-
-    const eCanon = canon(String(email).trim().toLowerCase());
 
     // ---------------------------------------
     // 3. HASH PASSWORD + LOOKUP ROLE

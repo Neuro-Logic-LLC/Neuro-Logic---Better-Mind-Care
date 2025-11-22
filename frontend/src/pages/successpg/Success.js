@@ -40,10 +40,10 @@ export default function SuccessPage() {
 
       <Link
       
-        to="/admin/dashboard"
+        to="/login"
         className="inline-block rounded-xl border border-gray-900 px-4 py-2 font-semibold"
       >
-        Go to Dashboard
+        Go to Login
       </Link>
     </div>
   );
