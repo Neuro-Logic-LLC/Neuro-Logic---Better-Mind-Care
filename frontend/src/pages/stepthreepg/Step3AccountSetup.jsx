@@ -22,31 +22,44 @@ export default function StepThreeAccountSetup() {
     username: ''
   });
 
-  // Auto-fill hidden username
-  // useEffect(() => {
-  //   if (state.email) {
-  //     const suggested = state.email.trim().toLowerCase();
-  //     setLocal((prev) => ({ ...prev, username: suggested }));
-  //   }
-  // }, [state.email]);
-
-  useEffect(() => {
+useEffect(() => {
   const url = new URL(window.location.href);
   const sessionId = url.searchParams.get('session_id');
-  if (!sessionId) return;
+  
 
-  async function load() {
-    const res = await fetch(`/api/stripe/session/${sessionId}`);
-    const data = await res.json();
+}, [navigate]);
 
-    // Save these for account creation
-    setField('customerId', data.customerId);
-    setField('paymentIntentId', data.paymentIntentId);
-    setField('email', data.email);
-  }
+  useEffect(() => {
+    if (window.location.search.includes('session_id')) {
+      window.history.replaceState({}, '', '/account-info');
+    }
+  }, []);
 
-  load();
-}, []);
+  // Auto-fill hidden username
+  useEffect(() => {
+    if (state.email) {
+      const suggested = state.email.trim().toLowerCase();
+      setLocal((prev) => ({ ...prev, username: suggested }));
+    }
+  }, [state.email]);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const sessionId = url.searchParams.get('session_id');
+    if (!sessionId) return;
+
+    async function load() {
+      const res = await fetch(`/api/stripe/session/${sessionId}`);
+      const data = await res.json();
+
+      // Save these for account creation
+      setField('customerId', data.customerId);
+      setField('paymentIntentId', data.paymentIntentId);
+      setField('email', data.email);
+    }
+
+    load();
+  }, []);
 
   const update = (e) => setLocal({ ...local, [e.target.name]: e.target.value });
 
@@ -55,9 +68,9 @@ export default function StepThreeAccountSetup() {
 
   async function postJson(url, body) {
     const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       body: JSON.stringify(body)
     });
 
@@ -71,67 +84,74 @@ export default function StepThreeAccountSetup() {
     return { res, data };
   }
 
-  async function chargeUser() {
-    const { customerId, paymentMethod, totalCents } = state;
-    console.log('Charging user with:', { customerId, paymentMethod, totalCents });
+  // async function chargeUser() {
+  //   const { customerId, paymentMethod, totalCents } = state;
+  //   console.log('Charging user with:', {
+  //     customerId,
+  //     paymentMethod,
+  //     totalCents
+  //   });
 
-    if (!customerId || !paymentMethod) {
-      throw new Error("Payment details missing — go back to checkout.");
-    }
+  //   // if (!customerId || !paymentMethod) {
+  //   //   throw new Error("Payment details missing — go back to checkout.");
+  //   // }
 
-    const body = {
-      customerId: customerId,
-      paymentMethod: paymentMethod,
-      amountCents: totalCents,
-      meta: {
-        EmailAddress: state.email,
-        DOB: local.dob,
-        Gender: local.gender,
-        isCaregiver: local.isCaregiver ? "1" : "0",
-        cgFirst: local.cgFirst,
-        cgLast: local.cgLast,
-        Phone: local.cgPhone,
-        PostalCode: state.billingZip || '',
-        join_source: "JoinStepThree"
-      }
-    };
+  //   if (!state.customerId || !state.paymentIntentId) {
+  //     console.warn('Stripe session data missing');
+  //     // Optional: show error or redirect
+  //   }
 
-    const { res, data } = await postJson("/api/stripe/charge-after-setup", body);
+  //   const body = {
+  //     customerId: customerId,
+  //     paymentMethod: paymentMethod,
+  //     amountCents: totalCents,
+  //     meta: {
+  //       EmailAddress: state.email,
+  //       DOB: local.dob,
+  //       Gender: local.gender,
+  //       isCaregiver: local.isCaregiver ? '1' : '0',
+  //       cgFirst: local.cgFirst,
+  //       cgLast: local.cgLast,
+  //       Phone: local.cgPhone,
+  //       PostalCode: state.billingZip || '',
+  //       join_source: 'JoinStepThree'
+  //     }
+  //   };
 
-    if (!res.ok) {
-      throw new Error(data.error || "Payment failed");
-    }
+  //   const { res, data } = await postJson(
+  //     '/api/stripe/charge-after-setup',
+  //     body
+  //   );
 
-    return data;
-  }
+  //   if (!res.ok) {
+  //     throw new Error(data.error || 'Payment failed');
+  //   }
+
+  //   return data;
+  // }
 
   async function submit(e) {
     e.preventDefault();
 
     try {
-      // Save all fields to context
-      setField("dob", local.dob);
-      setField("gender", local.gender);
-      setField("isCaregiver", local.isCaregiver);
-      setField("username", local.username);
+      setField('dob', local.dob);
+      setField('gender', local.gender);
+      setField('isCaregiver', local.isCaregiver);
+      setField('username', local.username);
 
       if (local.isCaregiver) {
-        setField("cgFirst", local.cgFirst);
-        setField("cgLast", local.cgLast);
-        setField("cgPhone", local.cgPhone);
-        setField("cgEmail", local.cgEmail);
+        setField('cgFirst', local.cgFirst);
+        setField('cgLast', local.cgLast);
+        setField('cgPhone', local.cgPhone);
+        setField('cgEmail', local.cgEmail);
       }
 
-      sessionStorage.setItem("TEMP_PASSWORD", password);
+      sessionStorage.setItem('TEMP_PASSWORD', password);
 
-      // NOW run the actual charge
-      await chargeUser();
-
-      navigate("/success");
+      navigate('/success');
     } catch (err) {
       console.error(err);
-      alert("Payment couldn’t complete: " + err.message);
-      navigate("/join/checkout");
+      alert('Something went wrong.');
     }
   }
 

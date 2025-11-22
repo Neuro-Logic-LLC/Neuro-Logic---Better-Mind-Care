@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSignup } from './SignupContext';
 import { PrimaryButton } from '../../components/button/Buttons';
+import PaymentForm from './PaymentForm';
 
 const PRICES = {
   CORE: 30000,
@@ -107,7 +108,7 @@ export default function CheckoutStep({ clientSecret }) {
       apoe: cart.APOE,
       ptau: cart.NEURO,
       customer_email: state.email,
-      success_url: `${window.location.origin}/join/account-setup`,
+      success_url: `${window.location.origin}/account-info`,
       cancel_url: `${window.location.origin}/join/checkout`
     };
 
@@ -145,9 +146,9 @@ export default function CheckoutStep({ clientSecret }) {
   }
 
   // receives { customerId, paymentMethod } from PaymentForm
-  function handlePaymentCollected({ stripeCustomerId, stripePaymentMethod }) {
-    setField('stripeCustomerId', stripeCustomerId);
-    setField('stripePaymentMethod', stripePaymentMethod);
+  function handlePaymentCollected({ customerId, paymentMethod }) {
+    setField('customerId', customerId);
+    setField('paymentMethod', paymentMethod);
     setField('totalCents', totalCents);
 
     setTimeout(() => {}, 100);
@@ -239,14 +240,13 @@ export default function CheckoutStep({ clientSecret }) {
       {/* Pay */}
       <div style={{ marginTop: 16 }}>
         {totalCents > 0 ? (
-          <PrimaryButton
-            type="button"
-            disabled={loading}
+          <button
+            className="your-btn"
+            disabled={!agreeTos}
             onClick={startStripeCheckout}
-            className="w-full h-11 rounded-lg bg-black text-white font-medium disabled:opacity-60"
           >
-            {loading ? 'Redirecting…' : `Pay ${usd(totalCents)}`}
-          </PrimaryButton>
+            Continue to Payment
+          </button>
         ) : (
           <p style={{ color: '#999', marginTop: 12 }}>
             Select at least one test to continue.

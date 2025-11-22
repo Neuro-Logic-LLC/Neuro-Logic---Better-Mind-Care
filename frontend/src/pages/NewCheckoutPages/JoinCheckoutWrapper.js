@@ -37,7 +37,7 @@ export default function JoinCheckoutWrapper() {
       setClientSecret(data.clientSecret);
 
       // 💥 ADD THESE
-      setField('stripeCustomerId', data.customerId);
+      setField('customerId', data.customerId);
       setField('stripeSetupIntentClientSecret', data.clientSecret);
     }
 

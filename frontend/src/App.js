@@ -168,7 +168,7 @@ function App() {
                 <Route path="/join" element={<EmailStep />} />
                 <Route
                   path="/join/checkout"
-                  element={<JoinCheckoutWrapper />}
+                  element={<CheckoutStep />}
                 />
                 <Route
                   path="/account-info"
