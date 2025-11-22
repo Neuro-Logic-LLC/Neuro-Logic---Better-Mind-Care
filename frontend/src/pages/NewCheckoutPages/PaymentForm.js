@@ -14,23 +14,20 @@ export default function PaymentForm({
   onBeforeSubmit
 }) {
   const stripe = useStripe();
-
   const elements = useElements();
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [paymentReady, setPaymentReady] = useState(false);
-
+  
   async function handleSubmit() {
     if (!stripe || !elements) return;
 
-    // Prevent submission if validation fails (cart empty, TOS unchecked, etc.)
     if (onBeforeSubmit) {
       const shouldProceed = onBeforeSubmit();
       if (!shouldProceed) return;
     }
 
-    // Block if PaymentElement isn't mounted yet
     const paymentElement = elements.getElement(PaymentElement);
     if (!paymentElement) {
       setError('Payment form is still loading. Please wait a moment.');
@@ -42,10 +39,7 @@ export default function PaymentForm({
 
     const result = await stripe.confirmSetup({
       elements,
-      clientSecret,
-      confirmParams: {
-        return_url: window.location.href
-      }
+      redirect: 'if_required'
     });
 
     if (result.error) {
@@ -54,13 +48,15 @@ export default function PaymentForm({
       return;
     }
 
+    // SUCCESS
+    const si = result.setupIntent;
+
     onCollected({
-      customerId: result.setupIntent.customer,
-      paymentMethod: result.setupIntent.payment_method
+      customerId: si.customer,
+      paymentMethod: si.payment_method
     });
   }
 
-  // Disable button until PaymentElement mounts
   const paymentElementReady = elements && elements.getElement(PaymentElement);
 
   return (
@@ -68,8 +64,8 @@ export default function PaymentForm({
       <div className="rounded-xl border p-4 bg-white shadow-sm space-y-4">
         <PaymentElement
           onReady={() => {
-            console.log('PaymentElement READY');
             setPaymentReady(true);
+            console.log('PaymentElement READY');
           }}
           onLoadError={(e) => console.error('PaymentElement LOAD ERROR:', e)}
           onError={(e) => console.error('PaymentElement ERROR:', e)}

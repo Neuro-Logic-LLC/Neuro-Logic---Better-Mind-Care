@@ -23,12 +23,30 @@ export default function StepThreeAccountSetup() {
   });
 
   // Auto-fill hidden username
+  // useEffect(() => {
+  //   if (state.email) {
+  //     const suggested = state.email.trim().toLowerCase();
+  //     setLocal((prev) => ({ ...prev, username: suggested }));
+  //   }
+  // }, [state.email]);
+
   useEffect(() => {
-    if (state.email) {
-      const suggested = state.email.trim().toLowerCase();
-      setLocal((prev) => ({ ...prev, username: suggested }));
-    }
-  }, [state.email]);
+  const url = new URL(window.location.href);
+  const sessionId = url.searchParams.get('session_id');
+  if (!sessionId) return;
+
+  async function load() {
+    const res = await fetch(`/api/stripe/session/${sessionId}`);
+    const data = await res.json();
+
+    // Save these for account creation
+    setField('customerId', data.customerId);
+    setField('paymentIntentId', data.paymentIntentId);
+    setField('email', data.email);
+  }
+
+  load();
+}, []);
 
   const update = (e) => setLocal({ ...local, [e.target.name]: e.target.value });
 
@@ -54,15 +72,16 @@ export default function StepThreeAccountSetup() {
   }
 
   async function chargeUser() {
-    const { stripeCustomerId, stripePaymentMethod, totalCents } = state;
+    const { customerId, paymentMethod, totalCents } = state;
+    console.log('Charging user with:', { customerId, paymentMethod, totalCents });
 
-    if (!stripeCustomerId || !stripePaymentMethod) {
+    if (!customerId || !paymentMethod) {
       throw new Error("Payment details missing — go back to checkout.");
     }
 
     const body = {
-      customerId: stripeCustomerId,
-      paymentMethod: stripePaymentMethod,
+      customerId: customerId,
+      paymentMethod: paymentMethod,
       amountCents: totalCents,
       meta: {
         EmailAddress: state.email,

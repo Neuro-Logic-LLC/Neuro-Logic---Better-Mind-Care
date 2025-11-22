@@ -24,7 +24,6 @@ const pickBaseUrl = () =>
 let stripe;
 const stripeKey = process.env.STRIPE_SECRET_KEY;
 
-
 function getStripe() {
   if (!stripe) {
     stripe = require('stripe')(stripeKey);
@@ -224,33 +223,18 @@ router.post('/stripe-payment-intent', express.json(), async (req, res) => {
       });
     }
 
-    // 2. Check for existing usable SetupIntent
-    const existingIntents = await s.setupIntents.list({
+
+    const setupIntent = await s.setupIntents.create({
       customer: customer.id,
-      limit: 1
-    });
-
-    let setupIntent = null;
-
-    if (existingIntents.data.length > 0) {
-      const intent = existingIntents.data[0];
-
-      // Reusable if still in a "requires" state
-      if (['requires_payment_method', 'requires_confirmation'].includes(intent.status)) {
-        setupIntent = intent;
+      usage: 'off_session',
+      confirm: false,
+      payment_method_types: ['card'], // ensures NO redirect
+      metadata: {
+        app: 'BetterMindCare',
+        env: IS_PROD ? 'prod' : 'dev',
+        ...meta
       }
-    }
-
-    // 3. If no reusable one, create a *new* modern SetupIntent
-    if (!setupIntent) {
-      setupIntent = await s.setupIntents.create({
-        customer: customer.id,
-        usage: 'off_session',
-        confirm: false,
-        automatic_payment_methods: { enabled: true },
-        metadata: { app: 'BetterMindCare', env: IS_PROD ? 'prod' : 'dev', ...meta }
-      });
-    }
+    });
 
     // DEBUG LOG: intent id and client_secret (don’t log secrets in production)
     console.log('[stripe] setupIntent.id:', setupIntent.id);
@@ -306,6 +290,25 @@ router.post('/charge-after-setup', express.json(), async (req, res) => {
   } catch (err) {
     console.error('[stripe] charge-after-setup error:', err);
     res.status(400).json({ error: err.message || 'Payment failed' });
+  }
+});
+
+router.get('/session/:id', async (req, res) => {
+  try {
+    const s = getStripe();
+    const session = await s.checkout.sessions.retrieve(req.params.id, {
+      expand: ['payment_intent', 'customer']
+    });
+
+    res.json({
+      email: session.customer_details.email,
+      customerId: session.customer,
+      paymentIntentId: session.payment_intent.id,
+      amountTotal: session.amount_total
+    });
+  } catch (err) {
+    console.error('session lookup failed:', err);
+    res.status(400).json({ error: 'Session lookup failed' });
   }
 });
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSignup } from './SignupContext';
-import PaymentForm from './PaymentForm';
+import { PrimaryButton } from '../../components/button/Buttons';
 
 const PRICES = {
   CORE: 30000,
@@ -58,7 +58,7 @@ const S = {
   asideBody: { padding: 20, fontSize: 14 }
 };
 
-export default function CheckoutStep() {
+export default function CheckoutStep({ clientSecret }) {
   const { state, setField } = useSignup();
   const navigate = useNavigate();
 
@@ -98,6 +98,35 @@ export default function CheckoutStep() {
     });
   }
 
+  async function startStripeCheckout() {
+    setLoading(true);
+    setError('');
+
+    const body = {
+      brainhealth: cart.CORE,
+      apoe: cart.APOE,
+      ptau: cart.NEURO,
+      customer_email: state.email,
+      success_url: `${window.location.origin}/join/account-setup`,
+      cancel_url: `${window.location.origin}/join/checkout`
+    };
+
+    const res = await fetch('/api/stripe/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    const data = await res.json();
+
+    if (data.url) {
+      window.location.href = data.url; // 🚀 send them straight to Stripe Checkout
+    } else {
+      setError(data.error || 'Stripe checkout failed.');
+      setLoading(false);
+    }
+  }
+
   const totalCents = cart.BUNDLE_CORE_APOE
     ? PRICES.BUNDLE_CORE_APOE + (cart.NEURO ? PRICES.NEURO : 0)
     : (cart.CORE ? PRICES.CORE : 0) +
@@ -116,10 +145,12 @@ export default function CheckoutStep() {
   }
 
   // receives { customerId, paymentMethod } from PaymentForm
-  function handlePaymentCollected({ customerId, paymentMethod }) {
-    setField('stripeCustomerId', customerId);
-    setField('stripePaymentMethod', paymentMethod);
+  function handlePaymentCollected({ stripeCustomerId, stripePaymentMethod }) {
+    setField('stripeCustomerId', stripeCustomerId);
+    setField('stripePaymentMethod', stripePaymentMethod);
     setField('totalCents', totalCents);
+
+    setTimeout(() => {}, 100);
 
     navigate('/account-info');
   }
@@ -208,20 +239,14 @@ export default function CheckoutStep() {
       {/* Pay */}
       <div style={{ marginTop: 16 }}>
         {totalCents > 0 ? (
-          <PaymentForm
-            clientSecret={state.stripeSetupIntentClientSecret}
-            amountLabel={usd(totalCents)}
+          <PrimaryButton
+            type="button"
             disabled={loading}
-            onBeforeSubmit={() => {
-              const v = validateBeforeStripe();
-              if (v) {
-                setError(v);
-                return false;
-              }
-              return true;
-            }}
-            onCollected={handlePaymentCollected}
-          />
+            onClick={startStripeCheckout}
+            className="w-full h-11 rounded-lg bg-black text-white font-medium disabled:opacity-60"
+          >
+            {loading ? 'Redirecting…' : `Pay ${usd(totalCents)}`}
+          </PrimaryButton>
         ) : (
           <p style={{ color: '#999', marginTop: 12 }}>
             Select at least one test to continue.
