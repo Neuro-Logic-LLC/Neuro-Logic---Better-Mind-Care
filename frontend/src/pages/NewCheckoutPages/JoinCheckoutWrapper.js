@@ -4,7 +4,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import CheckoutStep from './CheckoutStep';
 import { useSignup } from './SignupContext';
 
-export const stripePromise = loadStripe(process.env.STRIPE_PUBLISHABLE_KEY);
+export const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 export const elements = useElements();
 
 export default function JoinCheckoutWrapper() {
