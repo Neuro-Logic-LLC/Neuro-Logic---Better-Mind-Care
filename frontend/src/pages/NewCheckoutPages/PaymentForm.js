@@ -6,7 +6,6 @@ import {
 } from '@stripe/react-stripe-js';
 import { PrimaryButton } from '../../components/button/Buttons';
 
-
 export default function PaymentForm({
   clientSecret,
   amountLabel,
@@ -14,13 +13,13 @@ export default function PaymentForm({
   onCollected,
   onBeforeSubmit
 }) {
-
   const stripe = useStripe();
 
   const elements = useElements();
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [paymentReady, setPaymentReady] = useState(false);
 
   async function handleSubmit() {
     if (!stripe || !elements) return;
@@ -68,7 +67,10 @@ export default function PaymentForm({
     <div className="mt-3 space-y-3">
       <div className="rounded-xl border p-4 bg-white shadow-sm space-y-4">
         <PaymentElement
-          onReady={() => console.log('PaymentElement READY')}
+          onReady={() => {
+            console.log('PaymentElement READY');
+            setPaymentReady(true);
+          }}
           onLoadError={(e) => console.error('PaymentElement LOAD ERROR:', e)}
           onError={(e) => console.error('PaymentElement ERROR:', e)}
         />
