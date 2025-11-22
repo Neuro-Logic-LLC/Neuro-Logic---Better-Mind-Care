@@ -13,16 +13,16 @@
 .legal-callout h3 {
   font-size: clamp(20px, 2.4vw, 26px);
   margin-bottom: 12px;
-  color: var(--soft-white);
+  color: var(--teal);
 }
 
 .legal-callout p {
   margin: 0;
-  color: var(--soft-white);
+  color: var(--charcoal);
 }
 
 .legal-callout a {
-  color: var(--soft-white);
+  color: var(--charcoal);
   text-decoration: underline;
 }
 
