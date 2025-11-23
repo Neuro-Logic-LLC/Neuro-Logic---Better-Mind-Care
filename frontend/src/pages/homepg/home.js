@@ -5,7 +5,7 @@ import { useAuth } from '../../auth/AuthContext';
 import { Link } from 'react-router-dom';
 import LockNKeyIcon from '../../assets/icons/LockNKeyIcon.png';
 import CircleCheckIcon from '../../assets/icons/CircleCheckIcon.png';
-import DividerWave from '../../components/DividerWave';
+
 import './home.css';
 
 function Home() {
@@ -15,8 +15,7 @@ function Home() {
   if (isLoggedIn) {
     // Dashboard for logged-in users
     return (
-      <main className="main-content">
-        <DividerWave />
+      <main className="main-content bg-gradient-white-seafoam">
         <section className="hero-section">
           <h1>Welcome to your Better Mind Care Dashboard</h1>
           <p>
@@ -71,8 +70,7 @@ function Home() {
   } else {
     // Public home for non-logged-in
     return (
-      <main className="main-content">
-        <DividerWave />
+      <main className="main-content bg-gradient-white-seafoam">
         <section className="hero-section">
           <h1>Welcome to Better Mind Care</h1>
           <p>
