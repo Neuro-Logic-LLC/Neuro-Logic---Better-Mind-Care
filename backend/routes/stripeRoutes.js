@@ -22,9 +22,11 @@ const pickBaseUrl = () =>
 
 // ---- lazy Stripe client so import order can’t break us ----
 let stripe;
+const stripeKey = process.env.STRIPE_SECRET_KEY;
+
 function getStripe() {
   if (!stripe) {
-    stripe = new Stripe(reqEnv('STRIPE_SECRET_KEY'));
+    stripe = require('stripe')(stripeKey);
   }
   return stripe;
 }
@@ -175,7 +177,7 @@ router.post('/checkout', express.json(), async (req, res) => {
         }
       ],
 
-      customer_creation: 'always',
+      // customer_creation: 'always',
       expand: ['customer_details', 'shipping'],
 
       customer_email: customer_email || undefined,
@@ -190,178 +192,136 @@ router.post('/checkout', express.json(), async (req, res) => {
     res.status(400).json({ error: err.message || 'Stripe error' });
   }
 });
-// ---- Webhook (must use raw body) ----
-// router.post('/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-//   let event;
-//   try {
-//     const sig = req.headers['stripe-signature'];
-//     const whSecret = reqEnv('STRIPE_WEBHOOK_SECRET'); // read when needed
-//     event = Stripe.webhooks.constructEvent(req.body, sig, whSecret);
-//   } catch (e) {
-//     console.error('[stripe] bad webhook signature:', e.message);
-//     return res.status(400).end();
-//   }
 
-//   if (!IS_PROD) console.log('[stripe] webhook event:', event.type);
+// --------------------------------------------
+//  CREATE SETUP INTENT (collect card but DO NOT charge)
+// --------------------------------------------
+router.post('/stripe-payment-intent', express.json(), async (req, res) => {
+  try {
+    const s = getStripe();
 
-//   try {
-//     // TODO: your existing business logic...
-//   } catch (e) {
-//     console.error('[stripe] webhook handler error:', e);
-//   }
+    // DEBUG LOG: show which secret key prefix is being used
+    console.log('[stripe] secret key prefix:', (process.env.STRIPE_SECRET_KEY || '').slice(0, 8));
 
-//   res.status(200).end();
-// });
+    const { email, meta = {} } = req.body || {};
+    if (!email) return res.status(400).json({ error: 'email required' });
 
-// router.post(
-//   '/webhook',
-//   express.raw({ type: 'application/json' }),
-//   async (req, res) => {
-//     let event;
+    // 1. Find or create customer
+    const existing = await s.customers.list({ email, limit: 1 });
 
-//     try {
-//       const sig = req.headers['stripe-signature'];
-//       const whSecret = reqEnv('STRIPE_WEBHOOK_SECRET');
-//       const s = getStripe();
+    let customer;
+    if (existing.data.length > 0) {
+      customer = existing.data[0];
+    } else {
+      customer = await s.customers.create({
+        email,
+        metadata: {
+          app: 'BetterMindCare',
+          env: IS_PROD ? 'prod' : 'dev',
+          ...meta
+        }
+      });
+    }
 
-//       // Stripe expects raw buffer here
-//       event = s.webhooks.constructEvent(req.body, sig, whSecret);
-//     } catch (err) {
-//       console.error('[stripe] bad webhook signature:', err.message);
-//       return res.status(400).send(`Webhook Error: ${err.message}`);
-//     }
 
-//     if (!IS_PROD) console.log('[stripe] webhook event:', event.type);
+    const setupIntent = await s.setupIntents.create({
+      customer: customer.id,
+      usage: 'off_session',
+      confirm: false,
+      payment_method_types: ['card'], // ensures NO redirect
+      metadata: {
+        app: 'BetterMindCare',
+        env: IS_PROD ? 'prod' : 'dev',
+        ...meta
+      }
+    });
 
-//     try {
-//       if (event.type === 'checkout.session.completed') {
-//         const session = event.data.object;
-//         const s = getStripe();
-//         const customer = await s.customers.retrieve(session.customer, {
-//           expand: ['address']
-//         });
+    // DEBUG LOG: intent id and client_secret (don’t log secrets in production)
+    console.log('[stripe] setupIntent.id:', setupIntent.id);
+    console.log(
+      '[stripe] setupIntent.client_secret (prefix):',
+      (setupIntent.client_secret || '').slice(0, 10)
+    );
 
-//         const patientData = {
-//           FirstName: customer.name?.split(' ')[0] || '',
-//           LastName: customer.name?.split(' ').slice(1).join(' ') || '',
-//           EmailAddress: customer.email || '',
-//           Phone: customer.phone || '',
-//           StreetAddress: customer.address?.line1 || '',
-//           City: customer.address?.city || '',
-//           State: customer.address?.state || '',
-//           PostalCode: customer.address?.postal_code || '',
-//           DOB: session.metadata?.DOB || '',
-//           Gender: session.metadata?.Gender || ''
-//         };
+    res.json({
+      clientSecret: setupIntent.client_secret,
+      customerId: customer.id
+    });
+  } catch (err) {
+    console.error('[stripe] setup-intent error:', err);
+    res.status(400).json({ error: err.message || 'Stripe error' });
+  }
+});
 
-//         console.log('[stripe webhook] Patient data from Stripe:', patientData);
+// --------------------------------------------
+//  CHARGE AFTER SETUP — RUN AFTER STEP THREE /// LEGACY DO NOT USE WITHOUT 
+// --------------------------------------------
+router.post('/charge-after-setup', express.json(), async (req, res) => {
+  try {
+    const s = getStripe();
 
-//         // Send to Evexia
-//         const EVX_BASE = pickBaseUrl();
-//         await fetch(`${EVX_BASE}/api/evexia/patient-add`, {
-//           method: 'POST',
-//           headers: { 'Content-Type': 'application/json' },
-//           body: JSON.stringify(patientData)
-//         });
+    const { customerId, paymentMethod, amountCents, meta = {} } = req.body || {};
 
-//         console.log('[stripe webhook] Sent to Evexia:', patientData);
+    if (!customerId) return res.status(400).json({ error: 'customerId required' });
+    if (!paymentMethod) return res.status(400).json({ error: 'paymentMethod required' });
+    if (!amountCents) return res.status(400).json({ error: 'amountCents required' });
 
-//         // ✅ Save to DB
-//         try {
-//           const knex = require('../db/knex'); // adjust path if needed
-//           await knex('stripe_payments').insert({
-//             stripe_session_id: session.id,
-//             stripe_payment_intent_id: session.payment_intent || null,
-//             user_id: session.metadata?.user_id || null,
-//             product_key: session.metadata?.productKey || '',
-//             amount: session.amount_total / 100,
-//             currency: session.currency,
-//             status: session.payment_status || 'unknown',
-//             metadata: JSON.stringify(patientData),
-//             evexia_processed: false,
-//             created_at: new Date(),
-//             updated_at: new Date()
-//           });
-//           console.log('[stripe webhook] Saved payment in DB');
-//         } catch (dbErr) {
-//           console.error('[stripe webhook] DB insert failed:', dbErr);
-//         }
-//       }
-//     } catch (err) {
-//       console.error('[stripe webhook] error:', err);
-//     }
+    // This metadata folds into your standard approach
+    const finalMeta = {
+      app: 'BetterMindCare',
+      env: IS_PROD ? 'prod' : 'dev',
+      ...meta
+    };
 
-//     res.status(200).end();
-//   }
-// );
-// router.post(
-//   "/webhook",
-//   express.raw({ type: "application/json" }),
-//   async (req, res) => {
-//     let event;
-//     try {
-//       const sig = req.headers["stripe-signature"];
-//       const whSecret = process.env.STRIPE_WEBHOOK_SECRET;
-//       const s = getStripe();
-//       event = s.webhooks.constructEvent(req.body, sig, whSecret);
-//     } catch (err) {
-//       console.error("[stripe] bad webhook signature:", err.message);
-//       return res.status(400).send(`Webhook Error: ${err.message}`);
-//     }
+    const paymentIntent = await s.paymentIntents.create({
+      amount: amountCents,
+      currency: 'usd',
+      customer: customerId,
+      payment_method: paymentMethod,
+      confirm: true, // <-- actual charge
+      off_session: true, // <-- user doesn't re-enter card
+      metadata: finalMeta
+    });
 
-//     console.log("[stripe] webhook event:", event.type);
+    res.json({
+      success: true,
+      paymentIntent
+    });
+  } catch (err) {
+    console.error('[stripe] charge-after-setup error:', err);
+    res.status(400).json({ error: err.message || 'Payment failed' });
+  }
+});
 
-//     try {
-//       if (event.type === "checkout.session.completed") {
-//         const session = event.data.object;
-//         const s = getStripe();
+router.get('/session/:id', async (req, res) => {
+  try {
+    const s = getStripe();
+    const session = await s.checkout.sessions.retrieve(req.params.id, {
+      expand: ['payment_intent', 'customer']
+    });
 
-//         const customer = await s.customers.retrieve(session.customer, {
-//           expand: ["address"],
-//         });
+    const details = session.customer_details || {};
+    console.log(details);
 
-//         const patientData = {
-//           FirstName: customer.name?.split(" ")[0] || "",
-//           LastName: customer.name?.split(" ").slice(1).join(" ") || "",
-//           EmailAddress: customer.email || "",
-//           Phone: customer.phone || "",
-//           StreetAddress: customer.address?.line1 || "",
-//           City: customer.address?.city || "",
-//           State: customer.address?.state || "",
-//           PostalCode: customer.address?.postal_code || "",
-//           DOB: session.metadata?.DOB || "",
-//           Gender: session.metadata?.Gender || "",
-//         };
+    res.json({
+      email: details.email,
+      customerId: session.customer,
+      paymentIntentId: session.payment_intent.id,
+      amountTotal: session.amount_total,
+      first: details.name?.split(' ')[0] || null,
+      last: details.name?.split(' ').slice(1).join(' ') || null,
+      phone: details.phone || null,
 
-//         console.log("[stripe webhook] Patient data from Stripe:", patientData);
-
-//         // ✅ Save to DB
-//         try {
-//           const knex = require("../db/knex");
-//           const stripePayments = await knex("stripe_payments").insert({
-//             stripe_session_id: session.id,
-//             stripe_payment_intent_id: session.payment_intent || null,
-//             user_id: session.metadata?.user_id || null,
-//             product_key: session.metadata?.productKey || "",
-//             amount: session.amount_total / 100,
-//             currency: session.currency,
-//             status: session.payment_status || "unknown",
-//             metadata: JSON.stringify(patientData),
-//             evexia_processed: false,
-//             created_at: new Date(),
-//             updated_at: new Date(),
-//           });
-//           console.log("[stripe webhook] Saved payment in DB");
-//         } catch (dbErr) {
-//           console.error("[stripe webhook] DB insert failed:", dbErr);
-//         }
-//       }
-//     } catch (err) {
-//       console.error("[stripe webhook] error:", err);
-//     }
-
-//     res.status(200).end();
-//   }
-// );
+      street: details.address?.line1 || null,
+      street2: details.address?.line2 || null,
+      city: details.address?.city || null,
+      state: details.address?.state || null,
+      zip: details.address?.postal_code || null
+    });
+  } catch (err) {
+    console.error('session lookup failed:', err);
+    res.status(400).json({ error: 'Session lookup failed' });
+  }
+});
 
 module.exports = router;

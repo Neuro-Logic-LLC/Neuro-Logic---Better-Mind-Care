@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { useSignup } from '../NewCheckoutPages/SignupContext';
 import { PrimaryButton } from '../../components/button/Buttons';
 
-
 export default function StepThreeAccountSetup() {
   const { state, setField } = useSignup();
   const navigate = useNavigate();
@@ -20,10 +19,53 @@ export default function StepThreeAccountSetup() {
     cgLast: '',
     cgPhone: '',
     cgEmail: '',
-    username: '' // stays hidden
+    username: ''
   });
 
-  // Auto-generate hidden username from email (email_canon later)
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const sessionId = url.searchParams.get('session_id');
+  }, [navigate]);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const sessionId = url.searchParams.get('session_id');
+    if (!sessionId) return;
+
+    async function load() {
+      const res = await fetch(`/api/stripe/session/${sessionId}`);
+      const data = await res.json();
+
+      const safeSet = (key, val) => {
+        if (val !== null && val !== undefined && val !== '') {
+          setField(key, val);
+        }
+      };
+
+      safeSet('customerId', data.customerId);
+      safeSet('paymentIntentId', data.paymentIntentId);
+      safeSet('email', data.email);
+      safeSet('first', data.first);
+      safeSet('last', data.last);
+      safeSet('phone', data.phone);
+      safeSet('zip', data.zip);
+      safeSet('street', data.street);
+      safeSet('city', data.city);
+      safeSet('state', data.state);
+
+      safeSet('address', data.street);
+      safeSet('address2', data.street2);
+
+      console.log('Stripe session:', data);
+
+      // Strip session_id from URL
+      window.history.replaceState({}, '', '/account-info');
+    }
+
+    load();
+  }, [setField]);
+
+  // Auto-fill hidden username
   useEffect(() => {
     if (state.email) {
       const suggested = state.email.trim().toLowerCase();
@@ -31,41 +73,288 @@ export default function StepThreeAccountSetup() {
     }
   }, [state.email]);
 
+  // useEffect(() => {
+  //   const url = new URL(window.location.href);
+  //   const sessionId = url.searchParams.get('session_id');
+  //   if (!sessionId) return;
+
+  //   async function load() {
+  //     const res = await fetch(`/api/stripe/session/${sessionId}`);
+  //     const data = await res.json();
+
+  //     // Save these for account creation
+  //     setField('customerId', data.customerId);
+  //     setField('paymentIntentId', data.paymentIntentId);
+  //     setField('email', data.email);
+  //   }
+
+  //   load();
+  // }, []);
+
   const update = (e) => setLocal({ ...local, [e.target.name]: e.target.value });
 
   const toggleCaregiver = () =>
     setLocal({ ...local, isCaregiver: !local.isCaregiver });
 
-  const submit = (e) => {
+  async function postJson(url, body) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(body)
+    });
+
+    const text = await res.text();
+    let data;
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = { raw: text };
+    }
+    return { res, data };
+  }
+
+  // async function chargeUser() {
+  //   const { customerId, paymentMethod, totalCents } = state;
+  //   console.log('Charging user with:', {
+  //     customerId,
+  //     paymentMethod,
+  //     totalCents
+  //   });
+
+  //   // if (!customerId || !paymentMethod) {
+  //   //   throw new Error("Payment details missing — go back to checkout.");
+  //   // }
+
+  //   if (!state.customerId || !state.paymentIntentId) {
+  //     console.warn('Stripe session data missing');
+  //     // Optional: show error or redirect
+  //   }
+
+  //   const body = {
+  //     customerId: customerId,
+  //     paymentMethod: paymentMethod,
+  //     amountCents: totalCents,
+  //     meta: {
+  //       EmailAddress: state.email,
+  //       DOB: local.dob,
+  //       Gender: local.gender,
+  //       isCaregiver: local.isCaregiver ? '1' : '0',
+  //       cgFirst: local.cgFirst,
+  //       cgLast: local.cgLast,
+  //       Phone: local.cgPhone,
+  //       PostalCode: state.billingZip || '',
+  //       join_source: 'JoinStepThree'
+  //     }
+  //   };
+
+  //   const { res, data } = await postJson(
+  //     '/api/stripe/charge-after-setup',
+  //     body
+  //   );
+
+  //   if (!res.ok) {
+  //     throw new Error(data.error || 'Payment failed');
+  //   }
+
+  //   return data;
+  // }
+
+  async function submit(e) {
     e.preventDefault();
 
-    // Save required fields to context
-    setField('dob', local.dob);
-    setField('gender', local.gender);
-    setField('isCaregiver', local.isCaregiver);
+    try {
+      // Save to context (optional depending on your app)
+      setField('dob', local.dob);
+      setField('gender', local.gender);
+      setField('isCaregiver', local.isCaregiver);
+      setField('username', local.username);
 
-    // Save hidden username to context if you still need it
-    setField('username', local.username);
+      if (local.isCaregiver) {
+        setField('cgFirst', local.cgFirst);
+        setField('cgLast', local.cgLast);
+        setField('cgPhone', local.cgPhone);
+        setField('cgEmail', local.cgEmail);
+      }
 
-    if (local.isCaregiver) {
-      setField('cgFirst', local.cgFirst);
-      setField('cgLast', local.cgLast);
-      setField('cgPhone', local.cgPhone);
-      setField('cgEmail', local.cgEmail);
+      // Save password temporarily
+      sessionStorage.setItem('TEMP_PASSWORD', password);
+
+      // ------------------------------------------------------------
+      // ⭐ CALL YOUR BACKEND TO CREATE THE ENCRYPTED USER ACCOUNT
+      // ------------------------------------------------------------
+      const signupBody = {
+        email: state.email,
+        password,
+        dob: local.dob,
+        gender: local.gender,
+
+        // match backend format:
+        is_caregiver: local.isCaregiver ? '1' : '0',
+        cg_first: local.cgFirst,
+        cg_last: local.cgLast,
+        cg_phone: local.cgPhone,
+        cg_email: local.cgEmail
+      };
+
+      const res = await fetch('/api/auth/paid-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(signupBody)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || 'Signup failed.');
+        return;
+      }
+
+      // ------------------------------------------------------------
+      // SUCCESS → redirect
+      // ------------------------------------------------------------
+      // 2. Create order
+      // 1. CREATE PATIENT IN EVEXIA
+
+      // ------------------------------------------------------------
+      const searchQuery =
+        `/api/evexia/patient-search` +
+        `?emailAddress=${encodeURIComponent(state.email)}` +
+        `&dob=${encodeURIComponent(local.dob)}`;
+
+      const searchRes = await fetch(searchQuery);
+      let existingPatients = [];
+
+      try {
+        existingPatients = await searchRes.json();
+      } catch (err) {
+        console.warn('⚠ patient-search returned non-JSON', err);
+      }
+
+      let PatientID = null;
+
+      // ------------------------------------------------------------
+      // 2. USE EXISTING PATIENT IF FOUND
+      // ------------------------------------------------------------
+      if (Array.isArray(existingPatients) && existingPatients.length > 0) {
+        PatientID = existingPatients[0].PatientID;
+        console.log('✔ Found existing patient:', PatientID);
+      } else {
+        console.log('➕ No existing patient — creating new one');
+
+        const patientPayload = {
+          EmailAddress: state.email,
+          FirstName: state.first,
+          LastName: state.last,
+          StreetAddress: state.address,
+          StreetAddress2: state.address2 || '',
+          City: state.city,
+          State: state.state,
+          PostalCode: state.zip,
+          Phone: state.phone,
+          DOB: local.dob,
+          Gender: local.gender === 'Male' ? 'M' : 'F',
+          Guardian: local.cgFirst || '',
+          GuardianRelationship: local.GuardianRelationship || '',
+          GuardianAddress: local.GuardianAddress || '',
+          GuardianAddress2: local.GuardianAddress2 || '',
+          GuardianCity: local.GuardianCity || '',
+          GuardianPostalCode: local.GuardianPostalCode || '',
+          GuardianState: local.GuardianState || '',
+          GuardianPhone: local.GuardianPhone || '',
+          ExternalClientID: state.externalClientId
+        };
+
+        const patRes = await fetch('/api/evexia/patient-add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(patientPayload)
+        });
+
+        const patientData = await patRes.json();
+        PatientID = patientData.PatientID;
+        console.log('🆕 Created new patient:', PatientID);
+      }
+
+      // 2. CREATE ORDER
+      const orderRes = await fetch('/api/evexia/order-add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          PatientID: PatientID,
+          OrderType: '',
+          PhlebotomyOptions: ''
+        })
+      });
+
+      // READ JSON ONCE — NEVER TWICE
+      const orderJson = await orderRes.json();
+      console.log('OrderAdd JSON:', orderJson);
+
+      // Normalize ID from any casing Evexia might send
+      const PatientOrderID =
+        orderJson.Patient_Order_ID ||
+        orderJson.PatientOrderID ||
+        orderJson.patientOrderID;
+
+      if (!PatientOrderID) {
+        console.error('❌ OrderAdd missing patient order ID', orderJson);
+        throw new Error('OrderAdd returned no PatientOrderID');
+      }
+
+      // 3. ADD ORDER ITEMS
+      if (state.pickedCore) {
+        await fetch('/api/evexia/order-item-add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            Patient_Order_ID: PatientOrderID,
+            Test_Code: 'CORE'
+          })
+        });
+      }
+
+      if (state.pickedApoe) {
+        await fetch('/api/evexia/order-item-add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            Patient_Order_ID: PatientOrderID,
+            Test_Code: 'APOE'
+          })
+        });
+      }
+
+      // Let Evexia finish processing
+      await new Promise((res) => setTimeout(res, 4000));
+
+      const completeQuery = new URLSearchParams({
+        patientOrderID: PatientOrderID,
+        externalClientID: state.externalClientId,
+        patientPay: 'False',
+        includeFHR: 'False',
+        clientPhysicianID: '0'
+      }).toString();
+
+      const JSONCompleteQuery = JSON.stringify(completeQuery);
+
+      // Submit order
+      await fetch(`/api/evexia/patient-order-complete?${completeQuery}`, {
+        method: 'GET'
+      });
+
+      navigate('/success');
+    } catch (err) {
+      console.error(err);
+      alert('Something went wrong.');
     }
-
-    // Store password securely in sessionStorage for later
-    sessionStorage.setItem('TEMP_PASSWORD', password);
-
-    navigate('/join/checkout');
-  };
+  }
 
   return (
     <div className="account-setup-container">
       <h1 className="page-title">Account Setup</h1>
 
       <form onSubmit={submit} className="account-form">
-        {/* Top row */}
         <div className="top-row">
           <div className="form-group">
             <label>Date of Birth</label>
@@ -106,7 +395,6 @@ export default function StepThreeAccountSetup() {
           </div>
         </div>
 
-        {/* Caregiver box */}
         {local.isCaregiver && (
           <div className="caregiver-box">
             <h2>Caregiver Information</h2>
@@ -157,7 +445,7 @@ export default function StepThreeAccountSetup() {
         )}
 
         <div className="submit-wrap">
-          <PrimaryButton type="submit">Continue</PrimaryButton>
+          <PrimaryButton type="submit">Finish</PrimaryButton>
         </div>
       </form>
     </div>
