@@ -23,7 +23,6 @@ function ProductRow({ item, selected, onToggle }) {
         selected ? 'border-gray-800' : 'border-gray-200'
       } hover:border-gray-400 cursor-pointer transition`}
     >
-      <div className="sr-only">{item.name}
       <input
         type="checkbox"
         className="h-5 w-5"
@@ -32,7 +31,6 @@ function ProductRow({ item, selected, onToggle }) {
       />
       <div className="text-sm md:text-base font-semibold">{item.name}</div>
       <div className="text-xs md:text-sm text-gray-600 ml-auto">{usd(item.amount)}</div>
-      </div>
     </label>
   );
 }
