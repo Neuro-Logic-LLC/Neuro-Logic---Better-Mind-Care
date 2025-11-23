@@ -55,9 +55,7 @@ function Navbar() {
     ? 'https://bettermindcare.com'
     : 'https://staging.bettermindcare.com';
 
-  if (!isLoggedIn) {
-    return null;
-  }
+
 
   return (
     <nav className="navbar" aria-label="Main navigation">
@@ -102,9 +100,20 @@ function Navbar() {
         </div>
         {/* MENU - App pages */}
         <ul className="navbar-right" role="menubar" aria-label="Primary">
+          {!isLoggedIn && (
+            <li role="none">
+              <Link
+                role="menuitem"
+                to="/support"
+                onClick={() => setMenuOpen(false)}
+              >
+                Help / Support
+              </Link>
+            </li>
+          )}
           {isLoggedIn && (
             <>
-               <li role="none" className="account-menu-container">
+              <li role="none" className="account-menu-container">
                  <button
                    className="account-menu-button"
                    onClick={() => setAccountMenuOpen(!accountMenuOpen)}
@@ -193,11 +202,11 @@ function Navbar() {
                 >
                   Log Out
                 </button>
-              </li>
+               </li>
             </>
           )}
         </ul>
-      </div>
+        </div>
     </nav>
   );
 }

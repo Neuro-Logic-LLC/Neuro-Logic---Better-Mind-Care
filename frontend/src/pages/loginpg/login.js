@@ -168,7 +168,7 @@ export default function Login() {
       // ❌ Wrong password — stop here
       if (!res.ok) {
         const isDev = process.env.NODE_ENV === 'development';
-        setError(data.error || (isDev ? String(err?.message || err) : 'Something didn’t go through — try again.'));
+        setError(data.error || 'Something didn’t go through — try again.');
         setBusy(false);
         return;
       }

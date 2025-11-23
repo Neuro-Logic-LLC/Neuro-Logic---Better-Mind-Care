@@ -177,7 +177,7 @@ function App() {
                   element={<PatientRequisitionViewer />}
                 />
 
-                {/* <Route path="/sign-up" element={<SignUp />} />  // Removed old signup page */}
+                <Route path="/sign-up" element={<SignUp />} />
                 <Route path="/confirm-email" element={<ConfirmEmail />} />
 
                 {/* ✅ Your 2-step flow */}
