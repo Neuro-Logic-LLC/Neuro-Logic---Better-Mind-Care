@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import './Checkout.css';
 
 const CATALOG = [
   { key: 'APOE', name: 'ApoE Genetic Test', amount: 12500 },
@@ -18,18 +19,16 @@ function computeTotal(c) {
 
 function ProductRow({ item, selected, onToggle }) {
   return (
-    <label
-      className={`flex items-center gap-2 p-3 rounded-2xl border ${
-        selected ? 'border-gray-800' : 'border-gray-200'
-      } hover:border-gray-400 cursor-pointer transition`}
-    >
+    <label className="item-row">
       <input
         type="checkbox"
-        className="h-5 w-5"
         checked={selected}
         onChange={(e) => onToggle(item.key, e.target.checked)}
       />
-      <div className="text-sm md:text-base font-semibold">{item.name} <span className="text-xs md:text-sm text-gray-600">{usd(item.amount)}</span></div>
+      <div className="item-info">
+        <span className="item-title">{item.name}</span>
+        <span className="item-price">{usd(item.amount)}</span>
+      </div>
     </label>
   );
 }

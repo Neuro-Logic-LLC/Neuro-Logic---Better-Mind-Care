@@ -1,0 +1,36 @@
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid;
+  border-color: selected ? '#1f2937' : '#e5e7eb';
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.item-row:hover {
+  border-color: #9ca3af;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.item-title {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  .item-title {
+    font-size: 1rem;
+  }
+}
+
+.item-price {
+  color: var(--slate, #64748b);
+  font-size: 14px;
+}
