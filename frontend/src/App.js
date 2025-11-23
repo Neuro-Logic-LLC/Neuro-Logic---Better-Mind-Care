@@ -50,6 +50,7 @@ import Support from './pages/supportpg/Support';
 import Messages from './pages/messagespg/Messages';
 import Article from './pages/myreportspg/articles/Article';
 import JoinCheckoutWrapper from './pages/NewCheckoutPages/JoinCheckoutWrapper';
+import ThankYouPage from './pages/ThankYouPage';
 
 
 function App() {
@@ -195,6 +196,8 @@ function App() {
                   path="/patient-req"
                   element={<PatientRequisitionViewer />}
                 />
+
+                <Route path="/thank-you" element={<ThankYouPage />} />
 
                 <Route path="/sign-up" element={<SignUp />} />
                 <Route path="/confirm-email" element={<ConfirmEmail />} />

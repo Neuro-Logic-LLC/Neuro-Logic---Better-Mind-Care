@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useSignup } from './SignupContext';
 import { PrimaryButton } from '../../components/button/Buttons';
 import PaymentForm from './PaymentForm';
+import ClickwrapAgreement from '../../components/ClickwrapAgreement';
 
 const PRICES = {
   CORE: 30000,
@@ -71,6 +72,7 @@ export default function CheckoutStep({ clientSecret }) {
   });
 
   const [agreeTos, setAgreeTos] = useState(false);
+  const [agreedClickwrap, setAgreedClickwrap] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -108,7 +110,7 @@ export default function CheckoutStep({ clientSecret }) {
       apoe: cart.APOE,
       ptau: cart.NEURO,
       customer_email: state.email,
-      success_url: `${window.location.origin}/account-info`,
+      success_url: `${window.location.origin}/thank-you`,
       cancel_url: `${window.location.origin}/join/checkout`
     };
 
@@ -141,6 +143,9 @@ export default function CheckoutStep({ clientSecret }) {
     }
     if (!agreeTos) {
       return 'You must accept the terms.';
+    }
+    if (!agreedClickwrap) {
+      return 'You must agree to the clickwrap terms.';
     }
     return null;
   }
@@ -234,6 +239,12 @@ export default function CheckoutStep({ clientSecret }) {
           </span>
         </label>
       </div>
+
+      {/* Clickwrap Agreement */}
+      <ClickwrapAgreement
+        agreed={agreedClickwrap}
+        onAgreeChange={setAgreedClickwrap}
+      />
 
       {error && <div style={S.error}>{error}</div>}
 
