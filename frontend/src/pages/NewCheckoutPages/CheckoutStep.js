@@ -141,6 +141,7 @@ export default function CheckoutStep() {
           <input
             type="checkbox"
             checked={cart.CORE}
+            disabled={true}
             onChange={(e) => {
               toggle('CORE', e.target.checked);
               setField('pickedCore', e.target.checked);
@@ -162,18 +163,21 @@ export default function CheckoutStep() {
           <span style={{ flex: 1 }}>ApoE Gene Test</span>
           <span>{usd(PRICES.APOE)}</span>
         </label>
-        <label style={S.checkboxRow}>
-          <input
-            type="checkbox"
-            checked={cart.DOCTORS_DATA}
-            onChange={(e) => {
-              toggle('DOCTORS_DATA', e.target.checked);
-              setField('pickedDoctorsData', e.target.checked);
-            }}
-          />
-          <span style={{ flex: 1 }}>Doctors Data Test</span>
-          <span>{usd(PRICES.DOCTORS_DATA)}</span>
-        </label>
+        {false && (
+          <label style={S.checkboxRow}>
+            <input
+              type="checkbox"
+              checked={cart.DOCTORS_DATA}
+              onChange={(e) => {
+                toggle('DOCTORS_DATA', e.target.checked);
+                setField('pickedDoctorsData', e.target.checked);
+              }}
+            />
+
+            <span style={{ flex: 1 }}>Doctors Data Test</span>
+            <span>{usd(PRICES.DOCTORS_DATA)}</span>
+          </label>
+        )}  
       </div>
 
       <div style={{ marginTop: 16 }}>
