@@ -251,13 +251,13 @@ export default function CheckoutStep({ clientSecret }) {
       {/* Pay */}
       <div style={{ marginTop: 16 }}>
         {totalCents > 0 ? (
-          <button
+          <PrimaryButton
             className="your-btn"
             disabled={!agreeTos}
             onClick={startStripeCheckout}
           >
             Continue to Payment
-          </button>
+          </PrimaryButton>
         ) : (
           <p style={{ color: '#999', marginTop: 12 }}>
             Select at least one test to continue.
