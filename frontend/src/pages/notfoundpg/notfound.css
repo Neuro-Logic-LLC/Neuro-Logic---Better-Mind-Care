@@ -61,6 +61,7 @@
 
 .home-link:hover {
   background-color: #004d40;
+  color: white;
   transform: translateY(-2px);
 }
 
