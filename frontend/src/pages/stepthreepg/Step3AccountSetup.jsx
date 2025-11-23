@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSignup } from '../NewCheckoutPages/SignupContext';
 import { PrimaryButton } from '../../components/button/Buttons';
+import { useAuth } from './../../auth/AuthContext';
 
 export default function StepThreeAccountSetup() {
+  const { setEvexiaData, reloadUser } = useAuth();
   const { state, setField } = useSignup();
   const navigate = useNavigate();
 
@@ -203,6 +205,7 @@ export default function StepThreeAccountSetup() {
       const res = await fetch('/api/auth/paid-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        crendentials: 'include',
         body: JSON.stringify(signupBody)
       });
 
@@ -315,7 +318,9 @@ export default function StepThreeAccountSetup() {
 
       if (session.metadata.pickedCore === '1') {
         await addItem(205704);
-        console.log('should have added core here, but doesnt and needs to be updated');
+        console.log(
+          'should have added core here, but doesnt and needs to be updated'
+        );
       }
       if (session.metadata.pickedApoe === '1') {
         await addItem(6724);
@@ -339,7 +344,10 @@ export default function StepThreeAccountSetup() {
       // if (state.pickedCore) {
       //   await addItem('CORE');
       // }
-
+      setEvexiaData({
+        patientId: PatientID,
+        orderId: PatientOrderID
+      });
       // Let Evexia finish processing
       await new Promise((res) => setTimeout(res, 4000));
 
@@ -357,6 +365,39 @@ export default function StepThreeAccountSetup() {
       await fetch(`/api/evexia/patient-order-complete?${completeQuery}`, {
         method: 'GET'
       });
+
+      await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: state.email,
+          password
+        })
+      });
+
+      const me = await fetch('/api/auth/me', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      // if (me.ok) {
+      //   const meData = await getJsonSafe(me);
+      //   if (meData?.user) {
+      //     navigate('/admin/dashboard');
+      //     return;
+      //   }
+      // }
+      await fetch('/api/evexia/save-evexia-ids', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          evxPatientID: PatientID,
+          evxPatientOrderID: PatientOrderID,
+          evxProductID: ProductID
+        })
+      });
+
       navigate('/success');
     } catch (err) {
       console.error(err);

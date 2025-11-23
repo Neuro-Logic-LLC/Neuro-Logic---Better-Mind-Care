@@ -212,7 +212,11 @@ exports.getMe = async (req, res) => {
         knex.raw('pgp_sym_decrypt(users.email, ?)::text AS email', [key]),
         knex.raw('pgp_sym_decrypt(users.first_name, ?)::text AS first_name', [key]),
         knex.raw('pgp_sym_decrypt(users.last_name, ?)::text AS last_name', [key]),
-        'roles.role_name'
+        'roles.role_name',
+
+        'users.evx_patient_id',
+        'users.evx_patient_order_id',
+        'users.evx_product_id'
       )
       .where({ 'users.id': userId, 'users.is_deleted': false })
       .first();
@@ -1042,7 +1046,7 @@ exports.paidSignup = async (req, res) => {
   const knex = await initKnex();
 
   try {
-    const { password, gender, dob, is_caregiver, cg_first, cg_last, cg_phone, cg_email} =
+    const { password, gender, dob, is_caregiver, cg_first, cg_last, cg_phone, cg_email } =
       req.body || {};
 
     const caregiver = is_caregiver === '1' || is_caregiver === true;
@@ -1112,10 +1116,9 @@ exports.paidSignup = async (req, res) => {
     const confirmationToken = uuidv4();
     const tokenHash = await bcrypt.hash(confirmationToken, 10);
 
+    //Check for existing user
 
-    //Check for existing user 
-
-        const existing = await knex('users')
+    const existing = await knex('users')
       .where({ email_hash: identHash(eCanon) })
       .first();
 

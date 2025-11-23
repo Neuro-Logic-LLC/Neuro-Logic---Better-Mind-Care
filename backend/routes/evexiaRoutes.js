@@ -2753,4 +2753,35 @@ router.get('/patient-search', PatientSearchHandler);
 // router.post('/patient-order-apoe-dd', patientOrderApoeCoreData);
 router.post('/patient-order-core-with-apoe', patientOrderCoreWithApoeData)
 
+router.post('/save-evexia-ids', async (req, res) => {
+  const knex = await initKnex();
+
+  if (!req.user?.id) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { evxPatientID, evxPatientOrderID, evxProductID } = req.body;
+
+  try {
+    await knex('users')
+      .insert({
+        id: req.user.id,
+        evx_patient_id: evxPatientID,
+        evx_patient_order_id: evxPatientOrderID,
+        evx_product_id: evxProductID
+      })
+      .onConflict('id') // if a user with this ID exists...
+      .merge({          // ...update these fields instead of failing
+        evx_patient_id: evxPatientID,
+        evx_patient_order_id: evxPatientOrderID,
+        evx_product_id: evxProductID
+      });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('save-evexia-ids error:', err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
 module.exports = router;

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { PrimaryButton } from '../../components/button/Buttons';
+import { useAuth } from '../../auth/AuthContext';
 const externalClientID = '1B2FA0C0-3CBB-402A-9800-F3965A2D3DF5';
 const BearerToken = 'BEC78AED-64A1-42A1-AFA1-39BA65F50835';
 
@@ -83,15 +84,12 @@ async function postAnalytes(payload) {
 }
 
 export default function ScreeningOrder() {
+  const { evxPatientID, evxPatientOrderID } = useAuth();
   const [externalClientID, setExternalClientID] = useState(
     sessionStorage.getItem('evx_externalClientId') || ''
   );
-  const [patientID, setPatientID] = useState(
-    sessionStorage.getItem('evx_patientId') || ''
-  );
-  const [patientOrderID, setPatientOrderID] = useState(
-    sessionStorage.getItem('evx_patientOrderId') || ''
-  );
+  const [patientID, setPatientID] = useState('');
+  const [patientOrderID, setPatientOrderID] = useState('');
   const [specimen, setSpecimen] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -104,17 +102,31 @@ export default function ScreeningOrder() {
 
   const canFetch = !!patientID && !!patientOrderID;
 
+  // Step 1: when auth changes, write them to state
+  useEffect(() => {
+    if (evxPatientID) setPatientID(evxPatientID);
+    if (evxPatientOrderID) setPatientOrderID(evxPatientOrderID);
+  }, [evxPatientID, evxPatientOrderID]);
+
+  // Step 2: when patientID + orderID update, THEN load
+  useEffect(() => {
+    if (!patientID || !patientOrderID) return;
+    if (!hasFetched) load();
+  }, [patientID, patientOrderID]);
+
+  console.log("Loading with:", { patientID, patientOrderID });
+
   function parseIntOrNull(v) {
     const n = Number(String(v || '').trim());
     return Number.isFinite(n) ? n : null;
   }
 
   async function load() {
-    if (!canFetch) {
-      setError('PatientID, and PatientOrderID.');
-      return;
-    }
-
+    // if (!canFetch) {
+    //   setError('PatientID, and PatientOrderID.');
+    //   return;
+    // }
+    if (!patientID || !patientOrderID) return;
     const pid = parseIntOrNull(patientID);
     const poid = parseIntOrNull(patientOrderID);
     if (pid == null || poid == null) {
@@ -197,8 +209,8 @@ export default function ScreeningOrder() {
       <header className="w-full max-w-5xl px-4 md:px-6 pt-8 text-center">
         <h1 className="text-2xl font-semibold mb-2">Lab Results</h1>
         <h2 className="text-sm text-neutral-600">
-          Note to tester: Test this with PatientID 113002, PatientOrderID
-          210824 original temporary placeholder
+          Note to tester: Test this with PatientID 113002, PatientOrderID 210824
+          original temporary placeholder
         </h2>
       </header>
 
