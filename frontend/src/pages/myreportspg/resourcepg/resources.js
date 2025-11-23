@@ -6,7 +6,8 @@ import './resources.css';
 
 function Resources() {
   return (
-    <div className="resources-page">
+    <div style={{ background: 'var(--seafoam-gradient)', minHeight: '100vh', padding: '2rem' }}>
+      <div className="resources-page">
       <section className="resources-hero">
         <h1>Care & Brain Health Resources</h1>
         <p>
@@ -142,6 +143,7 @@ function Resources() {
           </section>
         </div>
       </section>
+      </div>
     </div>
   );
 }

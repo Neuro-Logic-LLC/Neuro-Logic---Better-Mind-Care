@@ -82,7 +82,10 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    checkSession();
+    // Temporarily bypass login for testing
+    setUser({ role: 'admin', id: 1, email: 'test@example.com' });
+    setLoading(false);
+    // checkSession();
   }, [checkSession]);
 
   const logout = useCallback(async () => {

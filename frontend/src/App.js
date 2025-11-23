@@ -10,7 +10,7 @@ import Footer from './components/Footer/Footer';
 
 // Pages
 import Home from './pages/homepg/home';
-import About from './pages/aboutpg/about';
+
 import Contact from './pages/contactpg/contact';
 import Resources from './pages/myreportspg/resourcepg/resources';
 import IntakeForm from './pages/intakepg/intakeForm';
@@ -47,6 +47,7 @@ import StepThreeAccountSetup from './pages/stepthreepg/Step3AccountSetup';
 import Account from './pages/accountpg/Account';
 import Support from './pages/supportpg/Support';
 import Messages from './pages/messagespg/Messages';
+import Appointments from './pages/appointmentspg/Appointments';
 import Article from './pages/myreportspg/articles/Article';
 import NotFound from './pages/notfoundpg/NotFound';
 
@@ -64,7 +65,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/resources" element={<Resources />} />
-                <Route path="/about" element={<About />} />
+
                 <Route path="/login" element={<Login />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
@@ -188,6 +189,7 @@ function App() {
                 <Route path="/account" element={<Account />} />
                 <Route path="/support" element={<Support />} />
                 <Route path="/messages" element={<Messages />} />
+                <Route path="/appointments" element={<Appointments />} />
                 <Route
                   path="/join/checkout"
                   element={<CheckoutStep />}

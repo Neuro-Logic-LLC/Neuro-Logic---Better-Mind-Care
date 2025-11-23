@@ -68,24 +68,29 @@ function Messages() {
 
   if (loading) {
     return (
-      <div className="messages-page bg-gradient-teal">
-        <h1>Messages</h1>
-        <p>Loading messages...</p>
+      <div style={{ background: 'var(--seafoam-gradient)', minHeight: '100vh', padding: '2rem' }}>
+        <div className="messages-page">
+          <h1>Messages</h1>
+          <p>Loading messages...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
      return (
-       <div className="messages-page bg-gradient-teal">
-         <h1>Messages</h1>
-         <p>{error}</p>
+       <div style={{ background: 'var(--seafoam-gradient)', minHeight: '100vh', padding: '2rem' }}>
+         <div className="messages-page">
+           <h1>Messages</h1>
+           <p>{error}</p>
+         </div>
        </div>
      );
-  }
+   }
 
   return (
-    <div className="messages-page bg-gradient-teal">
+    <div style={{ background: 'var(--seafoam-gradient)', minHeight: '100vh', padding: '2rem' }}>
+      <div className="messages-page">
       <h1>MESSAGES</h1>
       <p>Messages from Better Mind Care</p>
 
@@ -111,6 +116,7 @@ function Messages() {
       {messages.length === 0 && (
         <p className="no-messages">You don't have any messages yet. We'll notify you whenever there's an important update or a personal message from our team.</p>
       )}
+      </div>
     </div>
   );
 }
