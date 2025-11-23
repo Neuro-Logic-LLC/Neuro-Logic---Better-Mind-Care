@@ -19,7 +19,7 @@ function computeTotal(c) {
 
 function ProductRow({ item, selected, onToggle }) {
   return (
-    <label className="item-row">
+    <label className={`item-row ${selected ? 'selected' : ''}`}>
       <input
         type="checkbox"
         checked={selected}

@@ -4,10 +4,13 @@
   gap: 0.5rem;
   padding: 0.75rem;
   border-radius: 1rem;
-  border: 1px solid;
-  border-color: selected ? '#1f2937' : '#e5e7eb';
+  border: 1px solid #e5e7eb;
   cursor: pointer;
   transition: border-color 0.2s ease;
+}
+
+.item-row.selected {
+  border-color: #1f2937;
 }
 
 .item-row:hover {
