@@ -1,29 +1,28 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState } from 'react';
 
 const Ctx = createContext(null);
 export const useSignup = () => useContext(Ctx);
 
 export default function SignupProvider({ children }) {
   const [state, setState] = useState({
-    email: "",
+    email: '',
 
     // new required signup fields
-    dob: "",
-    gender: "",
-    username: "",
+    dob: '',
+    gender: '',
+    username: '',
     isCaregiver: false,
-    cgFirst: "",
-    cgLast: "",
-    cgPhone: "",
-    cgEmail: ""
+    cgFirst: '',
+    cgLast: '',
+    cgPhone: '',
+    cgEmail: '',
+    pickedCore: false,
+    pickedApoe: false,
+    pickedDoctorsData: false
   });
 
   const setField = (key, value) =>
-    setState(prev => ({ ...prev, [key]: value }));
+    setState((prev) => ({ ...prev, [key]: value }));
 
-  return (
-    <Ctx.Provider value={{ state, setField }}>
-      {children}
-    </Ctx.Provider>
-  );
+  return <Ctx.Provider value={{ state, setField }}>{children}</Ctx.Provider>;
 }

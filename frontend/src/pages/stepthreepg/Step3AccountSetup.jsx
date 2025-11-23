@@ -33,8 +33,9 @@ export default function StepThreeAccountSetup() {
     if (!sessionId) return;
 
     async function load() {
-      const res = await fetch(`/api/stripe/session/${sessionId}`);
-      const data = await res.json();
+      const data = await fetch(`/api/stripe/session/${sessionId}`).then((res) =>
+        res.json()
+      );
 
       const safeSet = (key, val) => {
         if (val !== null && val !== undefined && val !== '') {
@@ -52,18 +53,10 @@ export default function StepThreeAccountSetup() {
       safeSet('street', data.street);
       safeSet('city', data.city);
       safeSet('state', data.state);
-
-      safeSet('address', data.street);
-      safeSet('address2', data.street2);
-
-      console.log('Stripe session:', data);
-
-      // Strip session_id from URL
-      window.history.replaceState({}, '', '/account-info');
     }
 
     load();
-  }, [setField]);
+  }, []);
 
   // Auto-fill hidden username
   useEffect(() => {
@@ -169,6 +162,16 @@ export default function StepThreeAccountSetup() {
       setField('gender', local.gender);
       setField('isCaregiver', local.isCaregiver);
       setField('username', local.username);
+
+      const url = new URL(window.location.href);
+      const sessionId = url.searchParams.get('session_id');
+      const session = await fetch(`/api/stripe/session/${sessionId}`).then(
+        (res) => res.json()
+      );
+
+      setField('pickedApoe', session.apoe || false);
+      setField('pickedCore', session.brainhealth || false);
+      setField('pickedDoctorsData', session.doctors_data || false);
 
       if (local.isCaregiver) {
         setField('cgFirst', local.cgFirst);
@@ -301,39 +304,45 @@ export default function StepThreeAccountSetup() {
         console.error('❌ OrderAdd missing patient order ID', orderJson);
         throw new Error('OrderAdd returned no PatientOrderID');
       }
+      console.log(state);
+      console.log(session);
+      const ProductID =
+        orderJson.Product_ID || orderJson.ProductID || orderJson.productID;
+
+      if (session.metadata.pickedApoe === "1") {
+        await addItem(6724);
+      }
+
+      // if (session.metaData.pickedDoctorsData === "1") {
+      //   await addItem(347);
+      // }
 
       // 3. ADD ORDER ITEMS
-      if (state.pickedCore) {
-        await fetch('/api/evexia/order-item-add', {
+      async function addItem(productID) {
+        return fetch('/api/evexia/order-item-add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            Patient_Order_ID: PatientOrderID,
-            Test_Code: 'CORE'
+            patientOrderID: PatientOrderID,
+            productID,
+            isPanel: false
           })
         });
       }
 
-      if (state.pickedApoe) {
-        await fetch('/api/evexia/order-item-add', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            Patient_Order_ID: PatientOrderID,
-            Test_Code: 'APOE'
-          })
-        });
-      }
+      // if (state.pickedCore) {
+      //   await addItem('CORE');
+      // }
 
       // Let Evexia finish processing
       await new Promise((res) => setTimeout(res, 4000));
 
       const completeQuery = new URLSearchParams({
+        externalClientId: '1B2FA0C0-3CBB-402A-9800-F3965A2D3DF5',
         patientOrderID: PatientOrderID,
-        externalClientID: state.externalClientId,
         patientPay: 'False',
         includeFHR: 'False',
-        clientPhysicianID: '0'
+        clientPhysicianID: 0
       }).toString();
 
       const JSONCompleteQuery = JSON.stringify(completeQuery);

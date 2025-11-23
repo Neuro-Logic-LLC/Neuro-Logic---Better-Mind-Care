@@ -25,9 +25,20 @@ const PRODUCTS = [
       {
         title: 'Personalized Risk Report',
         body: 'Clear breakdown, simple format.'
-      },
-      { title: 'Risk Reduction Plan', body: 'Customized prevention strategy.' }
+      }
+      // { title: 'Risk Reduction Plan', body: 'Customized prevention strategy.' }
     ]
+  },
+  {
+    key: 'DOCTORS_DATA',
+    flag: 'doctors_data',
+    tagline: 'Your Personalized Doctors Data Test Experience.',
+    name: 'Doctors Data Test',
+    priceLabel: '$99 One time purchase',
+    description: 'Doctors Lab',
+    amount: 44900,
+    summary:
+      'Take control of your cognitive future with a comprehensive, science-based approach to brain health.'
   }
 ];
 
@@ -39,6 +50,13 @@ const OPTIONAL_ADDONS = [
     priceLabel: '$0',
     description: 'Understand your genetic risk for Alzheimer’s.'
   }
+  // {
+  //   key: 'DOCTORS_DATA',
+  //   flag: 'doctors_data',
+  //   name: 'Doctors Data Test',
+  //   priceLabel: '$99',
+  //   description: 'Doctors Lab'
+  // }
 ];
 
 const usd = (cents) =>
@@ -51,14 +69,13 @@ export default function ProductsPage() {
   const { state } = useSignup();
   const [email, setEmail] = useState(state.email || '');
 
-
   async function createCheckout(flags, product) {
     const baseUrl = window.location.origin;
 
     const payload = {
       customer_email: email || undefined,
       ...flags,
-      success_url: `${baseUrl}/success`,
+      success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/cancel-order`,
       meta: {
         source: 'ProductsPage',
