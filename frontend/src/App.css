@@ -102,7 +102,6 @@
 
 .bg-gradient-white-seafoam {
   background: var(--bg-gradient-white-seafoam);
-}
 
   /* Typography */
   --font-heading:
@@ -110,7 +109,7 @@
   --font-body:
     'Open Sans', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 
-  /* Sizing & Rhythm */
+  /* Sizing */
   --radius-sm: 10px;
   --radius-md: 16px;
   --radius-lg: 24px;
