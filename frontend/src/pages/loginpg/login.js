@@ -268,7 +268,7 @@ export default function Login() {
 
   return (
     <div
-      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
+      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--teal-gradient)' }}
     >
       <main
         style={{
