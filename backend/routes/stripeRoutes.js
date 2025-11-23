@@ -300,11 +300,23 @@ router.get('/session/:id', async (req, res) => {
       expand: ['payment_intent', 'customer']
     });
 
+    const details = session.customer_details || {};
+    console.log(details);
+
     res.json({
-      email: session.customer_details.email,
+      email: details.email,
       customerId: session.customer,
       paymentIntentId: session.payment_intent.id,
-      amountTotal: session.amount_total
+      amountTotal: session.amount_total,
+      first: details.name?.split(' ')[0] || null,
+      last: details.name?.split(' ').slice(1).join(' ') || null,
+      phone: details.phone || null,
+
+      street: details.address?.line1 || null,
+      street2: details.address?.line2 || null,
+      city: details.address?.city || null,
+      state: details.address?.state || null,
+      zip: details.address?.postal_code || null
     });
   } catch (err) {
     console.error('session lookup failed:', err);

@@ -36,9 +36,24 @@ export default function StepThreeAccountSetup() {
       const res = await fetch(`/api/stripe/session/${sessionId}`);
       const data = await res.json();
 
-      setField('customerId', data.customerId);
-      setField('paymentIntentId', data.paymentIntentId);
+      const safe = (field, val) => {
+        if (val !== null && val !== undefined && val !== '') {
+          setField(field, val);
+        }
+      };
+      safe(setField('customerId', data.customerId));
+      safe(setField('paymentIntentId', data.paymentIntentId));
       setField('email', data.email);
+      safe('first', data.first);
+      safe('last', data.last);
+      safe('phone', data.phone);
+      safe('zip', data.zip);
+      safe('street', data.street);
+      safe('city', data.city);
+      safe('state', data.state);
+      safe('address', data.street); // Stripe never sends this, so state.address stays intact
+      safe('address2', data.street2);
+      console.log(data);
 
       // NOW strip session_id safely
       window.history.replaceState({}, '', '/account-info');
@@ -195,6 +210,75 @@ export default function StepThreeAccountSetup() {
       // ------------------------------------------------------------
       // SUCCESS → redirect
       // ------------------------------------------------------------
+      // 2. Create order
+      // 1. CREATE PATIENT IN EVEXIA
+      const patientPayload = {
+        EmailAddress: state.email,
+        FirstName: state.first,
+        LastName: state.last,
+        StreetAddress: state.address,
+        StreetAddress2: state.address2 || '',
+        City: state.city,
+        State: state.state,
+        PostalCode: state.zip,
+        Phone: state.phone,
+        DOB: local.dob,
+        Gender: local.gender === 'Male' ? 'M' : 'F',
+        ExternalClientID: state.externalClientId
+      };
+
+      const patRes = await fetch('/api/evexia/patient-add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patientPayload)
+      });
+
+      const patientData = await patRes.json();
+      const PatientID = patientData.PatientID;
+
+      // 2. CREATE ORDER
+      const orderRes = await fetch('/api/evexia/order-add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          Patient_ID: PatientID,
+          Order_Type: 'ClientBill',
+          Phlebotomy_Options: 'PSC'
+        })
+      });
+
+      const { Patient_Order_ID } = await orderRes.json();
+
+      // 3. ADD ORDER ITEMS
+      if (state.pickedCore) {
+        await fetch('/api/evexia/order-item-add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            Patient_Order_ID,
+            Test_Code: 'CORE'
+          })
+        });
+      }
+
+      if (state.pickedApoe) {
+        await fetch('/api/evexia/order-item-add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            Patient_Order_ID,
+            Test_Code: 'APOE'
+          })
+        });
+      }
+
+      // 4. COMPLETE ORDER
+      await fetch('/api/evexia/patient-order-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ Patient_Order_ID })
+      });
+
       navigate('/success');
     } catch (err) {
       console.error(err);

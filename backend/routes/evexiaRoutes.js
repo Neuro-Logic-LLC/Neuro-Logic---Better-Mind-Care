@@ -2317,4 +2317,6 @@ router.post('/requisition-get', getRequisition);
 
 router.get('/draw-center-locator', getDrawCenterLocator);
 router.post('/draw-center-locator', getDrawCenterLocator);
+
+
 module.exports = router;

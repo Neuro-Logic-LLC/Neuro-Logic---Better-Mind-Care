@@ -1,206 +1,208 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useSignup } from './SignupContext';
+  import { useState, useEffect } from 'react';
+  import { useNavigate, Link } from 'react-router-dom';
+  import { useSignup } from './SignupContext';
 
-const PRICES = {
-  CORE: 44900,
-  APOE: 12500,
-};
+  const PRICES = {
+    CORE: 44900,
+    APOE: 12500,
+  };
 
-const usd = (cents) =>
-  (cents / 100).toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  });
-
-const S = {
-  page: { padding: 40, maxWidth: 960 },
-  heading: { fontSize: 28, fontWeight: 700, marginBottom: 8 },
-  section: {
-    border: '1px solid #e6edf4',
-    borderRadius: 16,
-    padding: 16,
-    marginTop: 16
-  },
-  checkboxRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    padding: 10,
-    borderRadius: 10,
-    border: '1px solid #e6edf4',
-    marginTop: 8
-  },
-  error: {
-    border: '1px solid #fecaca',
-    background: '#fef2f2',
-    color: '#b91c1c',
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 12
-  },
-  aside: {
-    border: '1px solid #e6edf4',
-    borderRadius: 16,
-    overflow: 'hidden',
-    alignSelf: 'flex-start',
-    marginTop: 24
-  },
-  asideHead: {
-    padding: 20,
-    borderBottom: '1px solid #e6edf4',
-    fontWeight: 600
-  },
-  asideBody: { padding: 20, fontSize: 14 }
-};
-
-export default function CheckoutStep() {
-  const { state, setField } = useSignup();
-  const navigate = useNavigate();
-
-  const [cart, setCart] = useState({ CORE: false, APOE: false });
-  const [agreeTos, setAgreeTos] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const email = state.email || '';
-
-  useEffect(() => {
-    if (!email) navigate('/join');
-  }, [email, navigate]);
-
-  function toggle(key, val) {
-    setCart((prev) => ({ ...prev, [key]: val }));
-  }
-
-  async function startStripeCheckout() {
-    setLoading(true);
-    setError('');
-
-    const body = {
-      brainhealth: cart.CORE,
-      apoe: cart.APOE,
-      customer_email: state.email,
-      success_url: `${window.location.origin}/account-info`,
-      cancel_url: `${window.location.origin}/join/checkout`
-    };
-
-    const res = await fetch('/api/stripe/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+  const usd = (cents) =>
+    (cents / 100).toLocaleString('en-US', {
+      style: 'currency',
+      currency: 'USD'
     });
 
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      setError(data.error || 'Stripe checkout failed.');
-      setLoading(false);
+  const S = {
+    page: { padding: 40, maxWidth: 960 },
+    heading: { fontSize: 28, fontWeight: 700, marginBottom: 8 },
+    section: {
+      border: '1px solid #e6edf4',
+      borderRadius: 16,
+      padding: 16,
+      marginTop: 16
+    },
+    checkboxRow: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      padding: 10,
+      borderRadius: 10,
+      border: '1px solid #e6edf4',
+      marginTop: 8
+    },
+    error: {
+      border: '1px solid #fecaca',
+      background: '#fef2f2',
+      color: '#b91c1c',
+      padding: 12,
+      borderRadius: 10,
+      marginTop: 12
+    },
+    aside: {
+      border: '1px solid #e6edf4',
+      borderRadius: 16,
+      overflow: 'hidden',
+      alignSelf: 'flex-start',
+      marginTop: 24
+    },
+    asideHead: {
+      padding: 20,
+      borderBottom: '1px solid #e6edf4',
+      fontWeight: 600
+    },
+    asideBody: { padding: 20, fontSize: 14 }
+  };
+
+  export default function CheckoutStep() {
+    const { state, setField } = useSignup();
+    const navigate = useNavigate();
+
+    const [cart, setCart] = useState({ CORE: false, APOE: false });
+    const [agreeTos, setAgreeTos] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const email = state.email || '';
+
+    useEffect(() => {
+      if (!email) navigate('/join');
+    }, [email, navigate]);
+
+    function toggle(key, val) {
+      setCart((prev) => ({ ...prev, [key]: val }));
     }
-  }
 
-  const totalCents = (cart.CORE ? PRICES.CORE : 0) + (cart.APOE ? PRICES.APOE : 0);
+    async function startStripeCheckout() {
+      setLoading(true);
+      setError('');
+      setField('pickedCore', cart.CORE);
+      setField('pickedApoe', cart.APOE);
 
-  function validateBeforeStripe() {
-    if (!(cart.CORE || cart.APOE)) return 'Pick at least one item.';
-    if (!agreeTos) return 'You must accept the terms.';
-    return null;
-  }
+      const body = {
+        brainhealth: cart.CORE,
+        apoe: cart.APOE,
+        customer_email: state.email,
+        success_url: `${window.location.origin}/account-info`,
+        cancel_url: `${window.location.origin}/join/checkout`
+      };
 
-  return (
-    <div style={S.page}>
-      <h2 style={S.heading}>Purchase</h2>
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
 
-      <div style={S.section}>
-        <div style={{ fontWeight: 600, marginBottom: 8 }}>Choose your tests</div>
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error || 'Stripe checkout failed.');
+        setLoading(false);
+      }
+    }
 
-        <label style={S.checkboxRow}>
-          <input
-            type="checkbox"
-            checked={cart.CORE}
-            onChange={(e) => toggle('CORE', e.target.checked)}
-          />
-          <span style={{ flex: 1 }}>Brain Health & Prevention Assessment</span>
-          <span>{usd(PRICES.CORE)}</span>
-        </label>
+    const totalCents = (cart.CORE ? PRICES.CORE : 0) + (cart.APOE ? PRICES.APOE : 0);
 
-        <label style={S.checkboxRow}>
-          <input
-            type="checkbox"
-            checked={cart.APOE}
-            disabled={!cart.CORE}
-            onChange={(e) => toggle('APOE', e.target.checked)}
-          />
-          <span style={{ flex: 1 }}>ApoE Gene Test</span>
-          <span>{usd(PRICES.APOE)}</span>
-        </label>
-      </div>
+    function validateBeforeStripe() {
+      if (!(cart.CORE || cart.APOE)) return 'Pick at least one item.';
+      if (!agreeTos) return 'You must accept the terms.';
+      return null;
+    }
 
-      <div style={{ marginTop: 16 }}>
-        <label style={{ display: 'flex', gap: 8 }}>
-          <input
-            type="checkbox"
-            checked={agreeTos}
-            onChange={(e) => setAgreeTos(e.target.checked)}
-          />
-          <span style={{ fontSize: 14 }}>
-            I agree to the <Link to="/terms">Terms of Service</Link> and{' '}
-            <Link to="/privacy">Privacy Policy</Link>.
-          </span>
-        </label>
-      </div>
+    return (
+      <div style={S.page}>
+        <h2 style={S.heading}>Purchase</h2>
 
-      {error && <div style={S.error}>{error}</div>}
+        <div style={S.section}>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>Choose your tests</div>
 
-      <div style={{ marginTop: 16 }}>
-        {totalCents > 0 ? (
-          <button
-            className="your-btn"
-            disabled={!agreeTos || loading}
-            onClick={startStripeCheckout}
-          >
-            Continue to Payment
-          </button>
-        ) : (
-          <p style={{ color: '#999', marginTop: 12 }}>
-            Select at least one test to continue.
-          </p>
-        )}
-      </div>
+          <label style={S.checkboxRow}>
+            <input
+              type="checkbox"
+              checked={cart.CORE}
+              onChange={(e) => toggle('CORE', e.target.checked)}
+            />
+            <span style={{ flex: 1 }}>Brain Health & Prevention Assessment</span>
+            <span>{usd(PRICES.CORE)}</span>
+          </label>
 
-      <aside style={S.aside}>
-        <div style={S.asideHead}>Order summary</div>
-        <div style={S.asideBody}>
-          {cart.CORE && (
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Brain Health & Prevention Assessment</span>
-              <span>{usd(PRICES.CORE)}</span>
-            </div>
-          )}
-
-          {cart.APOE && (
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>ApoE Gene Test</span>
-              <span>{usd(PRICES.APOE)}</span>
-            </div>
-          )}
-
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              paddingTop: 8,
-              marginTop: 8,
-              borderTop: '1px solid #e6edf4',
-              fontWeight: 600
-            }}
-          >
-            <span>Total</span>
-            <span>{usd(totalCents)}</span>
-          </div>
+          <label style={S.checkboxRow}>
+            <input
+              type="checkbox"
+              checked={cart.APOE}
+              disabled={!cart.CORE}
+              onChange={(e) => toggle('APOE', e.target.checked)}
+            />
+            <span style={{ flex: 1 }}>ApoE Gene Test</span>
+            <span>{usd(PRICES.APOE)}</span>
+          </label>
         </div>
-      </aside>
-    </div>
-  );
-}
+
+        <div style={{ marginTop: 16 }}>
+          <label style={{ display: 'flex', gap: 8 }}>
+            <input
+              type="checkbox"
+              checked={agreeTos}
+              onChange={(e) => setAgreeTos(e.target.checked)}
+            />
+            <span style={{ fontSize: 14 }}>
+              I agree to the <Link to="/terms">Terms of Service</Link> and{' '}
+              <Link to="/privacy">Privacy Policy</Link>.
+            </span>
+          </label>
+        </div>
+
+        {error && <div style={S.error}>{error}</div>}
+
+        <div style={{ marginTop: 16 }}>
+          {totalCents > 0 ? (
+            <button
+              className="your-btn"
+              disabled={!agreeTos || loading}
+              onClick={startStripeCheckout}
+            >
+              Continue to Payment
+            </button>
+          ) : (
+            <p style={{ color: '#999', marginTop: 12 }}>
+              Select at least one test to continue.
+            </p>
+          )}
+        </div>
+
+        <aside style={S.aside}>
+          <div style={S.asideHead}>Order summary</div>
+          <div style={S.asideBody}>
+            {cart.CORE && (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Brain Health & Prevention Assessment</span>
+                <span>{usd(PRICES.CORE)}</span>
+              </div>
+            )}
+
+            {cart.APOE && (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>ApoE Gene Test</span>
+                <span>{usd(PRICES.APOE)}</span>
+              </div>
+            )}
+
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                paddingTop: 8,
+                marginTop: 8,
+                borderTop: '1px solid #e6edf4',
+                fontWeight: 600
+              }}
+            >
+              <span>Total</span>
+              <span>{usd(totalCents)}</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    );
+  }
