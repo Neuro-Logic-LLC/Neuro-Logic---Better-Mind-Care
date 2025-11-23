@@ -132,15 +132,6 @@
   z-index: -1;
 }
 
-.wave-fade {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 25rem;
-  width: 100%;
-  z-index: 0;
-}
-
 .divider-wave-outer {
   position: absolute;
   height: 2rem;
