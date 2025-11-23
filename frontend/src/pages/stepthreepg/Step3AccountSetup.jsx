@@ -36,31 +36,34 @@ export default function StepThreeAccountSetup() {
       const res = await fetch(`/api/stripe/session/${sessionId}`);
       const data = await res.json();
 
-      const safe = (field, val) => {
+      const safeSet = (key, val) => {
         if (val !== null && val !== undefined && val !== '') {
-          setField(field, val);
+          setField(key, val);
         }
       };
-      safe(setField('customerId', data.customerId));
-      safe(setField('paymentIntentId', data.paymentIntentId));
-      setField('email', data.email);
-      safe('first', data.first);
-      safe('last', data.last);
-      safe('phone', data.phone);
-      safe('zip', data.zip);
-      safe('street', data.street);
-      safe('city', data.city);
-      safe('state', data.state);
-      safe('address', data.street); // Stripe never sends this, so state.address stays intact
-      safe('address2', data.street2);
-      console.log(data);
 
-      // NOW strip session_id safely
+      safeSet('customerId', data.customerId);
+      safeSet('paymentIntentId', data.paymentIntentId);
+      safeSet('email', data.email);
+      safeSet('first', data.first);
+      safeSet('last', data.last);
+      safeSet('phone', data.phone);
+      safeSet('zip', data.zip);
+      safeSet('street', data.street);
+      safeSet('city', data.city);
+      safeSet('state', data.state);
+
+      safeSet('address', data.street);
+      safeSet('address2', data.street2);
+
+      console.log('Stripe session:', data);
+
+      // Strip session_id from URL
       window.history.replaceState({}, '', '/account-info');
     }
 
     load();
-  }, []);
+  }, [setField]);
 
   // Auto-fill hidden username
   useEffect(() => {
@@ -70,23 +73,23 @@ export default function StepThreeAccountSetup() {
     }
   }, [state.email]);
 
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const sessionId = url.searchParams.get('session_id');
-    if (!sessionId) return;
+  // useEffect(() => {
+  //   const url = new URL(window.location.href);
+  //   const sessionId = url.searchParams.get('session_id');
+  //   if (!sessionId) return;
 
-    async function load() {
-      const res = await fetch(`/api/stripe/session/${sessionId}`);
-      const data = await res.json();
+  //   async function load() {
+  //     const res = await fetch(`/api/stripe/session/${sessionId}`);
+  //     const data = await res.json();
 
-      // Save these for account creation
-      setField('customerId', data.customerId);
-      setField('paymentIntentId', data.paymentIntentId);
-      setField('email', data.email);
-    }
+  //     // Save these for account creation
+  //     setField('customerId', data.customerId);
+  //     setField('paymentIntentId', data.paymentIntentId);
+  //     setField('email', data.email);
+  //   }
 
-    load();
-  }, []);
+  //   load();
+  // }, []);
 
   const update = (e) => setLocal({ ...local, [e.target.name]: e.target.value });
 
@@ -212,42 +215,92 @@ export default function StepThreeAccountSetup() {
       // ------------------------------------------------------------
       // 2. Create order
       // 1. CREATE PATIENT IN EVEXIA
-      const patientPayload = {
-        EmailAddress: state.email,
-        FirstName: state.first,
-        LastName: state.last,
-        StreetAddress: state.address,
-        StreetAddress2: state.address2 || '',
-        City: state.city,
-        State: state.state,
-        PostalCode: state.zip,
-        Phone: state.phone,
-        DOB: local.dob,
-        Gender: local.gender === 'Male' ? 'M' : 'F',
-        ExternalClientID: state.externalClientId
-      };
 
-      const patRes = await fetch('/api/evexia/patient-add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(patientPayload)
-      });
+      // ------------------------------------------------------------
+      const searchQuery =
+        `/api/evexia/patient-search` +
+        `?emailAddress=${encodeURIComponent(state.email)}` +
+        `&dob=${encodeURIComponent(local.dob)}`;
 
-      const patientData = await patRes.json();
-      const PatientID = patientData.PatientID;
+      const searchRes = await fetch(searchQuery);
+      let existingPatients = [];
+
+      try {
+        existingPatients = await searchRes.json();
+      } catch (err) {
+        console.warn('⚠ patient-search returned non-JSON', err);
+      }
+
+      let PatientID = null;
+
+      // ------------------------------------------------------------
+      // 2. USE EXISTING PATIENT IF FOUND
+      // ------------------------------------------------------------
+      if (Array.isArray(existingPatients) && existingPatients.length > 0) {
+        PatientID = existingPatients[0].PatientID;
+        console.log('✔ Found existing patient:', PatientID);
+      } else {
+        console.log('➕ No existing patient — creating new one');
+
+        const patientPayload = {
+          EmailAddress: state.email,
+          FirstName: state.first,
+          LastName: state.last,
+          StreetAddress: state.address,
+          StreetAddress2: state.address2 || '',
+          City: state.city,
+          State: state.state,
+          PostalCode: state.zip,
+          Phone: state.phone,
+          DOB: local.dob,
+          Gender: local.gender === 'Male' ? 'M' : 'F',
+          Guardian: local.cgFirst || '',
+          GuardianRelationship: local.GuardianRelationship || '',
+          GuardianAddress: local.GuardianAddress || '',
+          GuardianAddress2: local.GuardianAddress2 || '',
+          GuardianCity: local.GuardianCity || '',
+          GuardianPostalCode: local.GuardianPostalCode || '',
+          GuardianState: local.GuardianState || '',
+          GuardianPhone: local.GuardianPhone || '',
+          ExternalClientID: state.externalClientId
+        };
+
+        const patRes = await fetch('/api/evexia/patient-add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(patientPayload)
+        });
+
+        const patientData = await patRes.json();
+        PatientID = patientData.PatientID;
+        console.log('🆕 Created new patient:', PatientID);
+      }
 
       // 2. CREATE ORDER
       const orderRes = await fetch('/api/evexia/order-add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          Patient_ID: PatientID,
-          Order_Type: 'ClientBill',
-          Phlebotomy_Options: 'PSC'
+          PatientID: PatientID,
+          OrderType: '',
+          PhlebotomyOptions: ''
         })
       });
 
-      const { Patient_Order_ID } = await orderRes.json();
+      // READ JSON ONCE — NEVER TWICE
+      const orderJson = await orderRes.json();
+      console.log('OrderAdd JSON:', orderJson);
+
+      // Normalize ID from any casing Evexia might send
+      const PatientOrderID =
+        orderJson.Patient_Order_ID ||
+        orderJson.PatientOrderID ||
+        orderJson.patientOrderID;
+
+      if (!PatientOrderID) {
+        console.error('❌ OrderAdd missing patient order ID', orderJson);
+        throw new Error('OrderAdd returned no PatientOrderID');
+      }
 
       // 3. ADD ORDER ITEMS
       if (state.pickedCore) {
@@ -255,7 +308,7 @@ export default function StepThreeAccountSetup() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            Patient_Order_ID,
+            Patient_Order_ID: PatientOrderID,
             Test_Code: 'CORE'
           })
         });
@@ -266,17 +319,28 @@ export default function StepThreeAccountSetup() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            Patient_Order_ID,
+            Patient_Order_ID: PatientOrderID,
             Test_Code: 'APOE'
           })
         });
       }
 
-      // 4. COMPLETE ORDER
-      await fetch('/api/evexia/patient-order-complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ Patient_Order_ID })
+      // Let Evexia finish processing
+      await new Promise((res) => setTimeout(res, 4000));
+
+      const completeQuery = new URLSearchParams({
+        patientOrderID: PatientOrderID,
+        externalClientID: state.externalClientId,
+        patientPay: 'False',
+        includeFHR: 'False',
+        clientPhysicianID: '0'
+      }).toString();
+
+      const JSONCompleteQuery = JSON.stringify(completeQuery);
+
+      // Submit order
+      await fetch(`/api/evexia/patient-order-complete?${completeQuery}`, {
+        method: 'GET'
       });
 
       navigate('/success');

@@ -1112,6 +1112,22 @@ exports.paidSignup = async (req, res) => {
     const confirmationToken = uuidv4();
     const tokenHash = await bcrypt.hash(confirmationToken, 10);
 
+
+    //Check for existing user 
+
+        const existing = await knex('users')
+      .where({ email_hash: identHash(eCanon) })
+      .first();
+
+    if (existing) {
+      console.log(`User already exists: ${eCanon}`);
+      return res.status(200).json({
+        success: true,
+        user_id: existing.id,
+        already_existed: true
+      });
+    }
+
     // ---------------------------------------
     // 5. INSERT USER (using STRIPE DATA)
     // ---------------------------------------

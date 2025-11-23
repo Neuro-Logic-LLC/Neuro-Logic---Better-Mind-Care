@@ -2274,6 +2274,73 @@ async function OrderListByStatusHandler(req, res) {
   }
 }
 
+async function PatientSearchHandler(req, res) {
+  try {
+    const q = { ...(req.query || {}), ...(req.body || {}) };
+
+    const emailAddress = String(q.emailAddress || '').trim();
+    const dob = String(q.dob || '').trim(); // MUST be provided per API rules
+    const externalClientID = pickClientId(req, q);
+
+    if (!dob) {
+      return res.status(400).json({ error: 'Missing required parameter: dob' });
+    }
+
+    const AUTH = pickAuthKey();
+    const BASE = pickBaseUrl();
+    const PATH = '/api/EDIPlatform/PatientSearch';
+
+    if (!AUTH) return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
+    if (!BASE) return res.status(500).json({ error: 'Server missing EVEXIA_BASE_URL' });
+
+    const url = new URL(PATH, BASE);
+    url.searchParams.set('externalClientID', externalClientID);
+    url.searchParams.set('dob', dob);
+    if (emailAddress) url.searchParams.set('emailAddress', emailAddress);
+    if (q.firstName) url.searchParams.set('firstName', String(q.firstName).trim());
+    if (q.lastName) url.searchParams.set('lastName', String(q.lastName).trim());
+    if (q.sex) url.searchParams.set('sex', String(q.sex).trim());
+
+    const maskedClient = externalClientID ? externalClientID.slice(0, 6) + '…' : '(none)';
+    console.log(
+      '➡️ Forwarding PatientSearch (GET):',
+      url.toString().replace(externalClientID, maskedClient)
+    );
+
+    const controller = new AbortController();
+    const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
+    const to = setTimeout(() => controller.abort(), timeoutMs);
+
+    const r = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: AUTH,
+        Accept: 'application/json, text/plain, */*',
+        'User-Agent': 'BetterMindCare-EvexiaProxy/1.0'
+      },
+      signal: controller.signal
+    }).finally(() => clearTimeout(to));
+
+    const ct = (r.headers.get('content-type') || '').toLowerCase();
+    const raw = ct.includes('application/json') ? await r.json() : await r.text();
+
+    try {
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      return res.status(200).json(parsed);
+    } catch {
+      return res.status(200).send(raw);
+    }
+
+  } catch (err) {
+    console.error('[Evexia] PatientSearch error:', err);
+    if (err.name === 'AbortError') {
+      return res.status(504).json({ error: 'Upstream request timed out' });
+    }
+    return res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+}
+
+
 router.get('/order-list-by-status', OrderListByStatusHandler);
 router.post('/order-add', addOrderHandler);
 
@@ -2318,5 +2385,5 @@ router.post('/requisition-get', getRequisition);
 router.get('/draw-center-locator', getDrawCenterLocator);
 router.post('/draw-center-locator', getDrawCenterLocator);
 
-
+router.get('/patient-search', PatientSearchHandler);
 module.exports = router;
