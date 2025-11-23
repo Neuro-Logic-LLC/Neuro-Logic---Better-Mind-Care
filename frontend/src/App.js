@@ -169,11 +169,7 @@ function App() {
 
                 <Route
                   path="/automated-lab-results"
-                  element={
-
-                      <AutomatedLabResults />
-
-                  }
+                  element={<AutomatedLabResults />}
                 />
 
                 <Route
@@ -181,7 +177,7 @@ function App() {
                   element={<PatientRequisitionViewer />}
                 />
 
-                <Route path="/sign-up" element={<SignUp />} />
+                {/* <Route path="/sign-up" element={<SignUp />} />  // Removed old signup page */}
                 <Route path="/confirm-email" element={<ConfirmEmail />} />
 
                 {/* ✅ Your 2-step flow */}
@@ -191,6 +187,14 @@ function App() {
                 <Route path="/account" element={<Account />} />
                 <Route path="/support" element={<Support />} />
                 <Route path="/messages" element={<Messages />} />
+                <Route
+                  path="/join/checkout"
+                  element={<CheckoutStep />}
+                />
+                <Route
+                  path="/account-info"
+                  element={<StepThreeAccountSetup />}
+                />
                 {/* optional 404 */}
                 {/* <Route path="*" element={<NotFound />} /> */}
               </Routes>
