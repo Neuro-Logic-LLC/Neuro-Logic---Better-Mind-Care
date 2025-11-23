@@ -89,11 +89,6 @@
   /* Background Gradients */
   --bg-gradient-teal: linear-gradient(to top, var(--seafoam) 0%, #ffffff 90%);
   --bg-gradient-white-seafoam: linear-gradient(to top, var(--seafoam), white);
-}
-
-.bg-gradient-white-seafoam {
-  background: var(--bg-gradient-white-seafoam);
-}
 
   /* States */
   --color-link: var(--gold-amber);
@@ -103,6 +98,11 @@
   --color-success: var(--teal);
   --focus-ring: 3px solid var(--gold-amber);
   --focus-offset: 3px;
+}
+
+.bg-gradient-white-seafoam {
+  background: var(--bg-gradient-white-seafoam);
+}
 
   /* Typography */
   --font-heading:
