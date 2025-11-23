@@ -203,7 +203,7 @@ function PatientReport() {
     'Educational wellness content. Not medical advice. See full disclaimer on page 1.';
 
   return (
-    <div style={{ background: 'linear-gradient(to top, var(--seafoam), white)', minHeight: '100vh' }}>
+    <div className="bg-gradient-white-seafoam" style={{ minHeight: '100vh' }}>
        <main className="patient-report-page">
          <header className="report-page__header">
            <Breadcrumb items={[

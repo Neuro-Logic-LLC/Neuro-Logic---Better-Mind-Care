@@ -7,7 +7,7 @@ function IntakeForm() {
   const [selectedPatientId, setSelectedPatientId] = useState('');
 
   return (
-    <div className="form-section" style={{ background: 'linear-gradient(to top, var(--seafoam), white)', minHeight: '100vh' }}>
+    <div className="form-section bg-gradient-white-seafoam" style={{ minHeight: '100vh' }}>
       <div className="form-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <h2 style={{ marginBottom: '2rem' }}>Get Started</h2>
         <PatientDemographicsForm

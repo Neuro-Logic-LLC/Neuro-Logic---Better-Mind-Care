@@ -68,7 +68,7 @@ a.btn:active {
 /* Features Section */
 .features-section {
   padding: 4rem 2rem 4rem;
-  background: linear-gradient(to top, var(--seafoam), white);
+  background: var(--bg-gradient-white-seafoam);
 }
 
 .features-grid {

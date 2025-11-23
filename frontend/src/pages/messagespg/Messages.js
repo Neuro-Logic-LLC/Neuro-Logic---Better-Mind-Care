@@ -30,7 +30,7 @@ function Messages() {
   ];
 
   return (
-    <div className="messages-page" style={{ background: 'linear-gradient(to top, var(--seafoam), white)', minHeight: '100vh' }}>
+    <div className="messages-page bg-gradient-white-seafoam" style={{ minHeight: '100vh' }}>
       <style>{`@media (max-width: 768px) { .messages-page h1 { text-align: center; } }`}</style>
       <Breadcrumb items={[
         { label: 'Home', path: '/' },

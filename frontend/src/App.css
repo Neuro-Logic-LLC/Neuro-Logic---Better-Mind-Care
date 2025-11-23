@@ -88,6 +88,12 @@
 
   /* Background Gradients */
   --bg-gradient-teal: linear-gradient(to top, var(--seafoam) 0%, #ffffff 90%);
+  --bg-gradient-white-seafoam: linear-gradient(to top, var(--seafoam), white);
+}
+
+.bg-gradient-white-seafoam {
+  background: var(--bg-gradient-white-seafoam);
+}
 
   /* States */
   --color-link: var(--gold-amber);
