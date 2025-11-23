@@ -1358,6 +1358,13 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
                   patientOrderID={patientOrderID}
                   fetchItems={fetchItems}
                 />
+                <ProductButton
+                  name="BetterMindCare Brainhealth Blueprint"
+                  productID={205704}
+                  clientID={externalClientID}
+                  patientOrderID={patientOrderID}
+                  fetchItems={fetchItems}
+                />
               </div>
             </div>
 

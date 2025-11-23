@@ -197,8 +197,8 @@ export default function ScreeningOrder() {
       <header className="w-full max-w-5xl px-4 md:px-6 pt-8 text-center">
         <h1 className="text-2xl font-semibold mb-2">Lab Results</h1>
         <h2 className="text-sm text-neutral-600">
-          (Note to tester: Test this with PatientID 113002, PatientOrderID
-          210824)
+          Note to tester: Test this with PatientID 113002, PatientOrderID
+          210824 original temporary placeholder
         </h2>
       </header>
 

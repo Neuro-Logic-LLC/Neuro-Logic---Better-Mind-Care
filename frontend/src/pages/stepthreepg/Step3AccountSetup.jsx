@@ -169,9 +169,9 @@ export default function StepThreeAccountSetup() {
         (res) => res.json()
       );
 
+      // setField('pickedCore', session.brainhealth || false);
+      setField('pickedCore', session.core || false || session.brainhealth);
       setField('pickedApoe', session.apoe || false);
-      setField('pickedCore', session.brainhealth || false);
-      setField('pickedDoctorsData', session.doctors_data || false);
 
       if (local.isCaregiver) {
         setField('cgFirst', local.cgFirst);
@@ -300,6 +300,10 @@ export default function StepThreeAccountSetup() {
         orderJson.PatientOrderID ||
         orderJson.patientOrderID;
 
+      setField('evexia_patient_order_id', session.PatientOrderID || '');
+      setField('evexia_patient_id', session.productID || false);
+      setField('orderId', session.Patient_Order_ID || false);
+
       if (!PatientOrderID) {
         console.error('❌ OrderAdd missing patient order ID', orderJson);
         throw new Error('OrderAdd returned no PatientOrderID');
@@ -309,15 +313,17 @@ export default function StepThreeAccountSetup() {
       const ProductID =
         orderJson.Product_ID || orderJson.ProductID || orderJson.productID;
 
-      if (session.metadata.pickedApoe === "1") {
+      if (session.metadata.pickedCore === '1') {
+        await addItem(205704);
+        console.log('should have added core here, but doesnt and needs to be updated');
+      }
+      if (session.metadata.pickedApoe === '1') {
         await addItem(6724);
       }
 
-      // if (session.metaData.pickedDoctorsData === "1") {
-      //   await addItem(347);
-      // }
-
       // 3. ADD ORDER ITEMS
+      // NEED THIS ADDED BY EVEXIA FOR TESTING 11-23-25
+
       async function addItem(productID) {
         return fetch('/api/evexia/order-item-add', {
           method: 'POST',
@@ -351,7 +357,6 @@ export default function StepThreeAccountSetup() {
       await fetch(`/api/evexia/patient-order-complete?${completeQuery}`, {
         method: 'GET'
       });
-
       navigate('/success');
     } catch (err) {
       console.error(err);

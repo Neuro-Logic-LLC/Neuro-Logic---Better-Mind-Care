@@ -152,6 +152,8 @@ router.post('/checkout', express.json(), async (req, res) => {
       splitApoePtau: splitApoePtau ? '1' : '0',
       requireBoth: requireBoth ? '1' : '0',
       cart: cartSummary,
+      evexia_patient_id: resolvedPatientId || '',
+
       idemKey
     };
 

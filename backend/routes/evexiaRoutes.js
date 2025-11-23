@@ -966,19 +966,19 @@ async function orderSummaryHandler(req, res) {
 //       }
 //     }
 
-//     let doctorsDataId = null;
-//     if (wantDoctorsData){
+//     let coreDataId = null;
+//     if (wantCoreData){
 //       try {
-//         doctorsDataId = await createOrder();
-//         if (!doctorsDataId) throw new Error('No doctorsDataID');
-//         await addItem(doctorsDataId, DOCTORS_DATA_PRODUCT_ID);
-//         result.doctorsData.ok = true;
-//         result.doctorsData.orderId = String(doctorsDataId);
+//         coreDataId = await createOrder();
+//         if (!coreDataId) throw new Error('No coreDataID');
+//         await addItem(coreDataId, DOCTORS_DATA_PRODUCT_ID);
+//         result.coreData.ok = true;
+//         result.coreData.orderId = String(coreDataId);
 //       }
 
 //     }
 //   }
-//     const anyOk = result.doctorsData.ok || result.apoe.ok;
+//     const anyOk = result.coreData.ok || result.apoe.ok;
 //     // 207 for partial success; 200 for full; 502 when both failed
 //     const http = anyOk ? (result.docotorsData.ok && result.apoe.ok ? 200 : 207) : 502;
 
@@ -997,7 +997,160 @@ async function orderSummaryHandler(req, res) {
 // }
 
 // --- Combined flow: APOE + Doctors Data only ---
-async function patientOrderApoeDoctorsData(req, res) {
+// async function patientOrderApoeCoreData(req, res) {
+//   try {
+//     const q = { ...(req.query || {}), ...(req.body || {}) };
+
+//     const PatientID = String(q.PatientID ?? q.patientID ?? '').trim();
+//     const OrderType = String(q.OrderType ?? q.orderType ?? '').trim();
+//     const PhlebotomyOption = String(q.PhlebotomyOption ?? q.phlebotomyOption ?? '').trim();
+//     const CollectionDate = String(q.CollectionDate ?? q.collectionDate ?? '').trim();
+
+//     // Tests we allow (NO PTAU)
+//     const wantApoe = !!(q.apoe ?? q.wantApoe ?? q.APOE);
+//     const wantCoreData = Boolean(q.coreData || q.doctors_data || q.wantCoreData || q.DD);
+
+//     if (!PatientID || !OrderType || !PhlebotomyOption) {
+//       return res.status(400).json({ error: 'Missing PatientID, OrderType, or PhlebotomyOption' });
+//     }
+//     if (!wantApoe && !wantCoreData) {
+//       return res.status(400).json({ error: 'Pick at least one test (apoe/coreData)' });
+//     }
+
+//     const clientId = pickClientId(req, q);
+//     const AUTH = pickAuthKey();
+//     const BASE = pickBaseUrl();
+
+//     if (!AUTH) return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
+
+//     const APOE_PRODUCT_ID = 6724;
+//     const DOCTORS_DATA_PRODUCT_ID = 347;
+//     const BRAINHEALTH_PRODUCT_ID  = 205704; 
+
+//     const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
+//     const postEvx = async (path, body) => {
+//       const url = new URL(path, BASE);
+//       const controller = new AbortController();
+//       const to = setTimeout(() => controller.abort(), timeoutMs);
+
+//       try {
+//         const r = await fetch(url, {
+//           method: 'POST',
+//           headers: {
+//             Authorization: AUTH,
+//             'Content-Type': 'application/json',
+//             Accept: 'application/json, text/plain, */*'
+//           },
+//           body: JSON.stringify(body),
+//           signal: controller.signal
+//         });
+
+//         const txt = await r.text();
+//         let data;
+//         try {
+//           data = JSON.parse(txt);
+//         } catch {
+//           data = txt;
+//         }
+
+//         if (!r.ok) {
+//           const e = new Error('Upstream error');
+//           e.status = r.status;
+//           e.body = data;
+//           throw e;
+//         }
+//         return data;
+//       } finally {
+//         clearTimeout(to);
+//       }
+//     };
+
+//     const createOrder = async () => {
+//       const resp = await postEvx('/api/EDIPlatform/OrderAdd', {
+//         externalClientID: clientId,
+//         patientID: PatientID,
+//         orderType: OrderType,
+//         phlebotomyOption: PhlebotomyOption,
+//         ...(CollectionDate ? { collectionDate: CollectionDate } : {})
+//       });
+//       return resp?.PatientOrderID ?? resp?.patientOrderID ?? resp?.patientOrderId ?? null;
+//     };
+
+//     const addItem = (patientOrderID, productID) =>
+//       postEvx('/api/EDIPlatform/OrderItemAdd', {
+//         externalClientID: clientId,
+//         patientOrderID,
+//         productID,
+//         isPanel: false
+//       });
+
+//     const completeOrder = patientOrderID =>
+//       postEvx('/api/EDIPlatform/PatientOrderComplete', {
+//         externalClientID: clientId,
+//         patientID: PatientID,
+//         patientOrderID
+//       });
+
+//     const result = {
+//       apoe: { ok: false, orderId: null, error: null },
+//       coreData: { ok: false, orderId: null, error: null }
+//     };
+
+//     // --- APOE ---
+//     if (wantApoe) {
+//       try {
+//         const apoeId = await createOrder();
+//         if (!apoeId) throw new Error('No patientOrderID for APOE');
+
+//         await addItem(apoeId, APOE_PRODUCT_ID);
+//         await completeOrder(apoeId);
+
+//         result.apoe.ok = true;
+//         result.apoe.orderId = String(apoeId);
+//       } catch (e) {
+//         result.apoe.error = e?.status
+//           ? `Evexia ${e.status}: ${stringifyUpstream(e.body)}`
+//           : e?.message || 'error';
+//       }
+//     }
+
+//     // --- Doctors Data ---
+//     if (wantCoreData) {
+//       try {
+//         const ddId = await createOrder();
+//         if (!ddId) throw new Error('No patientOrderID for CoreData');
+
+//         await addItem(ddId, DOCTORS_DATA_PRODUCT_ID);
+//         await completeOrder(ddId);
+
+//         result.coreData.ok = true;
+//         result.coreData.orderId = String(ddId);
+//       } catch (e) {
+//         result.coreData.error = e?.status
+//           ? `Evexia ${e.status}: ${stringifyUpstream(e.body)}`
+//           : e?.message || 'error';
+//       }
+//     }
+
+//     const anyOk = result.apoe.ok || result.coreData.ok;
+//     const allOk = result.apoe.ok && result.coreData.ok;
+//     const http = anyOk ? (allOk ? 200 : 207) : 502;
+
+//     return res.status(http).json({
+//       ok: anyOk,
+//       apoe: result.apoe,
+//       coreData: result.coreData
+//     });
+//   } catch (err) {
+//     console.error('[Evexia] APOE+DD error:', err);
+//     if (err.name === 'AbortError') {
+//       return res.status(504).json({ error: 'Upstream request timed out' });
+//     }
+//     return res.status(500).json({ error: err.message || 'Server error' });
+//   }
+// }
+
+async function patientOrderCoreWithApoeData(req, res) {
   try {
     const q = { ...(req.query || {}), ...(req.body || {}) };
 
@@ -1008,13 +1161,13 @@ async function patientOrderApoeDoctorsData(req, res) {
 
     // Tests we allow (NO PTAU)
     const wantApoe = !!(q.apoe ?? q.wantApoe ?? q.APOE);
-    const wantDoctorsData = Boolean(q.doctorsData || q.doctors_data || q.wantDoctorsData || q.DD);
+    const wantCoreData = Boolean(q.core || q.wantCoreData || q.CORE);
 
     if (!PatientID || !OrderType || !PhlebotomyOption) {
       return res.status(400).json({ error: 'Missing PatientID, OrderType, or PhlebotomyOption' });
     }
-    if (!wantApoe && !wantDoctorsData) {
-      return res.status(400).json({ error: 'Pick at least one test (apoe/doctorsData)' });
+    if (!wantApoe && !wantCoreData) {
+      return res.status(400).json({ error: 'Pick at least one test (apoe/coreData)' });
     }
 
     const clientId = pickClientId(req, q);
@@ -1025,6 +1178,7 @@ async function patientOrderApoeDoctorsData(req, res) {
 
     const APOE_PRODUCT_ID = 6724;
     const DOCTORS_DATA_PRODUCT_ID = 347;
+    const BRAINHEALTH_PRODUCT_ID  = 205704; 
 
     const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
     const postEvx = async (path, body) => {
@@ -1092,7 +1246,7 @@ async function patientOrderApoeDoctorsData(req, res) {
 
     const result = {
       apoe: { ok: false, orderId: null, error: null },
-      doctorsData: { ok: false, orderId: null, error: null }
+      coreData: { ok: false, orderId: null, error: null }
     };
 
     // --- APOE ---
@@ -1114,31 +1268,30 @@ async function patientOrderApoeDoctorsData(req, res) {
     }
 
     // --- Doctors Data ---
-    if (wantDoctorsData) {
+    if (wantCoreData)
       try {
-        const ddId = await createOrder();
-        if (!ddId) throw new Error('No patientOrderID for DoctorsData');
+        const coreId = await createOrder();
+        if (!ddId) throw new Error('No patientOrderID for CoreData');
 
-        await addItem(ddId, DOCTORS_DATA_PRODUCT_ID);
+        await addItem(coreId, BRAINHEALTH_PRODUCT_ID);
         await completeOrder(ddId);
 
-        result.doctorsData.ok = true;
-        result.doctorsData.orderId = String(ddId);
+        result.wantCoreData.ok = true;
+        result.coreData.orderId = String(ddId);
       } catch (e) {
-        result.doctorsData.error = e?.status
+        result.coreData.error = e?.status
           ? `Evexia ${e.status}: ${stringifyUpstream(e.body)}`
           : e?.message || 'error';
       }
-    }
 
-    const anyOk = result.apoe.ok || result.doctorsData.ok;
-    const allOk = result.apoe.ok && result.doctorsData.ok;
+    const anyOk = result.apoe.ok || result.coreData.ok;
+    const allOk = result.apoe.ok && result.coreData.ok;
     const http = anyOk ? (allOk ? 200 : 207) : 502;
 
     return res.status(http).json({
       ok: anyOk,
       apoe: result.apoe,
-      doctorsData: result.doctorsData
+      coreData: result.coreData
     });
   } catch (err) {
     console.error('[Evexia] APOE+DD error:', err);
@@ -1148,6 +1301,7 @@ async function patientOrderApoeDoctorsData(req, res) {
     return res.status(500).json({ error: err.message || 'Server error' });
   }
 }
+
 /**
  * @openapi
  * /patient-order-combined-apoe-first:
@@ -2596,6 +2750,7 @@ router.get('/draw-center-locator', getDrawCenterLocator);
 router.post('/draw-center-locator', getDrawCenterLocator);
 
 router.get('/patient-search', PatientSearchHandler);
-router.post('/patient-order-apoe-dd', patientOrderApoeDoctorsData);
+// router.post('/patient-order-apoe-dd', patientOrderApoeCoreData);
+router.post('/patient-order-core-with-apoe', patientOrderCoreWithApoeData)
 
 module.exports = router;

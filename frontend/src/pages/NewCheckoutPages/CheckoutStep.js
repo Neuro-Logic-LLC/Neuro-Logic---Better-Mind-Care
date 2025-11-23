@@ -83,7 +83,8 @@ export default function CheckoutStep() {
     setError('');
     setField('pickedCore', cart.CORE);
     setField('pickedApoe', cart.APOE);
-    setField('pickedDoctorsData', cart.DOCTORS_DATA);
+    setField('evexia_patient_id')
+
 
     const body = {
       brainhealth: cart.CORE,
@@ -97,7 +98,7 @@ export default function CheckoutStep() {
       meta: {
         pickedApoe: cart.APOE ? '1' : '0',
         pickedCore: cart.CORE ? '1' : '0',
-        pickedDoctorsData: cart.DOCTORS_DATA ? '1' : '0'
+        // pickedCoreData: cart.DOCTORS_DATA ? '1' : '0' // Legacy Test
       }
     };
 
@@ -141,7 +142,6 @@ export default function CheckoutStep() {
           <input
             type="checkbox"
             checked={cart.CORE}
-            disabled={true}
             onChange={(e) => {
               toggle('CORE', e.target.checked);
               setField('pickedCore', e.target.checked);
@@ -155,6 +155,7 @@ export default function CheckoutStep() {
           <input
             type="checkbox"
             checked={cart.APOE}
+            disabled={!cart.CORE}
             onChange={(e) => {
               toggle('APOE', e.target.checked);
               setField('pickedApoe', e.target.checked);
@@ -169,8 +170,8 @@ export default function CheckoutStep() {
               type="checkbox"
               checked={cart.DOCTORS_DATA}
               onChange={(e) => {
-                toggle('DOCTORS_DATA', e.target.checked);
-                setField('pickedDoctorsData', e.target.checked);
+                // toggle('DOCTORS_DATA', e.target.checked);
+                // setField('pickedCore', e.target.checked);
               }}
             />
 
