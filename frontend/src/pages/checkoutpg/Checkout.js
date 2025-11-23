@@ -4,7 +4,8 @@ import './Checkout.css';
 
 const CATALOG = [
   { key: 'APOE', name: 'ApoE Genetic Test', amount: 12500 },
-  { key: 'PTAU', name: 'p-Tau217 Alzheimer’s biomarker', amount: 30900 }
+  { key: 'PTAU', name: 'p-Tau217 Alzheimer’s biomarker', amount: 30900 },
+  { key: 'DOCTORS_DATA', name: 'Doctors Data Test', amount: 9900 }
 ];
 
 const usd = (cents) =>
@@ -13,7 +14,8 @@ const usd = (cents) =>
 function computeTotal(c) {
   return (
     (c.APOE ? 12500 : 0) +
-    (c.PTAU ? 30900 : 0)
+    (c.PTAU ? 30900 : 0) +
+    (c.DOCTORS_DATA ? 9900 : 0)
   );
 }
 
@@ -34,7 +36,7 @@ function ProductRow({ item, selected, onToggle }) {
 }
 
 export default function CheckoutPage() {
-  const [cart, setCart] = useState({ APOE: false, PTAU: false });
+  const [cart, setCart] = useState({ APOE: false, PTAU: false, DOCTORS_DATA: false });
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -50,7 +52,7 @@ export default function CheckoutPage() {
     setLoading(true);
     setError('');
     try {
-      const hasAny = cart.APOE || cart.PTAU;
+      const hasAny = cart.APOE || cart.PTAU || cart.DOCTORS_DATA;
       if (!hasAny) throw new Error('Pick at least one item');
 
       if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -59,7 +61,7 @@ export default function CheckoutPage() {
 
       const selApoe = Boolean(cart.APOE);
       const selPtau = Boolean(cart.PTAU);
-
+      const selDoctors = Boolean(cart.DOCTORS_DATA);
       const patientId = sessionStorage.getItem('evx_patientId') || undefined;
       const patientOrderId = sessionStorage.getItem('evx_patientOrderId') || undefined;
 
@@ -75,9 +77,11 @@ export default function CheckoutPage() {
       const body = {
         ui_apoe: cart.APOE,
         ui_ptau: cart.PTAU,
-
+        ui_doctors_data: cart.DOCTORS_DATA,
+        
         apoe: selApoe,
         ptau: selPtau,
+        doctors_data: selDoctors,
 
         requireBoth,
         customer_email: email || undefined,
