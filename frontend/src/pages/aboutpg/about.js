@@ -5,8 +5,9 @@ import './about.css';
 
 function About() {
   return (
-    <div className="about-page">
-      <h1>About BetterMindCare</h1>
+    <div style={{ background: 'var(--seafoam-gradient)', minHeight: '100vh', padding: '2rem' }}>
+      <div className="about-page">
+        <h1>About BetterMindCare</h1>
 
       <p>
         BetterMindCare was created with one purpose: to support families and
@@ -25,17 +26,17 @@ function About() {
 
       <h2>How It Works</h2>
       <ul>
-        <li>✔️ We guide users through a structured intake process</li>
+        <li> We guide users through a structured intake process</li>
         <li>
-          ✔️ We collect key health data via forms, optional labs, and screening
+           We collect key health data via forms, optional labs, and screening
           tests
         </li>
         <li>
-          ✔️ We apply research-backed recommendation logic to build a custom
+           We apply research-backed recommendation logic to build a custom
           Patient Report
         </li>
         <li>
-          ✔️ We provide insight, not overwhelm—with visual charts, simple
+           We provide insight, not overwhelm—with visual charts, simple
           explanations, and next steps
         </li>
       </ul>
@@ -54,6 +55,7 @@ function About() {
         every Patient Report we create is more than data—it’s a step toward
         peace of mind, dignity, and clarity.
       </p>
+      </div>
     </div>
   );
 }
