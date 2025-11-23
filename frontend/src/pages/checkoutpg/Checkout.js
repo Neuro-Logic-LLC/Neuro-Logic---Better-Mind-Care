@@ -29,8 +29,7 @@ function ProductRow({ item, selected, onToggle }) {
         checked={selected}
         onChange={(e) => onToggle(item.key, e.target.checked)}
       />
-      <div className="text-sm md:text-base font-semibold">{item.name}</div>
-      <div className="text-xs md:text-sm text-gray-600 ml-auto">{usd(item.amount)}</div>
+      <div className="text-sm md:text-base font-semibold">{item.name} <span className="text-xs md:text-sm text-gray-600">{usd(item.amount)}</span></div>
     </label>
   );
 }
