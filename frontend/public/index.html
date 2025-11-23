@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="en">
   <head>
-
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -19,9 +18,10 @@
       property="og:description"
       content="Personalized brain health support and compassionate tools for Alzheimer’s caregivers."
     />
-    <meta property="og:image" content="%PUBLIC_URL%/og-image.png" />
+    <meta property="og:image" content="https://bettermindcare.com/og-image.png" />
     <meta property="og:url" content="https://bettermindcare.com" />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="BetterMindCare" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -30,11 +30,24 @@
       name="twitter:description"
       content="Navigate Alzheimer’s care with personalized reports, screenings, and lab-based insights."
     />
-    <meta name="twitter:image" content="%PUBLIC_URL%/og-image.png" />
+    <meta name="twitter:image" content="https://bettermindcare.com/og-image.png" />
 
     <!-- Favicon -->
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href="%PUBLIC_URL%/favicon.png" />
+    <link rel="shortcut icon" type="image/png" href="%PUBLIC_URL%/favicon.png" />
+    <link rel="apple-touch-icon" type="image/png" href="%PUBLIC_URL%/apple-touch-icon.png" />
+
+    <link rel="canonical" href="https://bettermindcare.com/" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "BetterMindCare",
+        "url": "https://bettermindcare.com/",
+        "logo": "https://bettermindcare.com/og-image.png"
+      }
+    </script>
 
     <!-- Fonts (optional, customize as needed) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -43,8 +56,8 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Open+Sans:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <script src="https://js.stripe.com/v3"></script>
   </head>
+
   <body>
     <noscript>You need to enable JavaScript to use this app.</noscript>
     <div id="root"></div>

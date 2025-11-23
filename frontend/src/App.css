@@ -98,6 +98,21 @@
   --color-success: var(--teal);
   --focus-ring: 3px solid var(--gold-amber);
   --focus-offset: 3px;
+
+    /* Typography */
+  --font-heading:
+    'Outfit', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --font-body:
+    'Open Sans', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+  /* Sizing */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 14px 28px rgba(0, 0, 0, 0.14);
 }
 
 .bg-gradient-white-seafoam {
@@ -173,21 +188,6 @@
   .divider-wave-container svg path {
     stroke-width: 40;
   }
-}
-  /* Typography */
-  --font-heading:
-    'Outfit', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  --font-body:
-    'Open Sans', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-
-  /* Sizing */
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 14px 28px rgba(0, 0, 0, 0.14);
 }
 
 /* Reusable Background Gradients */
