@@ -141,7 +141,7 @@
   color: #ffffff !important;
 }
 .btn-pill-two:hover {
-  background-color: var(--dark-teal); /* dark-teal on hover */
+  background-color: var(--dark-teal);
   color: #ffffff !important;
   transform: translateY(-1px);
 }

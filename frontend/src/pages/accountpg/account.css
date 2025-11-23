@@ -237,7 +237,7 @@
   transition: all 0.2s ease;
 }
 
-.btn:hover {
+.account-page .btn:hover {
   background: var(--gold-amber);
   border-color: var(--gold-amber);
 }
