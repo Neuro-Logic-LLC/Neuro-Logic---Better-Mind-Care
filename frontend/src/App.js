@@ -69,11 +69,22 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route
-                  path="/evexia-lab-results"
-                  element={<EvexiaLabReport />}
-                />
-                <Route path="/google-calendar" element={<GoogleCalendar />} />
+                 <Route
+                   path="/evexia-lab-results"
+                   element={
+                     <ProtectedRoute>
+                       <EvexiaLabReport />
+                     </ProtectedRoute>
+                   }
+                 />
+                 <Route
+                   path="/google-calendar"
+                   element={
+                     <ProtectedRoute>
+                       <GoogleCalendar />
+                     </ProtectedRoute>
+                   }
+                 />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/success" element={<SuccessPage />} />
                 <Route path="/cancel-order" element={<CancelPage />} />
@@ -121,10 +132,14 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
-                  <Route
-                    path="/resources/articles/:slug"
-                    element={<Article />}
-                  />
+                 <Route
+                   path="/resources/articles/:slug"
+                   element={
+                     <ProtectedRoute>
+                       <Article />
+                     </ProtectedRoute>
+                   }
+                 />
 
                 <Route
                   path="/admin/dashboard"
@@ -169,15 +184,23 @@ function App() {
                   }
                 />
 
-                <Route
-                  path="/automated-lab-results"
-                  element={<AutomatedLabResults />}
-                />
+                 <Route
+                   path="/automated-lab-results"
+                   element={
+                     <ProtectedRoute>
+                       <AutomatedLabResults />
+                     </ProtectedRoute>
+                   }
+                 />
 
-                <Route
-                  path="/patient-req"
-                  element={<PatientRequisitionViewer />}
-                />
+                 <Route
+                   path="/patient-req"
+                   element={
+                     <ProtectedRoute>
+                       <PatientRequisitionViewer />
+                     </ProtectedRoute>
+                   }
+                 />
 
                 <Route path="/sign-up" element={<SignUp />} />
                 <Route path="/confirm-email" element={<ConfirmEmail />} />
@@ -185,11 +208,46 @@ function App() {
                 {/* ✅ Your 2-step flow */}
                 <Route path="/join" element={<EmailStep />} />
                 <Route path="/join/checkout" element={<CheckoutStep />} />
-                <Route path="/account-info" element={<StepThreeAccountSetup />} />
-                <Route path="/account" element={<Account />} />
-                <Route path="/support" element={<Support />} />
-                <Route path="/messages" element={<Messages />} />
-                <Route path="/appointments" element={<Appointments />} />
+                 <Route
+                   path="/account-info"
+                   element={
+                     <ProtectedRoute>
+                       <StepThreeAccountSetup />
+                     </ProtectedRoute>
+                   }
+                 />
+                 <Route
+                   path="/account"
+                   element={
+                     <ProtectedRoute>
+                       <Account />
+                     </ProtectedRoute>
+                   }
+                 />
+                 <Route
+                   path="/support"
+                   element={
+                     <ProtectedRoute>
+                       <Support />
+                     </ProtectedRoute>
+                   }
+                 />
+                 <Route
+                   path="/messages"
+                   element={
+                     <ProtectedRoute>
+                       <Messages />
+                     </ProtectedRoute>
+                   }
+                 />
+                 <Route
+                   path="/appointments"
+                   element={
+                     <ProtectedRoute>
+                       <Appointments />
+                     </ProtectedRoute>
+                   }
+                 />
                 <Route
                   path="/join/checkout"
                   element={<CheckoutStep />}
