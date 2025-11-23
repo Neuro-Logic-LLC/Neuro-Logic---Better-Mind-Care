@@ -19,19 +19,19 @@ function computeTotal(c) {
 function ProductRow({ item, selected, onToggle }) {
   return (
     <label
-      className={`flex items-center gap-3 p-3 rounded-2xl border ${
+      className={`flex items-center gap-2 p-3 rounded-2xl border ${
         selected ? 'border-gray-800' : 'border-gray-200'
       } hover:border-gray-400 cursor-pointer transition`}
     >
+      <div className="sr-only">{item.name}
       <input
         type="checkbox"
         className="h-5 w-5"
         checked={selected}
         onChange={(e) => onToggle(item.key, e.target.checked)}
       />
-      <div className="flex-1">
-        <div className="text-sm md:text-base font-semibold">{item.name}</div>
-        <div className="text-xs md:text-sm text-gray-600">{usd(item.amount)}</div>
+      <div className="text-sm md:text-base font-semibold">{item.name}</div>
+      <div className="text-xs md:text-sm text-gray-600 ml-auto">{usd(item.amount)}</div>
       </div>
     </label>
   );
@@ -116,7 +116,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div style={{ background: '#ffffff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
+      <div className="max-w-4xl mx-auto" style={{ background: '#ffffff', borderRadius: '16px', padding: '2rem', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
       <header className="flex items-center justify-between mb-6">
         <h1 className="text-2xl md:text-3xl font-bold">BetterMindCare Checkout</h1>
         <Link className="text-sm underline" to="/success" title="Preview success">
@@ -136,7 +137,7 @@ export default function CheckoutPage() {
           ))}
         </div>
 
-        <aside className="md:col-span-1 p-4 rounded-2xl border border-gray-200 shadow-sm h-fit">
+        <aside className="md:col-span-1 p-4 rounded-2xl border border-gray-200 shadow-sm h-fit text-center">
           <h2 className="text-lg font-semibold mb-4">Order</h2>
           <div className="space-y-3 text-sm">
             <label className="block">
@@ -175,6 +176,7 @@ export default function CheckoutPage() {
           </div>
         </aside>
       </div>
+    </div>
     </div>
   );
 }
