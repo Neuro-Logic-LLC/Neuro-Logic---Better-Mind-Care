@@ -3,6 +3,10 @@ a {
   text-decoration: none;
 }
 
+.main-content {
+  background: var(--seafoam-gradient);
+}
+
 /* Keep hover color if you want it */
 a:hover {
   text-decoration: none;
@@ -20,7 +24,7 @@ a.btn:active {
 }
 
 .hero-section {
-  background: #ffffff;
+  /* background: #ffffff; */
 }
 
 .hero-section h1,
