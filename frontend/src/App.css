@@ -102,7 +102,87 @@
 
 .bg-gradient-white-seafoam {
   background: var(--bg-gradient-white-seafoam);
+}
 
+/* Divider Wave Styles */
+.divider-wave-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 35rem;
+  width: 100%;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.wave {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+}
+
+.wave-back {
+  z-index: -1;
+}
+
+.wave-front {
+  z-index: -1;
+}
+
+.wave-fade {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 25rem;
+  width: 100%;
+  z-index: 0;
+}
+
+.divider-wave-outer {
+  position: absolute;
+  height: 2rem;
+  width: 100%;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.wave-fade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 6rem;
+  width: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    #ffffff 100%
+  );
+  z-index: 0;
+}
+
+.divider-wave-container svg path {
+  transition:
+    d 0.3s ease,
+    stroke-width 0.3s ease;
+  background: linear-gradient(to bottom, #e6f7f9 5%, #ffffff 100%);
+}
+
+@media (max-width: 768px) {
+  .divider-wave-container {
+    height: 24rem;
+  }
+
+  .wave-fade {
+    height: 23rem;
+  }
+
+  .divider-wave-container svg path {
+    stroke-width: 40;
+  }
+}
   /* Typography */
   --font-heading:
     'Outfit', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;

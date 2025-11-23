@@ -5,7 +5,7 @@ import { useAuth } from '../../auth/AuthContext';
 import { Link } from 'react-router-dom';
 import LockNKeyIcon from '../../assets/icons/LockNKeyIcon.png';
 import CircleCheckIcon from '../../assets/icons/CircleCheckIcon.png';
-import DividerWave from '../../components/bg/DividerWave';
+import DividerWave from '../../components/DividerWave';
 import './home.css';
 
 function Home() {

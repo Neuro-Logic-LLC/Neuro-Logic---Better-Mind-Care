@@ -1,7 +1,6 @@
 /** @format */
 
 import React from 'react';
-import './dividerwave.css';
 
 const DividerWave = () => {
   return (
