@@ -15,7 +15,7 @@ async function loadSSMIntoEnv({
   decrypt = true,
   stripPrefix = true,
   // set to true ONLY if you want process.env to win over SSM
-  lockExistingEnv = false,
+    lockExistingEnv = false,
 }) {
   if (!path) throw new Error('SSM_PARAMS_PATH missing');
   const ssm = new SSMClient({ region });

@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 function Support() {
   return (
-    <div className="support-page">
+    <div className="support-page" style="background:var(--seafoam-gradient);">
       <h1>Support & Help</h1>
       <p>Find answers to common questions and get the help you need.</p>
 

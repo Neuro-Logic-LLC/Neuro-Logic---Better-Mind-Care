@@ -3,7 +3,7 @@
 .account-page {
   width: 100%;
   min-height: 100vh;
-  background: var(--bg-gradient-teal);
+   background: var(--seafoam-gradient);
   padding: 2rem 1rem;
 }
 
@@ -117,7 +117,7 @@
   background: none;
   border: 2px solid var(--teal);
   color: var(--teal);
-  padding: 0.75rem 1.5rem;
+  padding: 0.3rem 0.75rem;
   border-radius: 8px;
   text-decoration: none;
   font-weight: 600;
@@ -142,7 +142,7 @@
   background: var(--warm-coral);
   border: 2px solid var(--warm-coral);
   color: white;
-  padding: 0.75rem 1.5rem;
+  padding: 0.3rem 0.75rem;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
@@ -230,7 +230,7 @@
   background: var(--teal);
   border: 2px solid var(--teal);
   color: white;
-  padding: 0.75rem 2rem;
+  padding: 0.3rem 0.75rem;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;

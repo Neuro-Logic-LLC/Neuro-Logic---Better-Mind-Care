@@ -2,6 +2,7 @@
 
 import './navbar.css';
 import '../../App.css';
+
 import logo from '../../assets/BMCLogo.png';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
@@ -16,6 +17,7 @@ function Navbar() {
   const isPatient = role.toLowerCase() === 'patient';
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
   const isDev = process.env.NODE_ENV === 'development';
   console.log(
@@ -53,6 +55,10 @@ function Navbar() {
     ? 'https://bettermindcare.com'
     : 'https://staging.bettermindcare.com';
 
+  if (!isLoggedIn) {
+    return null;
+  }
+
   return (
     <nav className="navbar" aria-label="Main navigation">
       <Link
@@ -77,18 +83,20 @@ function Navbar() {
       </button>
 
       {/* RIGHT SIDE: auth row on top, menu below */}
-      <div
-        className={`navbar-right-wrap ${menuOpen ? 'open' : ''}`}
-      >
+      <div className={`navbar-right-wrap ${menuOpen ? 'open' : ''}`}>
         {/* AUTH ROW (always shown, one row above menu) */}
         <div className="navbar-auth-row" aria-label="Authentication">
           {!isLoggedIn && (
             <>
-              <Link to="/login" onClick={() => setMenuOpen(false)}>Sign In</Link>
+              <Link to="/login" onClick={() => setMenuOpen(false)}>
+                Sign In
+              </Link>
               <span className="navbar-auth__divider" aria-hidden="true">
                 |
               </span>
-              <Link to="/sign-up" onClick={() => setMenuOpen(false)}>Get Started</Link>
+              <Link to="/sign-up" onClick={() => setMenuOpen(false)}>
+                Get Started
+              </Link>
             </>
           )}
         </div>
@@ -96,28 +104,83 @@ function Navbar() {
         <ul className="navbar-right" role="menubar" aria-label="Primary">
           {isLoggedIn && (
             <>
+               <li role="none" className="account-menu-container">
+                 <button
+                   className="account-menu-button"
+                   onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                   aria-expanded={accountMenuOpen}
+                   aria-haspopup="true"
+                 >
+                   Account
+                 </button>
+                 {accountMenuOpen && (
+                   <ul className="account-submenu" role="menu">
+                     <li role="none">
+                       <Link
+                         role="menuitem"
+                         to="/account"
+                         onClick={() => {
+                           setMenuOpen(false);
+                           setAccountMenuOpen(false);
+                         }}
+                       >
+                         Account Settings
+                       </Link>
+                     </li>
+                     <li role="none">
+                       <button
+                         type="button"
+                         className="logout-button"
+                         onClick={() => {
+                           handleLogout();
+                           setMenuOpen(false);
+                           setAccountMenuOpen(false);
+                         }}
+                         aria-label="Log out"
+                         role="menuitem"
+                       >
+                         Log Out
+                       </button>
+                     </li>
+                   </ul>
+                 )}
+               </li>
               <li role="none">
-                <Link role="menuitem" to="/account" onClick={() => setMenuOpen(false)}>
-                  Account
-                </Link>
-              </li>
-              <li role="none">
-                <Link role="menuitem" to="/support" onClick={() => setMenuOpen(false)}>
+                <Link
+                  role="menuitem"
+                  to="/support"
+                  onClick={() => setMenuOpen(false)}
+                >
                   Support / Help
                 </Link>
               </li>
+
               <li role="none">
-                <Link role="menuitem" to="/messages" onClick={() => setMenuOpen(false)}>
+                <Link
+                  role="menuitem"
+                  to="/messages"
+                  onClick={() => setMenuOpen(false)}
+                >
                   Messages
                 </Link>
               </li>
+
               <li role="none">
-                <Link role="menuitem" to="/resources" onClick={() => setMenuOpen(false)}>
+                <Link
+                  role="menuitem"
+                  to="/resources"
+                  onClick={() => setMenuOpen(false)}
+                >
                   Resources
                 </Link>
               </li>
+
               <li role="none">
-                <Link role="menuitem" to="/google-calendar" onClick={() => setMenuOpen(false)}>
+                <Link
+                  role="menuitem"
+                  to="/appointments"
+                  onClick={() => setMenuOpen(false)}
+                >
                   Appointments
                 </Link>
               </li>

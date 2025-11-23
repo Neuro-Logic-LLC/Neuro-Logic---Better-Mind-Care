@@ -2,7 +2,7 @@
 .resources-page {
   width: 100%;
   min-height: 100vh;
-  background: var(--bg-gradient-teal);
+   background: var(--seafoam-gradient);
   overflow-y: auto;
 }
 

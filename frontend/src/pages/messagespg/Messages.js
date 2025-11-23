@@ -25,9 +25,9 @@ function Messages() {
         }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch messages');
-      }
+       if (!response.ok) {
+         throw new Error('We couldn’t fetch your message(s). Refresh the page or try again shortly.');
+       }
 
       const data = await response.json();
       setMessages(data);
@@ -45,7 +45,9 @@ function Messages() {
       case 'clinician':
         return 'Clinician';
       case 'system':
-        return category === 'system_update' ? 'System Update' : 'Announcement';
+        return 'System Update';
+      case 'support':
+        return 'Message from Support';
       default:
         return 'Better Mind Care';
     }
@@ -66,7 +68,7 @@ function Messages() {
 
   if (loading) {
     return (
-      <div className="messages-page">
+      <div className="messages-page bg-gradient-teal">
         <h1>Messages</h1>
         <p>Loading messages...</p>
       </div>
@@ -74,18 +76,18 @@ function Messages() {
   }
 
   if (error) {
-    return (
-      <div className="messages-page">
-        <h1>Messages</h1>
-        <p>Error loading messages: {error}</p>
-      </div>
-    );
+     return (
+       <div className="messages-page bg-gradient-teal">
+         <h1>Messages</h1>
+         <p>{error}</p>
+       </div>
+     );
   }
 
   return (
-    <div className="messages-page">
-      <h1>Messages</h1>
-      <p>Your messages and notifications from the Better Mind Care team.</p>
+    <div className="messages-page bg-gradient-teal">
+      <h1>MESSAGES</h1>
+      <p>Messages from Better Mind Care</p>
 
       <div className="messages-list">
         {messages.map(message => (
@@ -107,7 +109,7 @@ function Messages() {
       </div>
 
       {messages.length === 0 && (
-        <p className="no-messages">Updates and important notices will appear here.</p>
+        <p className="no-messages">You don't have any messages yet. We'll notify you whenever there's an important update or a personal message from our team.</p>
       )}
     </div>
   );

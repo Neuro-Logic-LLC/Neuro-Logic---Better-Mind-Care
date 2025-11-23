@@ -207,7 +207,7 @@ a.btn:active {
 
   .dashboard-sections {
     padding: 4rem 2rem;
-    background: var(--bg-gradient-teal);
+    background: var(--seafoam-gradient);
   }
 
   .dashboard-grid {

@@ -87,7 +87,7 @@
   --color-danger: var(--warm-coral);
 
   /* Background Gradients */
-  --bg-gradient-teal: linear-gradient(to top, var(--seafoam) 0%, #ffffff 90%);
+   --seafoam-gradient: linear-gradient(to top, var(--seafoam) 0%, #ffffff 90%);
 
   /* States */
   --color-link: var(--gold-amber);
@@ -116,7 +116,7 @@
 
 /* Reusable Background Gradients */
 .bg-gradient-teal {
-  background: var(--bg-gradient-teal);
+  background: var(--seafoam-gradient);
 }
 
 /* ====== Global Resets ====== */
@@ -340,6 +340,85 @@ tbody tr + tr td {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* Support Page Styles */
+.support-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.support-page h1 {
+  color: var(--teal);
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.support-page > p {
+  color: var(--charcoal);
+  margin-bottom: 2rem;
+}
+
+.support-section {
+  margin-bottom: 2rem;
+}
+
+.support-section h2 {
+  color: var(--teal);
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.faq-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.faq-item {
+  border: 1px solid color-mix(in oklab, var(--soft-blue) 55%, white);
+  border-radius: 12px;
+  padding: 1.5rem;
+  background: #ffffff;
+}
+
+.faq-item h3 {
+  color: var(--teal);
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.faq-item p {
+  color: var(--charcoal);
+  line-height: 1.5;
+}
+
+.support-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.support-section li {
+  margin-bottom: 0.5rem;
+}
+
+.support-section a {
+  color: var(--teal);
+  text-decoration: none;
+}
+
+.support-section a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .support-page {
+    padding: 1rem;
+  }
+
+  .faq-item {
+    padding: 1rem;
+  }
 }
 
 /* Reduced motion preference */

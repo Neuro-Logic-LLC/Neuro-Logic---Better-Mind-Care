@@ -29,6 +29,7 @@ function Account() {
   });
   const [isCaregiver, setIsCaregiver] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   // TODO: Implement real API calls to check user lab status from Evexia and message counts from backend
   // Mock user status for conditional messages
@@ -76,8 +77,6 @@ function Account() {
   return (
     <div className="account-page">
       <div className="account-content">
-        <h1>Account Settings</h1>
-        <p>Manage your account information and preferences.</p>
 
       <form onSubmit={handleSubmit} className="account-form">
         <section className="account-section">
@@ -100,7 +99,7 @@ function Account() {
               required
             />
             <InputText
-              label="Email"
+              label="Update Your Email Address"
               id="email"
               name="email"
               type="email"
@@ -109,7 +108,7 @@ function Account() {
               required
             />
             <InputText
-              label="Phone"
+              label="Update Your Phone Number"
               id="phone"
               name="phone"
               type="tel"
@@ -121,6 +120,7 @@ function Account() {
 
         <section className="account-section">
           <h2>Communication Preferences</h2>
+          <p>Choose how you'd like us to contact you about updates, results, and important reminders.</p>
           <div className="checkbox-group">
             <label className="checkbox-label">
               <input
@@ -220,16 +220,30 @@ function Account() {
 
         <section className="account-section danger-zone">
           <h2>Cancel Account</h2>
-          <p>This action cannot be undone. All your data will be permanently deleted.</p>
-          <button type="button" className="btn-danger" onClick={() => alert('Cancel account coming soon')}>
-            <img src={LogOutIcon} alt="" className="btn-icon" />
-            Cancel Account
-          </button>
+          {!showCancelConfirm ? (
+            <>
+              <p>This action cannot be undone. All your data will be permanently deleted.</p>
+              <button type="button" className="btn-danger" onClick={() => setShowCancelConfirm(true)}>
+                Cancel My Account
+              </button>
+            </>
+          ) : (
+            <>
+              <p>Are you sure you want to cancel your account? Canceling will remove access to your dashboard and future updates.</p>
+              <div className="form-actions">
+                <button type="button" className="btn" onClick={() => setShowCancelConfirm(false)}>
+                  Keep Account
+                </button>
+                <button type="button" className="btn-danger" onClick={() => alert("Your account has been canceled. We're here if you ever want to restart your journey.")}>
+                  Confirm Cancellation
+                </button>
+              </div>
+            </>
+          )}
         </section>
 
         <div className="form-actions">
-          <button type="submit" className="btn">
-            <img src={CircleCheckIcon} alt="" className="btn-icon" />
+          <button type="submit" className="btn btn-primary">
             Save Changes
           </button>
         </div>
