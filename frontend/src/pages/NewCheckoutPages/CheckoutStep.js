@@ -129,6 +129,7 @@ export default function CheckoutStep() {
           <input
             type="checkbox"
             checked={cart.APOE}
+            disabled={!cart.CORE}
             onChange={(e) => toggle('APOE', e.target.checked)}
           />
           <span style={{ flex: 1 }}>ApoE Gene Test</span>
