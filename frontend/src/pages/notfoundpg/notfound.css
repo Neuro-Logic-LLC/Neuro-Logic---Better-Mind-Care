@@ -1,0 +1,77 @@
+.notfound-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
+  font-family: 'Arial', sans-serif;
+  color: #37474f;
+}
+
+.notfound-content {
+  text-align: center;
+  max-width: 500px;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.error-code {
+  font-size: 6rem;
+  font-weight: bold;
+  color: #00796b;
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.error-title {
+  font-size: 2rem;
+  margin: 1rem 0;
+  color: #004d40;
+}
+
+.error-message {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin: 1.5rem 0;
+  color: #546e7a;
+}
+
+.error-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.home-link,
+.support-link {
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.home-link {
+  background-color: #00796b;
+  color: white;
+}
+
+.home-link:hover {
+  background-color: #004d40;
+  transform: translateY(-2px);
+}
+
+.support-link {
+  background-color: transparent;
+  color: #00796b;
+  border: 2px solid #00796b;
+}
+
+.support-link:hover {
+  background-color: #00796b;
+  color: white;
+  transform: translateY(-2px);
+}

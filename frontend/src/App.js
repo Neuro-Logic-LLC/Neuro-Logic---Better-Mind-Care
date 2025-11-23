@@ -48,6 +48,7 @@ import Account from './pages/accountpg/Account';
 import Support from './pages/supportpg/Support';
 import Messages from './pages/messagespg/Messages';
 import Article from './pages/myreportspg/articles/Article';
+import NotFound from './pages/notfoundpg/NotFound';
 
 
 function App() {
@@ -196,7 +197,7 @@ function App() {
                   element={<StepThreeAccountSetup />}
                 />
                 {/* optional 404 */}
-                {/* <Route path="*" element={<NotFound />} /> */}
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </SignupProvider>
           </main>
