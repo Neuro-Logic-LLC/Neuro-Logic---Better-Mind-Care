@@ -205,9 +205,19 @@ export default function StepThreeAccountSetup() {
       const res = await fetch('/api/auth/paid-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        crendentials: 'include',
+        credentials: 'include',
         body: JSON.stringify(signupBody)
       });
+
+      const meRes = await fetch('/api/auth/me', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      const meData = await meRes.json();
+
+      if (!meData.user) {
+        throw new Error('User not logged in after signup');
+      }
 
       const data = await res.json();
 
