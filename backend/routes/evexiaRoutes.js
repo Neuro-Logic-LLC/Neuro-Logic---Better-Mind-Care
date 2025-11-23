@@ -793,47 +793,245 @@ async function orderSummaryHandler(req, res) {
 }
 
 // --- Combined flow: place PTAU then APOE as two separate orders ---
-async function patientOrderCombinedPtauFirst(req, res) {
+// async function patientOrderCombinedPtauFirst(req, res) {
+//   try {
+//     const q = { ...(req.query || {}), ...(req.body || {}) };
+
+//     // Inputs (match your existing create endpoint)
+//     const PatientID = String(q.PatientID ?? q.patientID ?? '').trim();
+//     const OrderType = String(q.OrderType ?? q.orderType ?? '').trim();
+//     const PhlebotomyOption = String(q.PhlebotomyOption ?? q.phlebotomyOption ?? '').trim();
+//     const CollectionDate = String(q.CollectionDate ?? q.collectionDate ?? '').trim();
+
+//     // What to place
+//     const wantPtau = !!(q.wantPtau ?? q.ptau ?? q.PTAU);
+//     const wantApoe = !!(q.wantApoe ?? q.apoe ?? q.APOE);
+
+//     // Business rule: all-or-nothing?
+//     const requireBoth = ['1', 'true', 'yes', 'on'].includes(
+//       String(q.requireBoth ?? 'false').toLowerCase()
+//     );
+
+//     if (!PatientID || !OrderType || !PhlebotomyOption) {
+//       return res.status(400).json({ error: 'Missing PatientID, OrderType, or PhlebotomyOption' });
+//     }
+//     if (!wantPtau && !wantApoe) {
+//       return res.status(400).json({ error: 'Pick at least one test (ptau/apoe)' });
+//     }
+
+//     const clientId = pickClientId(req, q);
+//     const AUTH_RAW = pickAuthKey();
+//     const AUTH = process.env.EVEXIA_BEARER_TOKEN; // match other routes but ensure Bearer
+//     const BASE = pickBaseUrl();
+
+//     if (!AUTH) return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
+
+//     const PTAU_PRODUCT_ID = 200018; // Labcorp
+//     const APOE_PRODUCT_ID = 6724; // Kashi
+//     const DOCTORS_DATA_PRODUCT_ID = 347;  // Labname Doctor's Data - for testing
+
+//     const X = 15
+
+//     const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
+//     const postEvx = async (path, body) => {
+//       const url = new URL(path, BASE);
+//       const controller = new AbortController();
+//       const to = setTimeout(() => controller.abort(), timeoutMs);
+//       try {
+//         const r = await fetch(url, {
+//           method: 'POST',
+//           headers: {
+//             Authorization: AUTH,
+//             'Content-Type': 'application/json',
+//             Accept: 'application/json, text/plain, */*'
+//           },
+//           body: JSON.stringify(body),
+//           signal: controller.signal
+//         });
+//         const text = await r.text();
+//         let data;
+//         try {
+//           data = JSON.parse(text);
+//         } catch {
+//           data = text;
+//         }
+//         if (!r.ok) {
+//           const e = new Error('Upstream error');
+//           e.status = r.status;
+//           e.body = data;
+//           throw e;
+//         }
+//         return data;
+//       } finally {
+//         clearTimeout(to);
+//       }
+//     };
+
+//     const createOrder = async () => {
+//       const resp = await postEvx('/api/EDIPlatform/OrderAdd', {
+//         externalClientID: clientId,
+//         patientID: PatientID,
+//         orderType: OrderType,
+//         phlebotomyOption: PhlebotomyOption,
+//         ...(CollectionDate ? { collectionDate: CollectionDate } : {})
+//       });
+//       return resp?.PatientOrderID ?? resp?.patientOrderID ?? resp?.patientOrderId ?? null;
+//     };
+
+//     const addItem = (patientOrderID, productID, isPanel) =>
+//       postEvx('/api/EDIPlatform/OrderItemAdd', {
+//         externalClientID: clientId,
+//         patientOrderID,
+//         productID,
+//         isPanel: !!isPanel
+//       });
+
+//     const addItems = (patientOrderID, clientId, productIDList, isPanel) => {
+//       postEvx('/api/EDIPlatform/OrderItemAddMultiple', {
+//         externalClientID: clientId,
+//         patientOrderID,
+//         items: productIDList.map(productID => ({
+//           productID,
+//           isPanel: !!isPanel
+//         }))
+//       });
+//     };
+
+//     const completeOrder = patientOrderID =>
+//       postEvx('/api/EDIPlatform/PatientOrderComplete', {
+//         externalClientID: clientId,
+//         patientID: PatientID,
+//         patientOrderID
+//       });
+
+//     // Best-effort cancel (only used if requireBoth=true and second leg fails)
+//     const cancelOrder = (patientOrderID, reason) =>
+//       postEvx('/api/EDIPlatform/OrderEmpty', {
+//         externalClientID: clientId,
+//         patientID: PatientID,
+//         patientOrderID
+//       });
+
+//     const result = {
+//       ptau: { ok: false, orderId: null, error: null },
+//       apoe: { ok: false, orderId: null, error: null }
+//     };
+
+//     // 1) PTAU
+//     let ptauId = null;
+//     if (wantPtau) {
+//       try {
+//         ptauId = await createOrder();
+//         if (!ptauId) throw new Error('No patientOrderID from PatientOrderAdd (PTAU)');
+//         await addItem(ptauId, PTAU_PRODUCT_ID);
+//         await completeOrder(ptauId);
+//         result.ptau.ok = true;
+//         result.ptau.orderId = String(ptauId);
+//       } catch (e) {
+//         result.ptau.error = e?.status
+//           ? `Evexia ${e.status}: ${stringifyUpstream(e.body)}`
+//           : e?.message || 'error';
+//       }
+//     }
+
+//     // 2) APOE (separate order)
+//     let apoeId = null;
+//     if (wantApoe) {
+//       try {
+//         apoeId = await createOrder();
+//         if (!apoeId) throw new Error('No patientOrderID from PatientOrderAdd (APOE)');
+//         await addItem(apoeId, APOE_PRODUCT_ID);
+//         await completeOrder(apoeId);
+//         result.apoe.ok = true;
+//         result.apoe.orderId = String(apoeId);
+//       } catch (e) {
+//         result.apoe.error = e?.status
+//           ? `Evexia ${e.status}: ${stringifyUpstream(e.body)}`
+//           : e?.message || 'error';
+
+//         // Compensate only if we promised "both or nothing"
+//         if (requireBoth && result.ptau.ok) {
+//           try {
+//             await cancelOrder(ptauId, 'Compensating cancel after APOE failure');
+//             result.ptau.ok = false;
+//             result.ptau.error = 'Canceled due to APOE failure';
+//           } catch (cErr) {
+//             result.ptau.error = `APOE failed; also failed to cancel PTAU: ${
+//               cErr?.status
+//                 ? `Evexia ${cErr.status}: ${stringifyUpstream(cErr.body)}`
+//                 : cErr?.message || 'cancel error'
+//             }`;
+//           }
+//         }
+//       }
+//     }
+
+//     let doctorsDataId = null;
+//     if (wantDoctorsData){
+//       try {
+//         doctorsDataId = await createOrder();
+//         if (!doctorsDataId) throw new Error('No doctorsDataID');
+//         await addItem(doctorsDataId, DOCTORS_DATA_PRODUCT_ID);
+//         result.doctorsData.ok = true;
+//         result.doctorsData.orderId = String(doctorsDataId);
+//       }
+
+//     }
+//   }
+//     const anyOk = result.doctorsData.ok || result.apoe.ok;
+//     // 207 for partial success; 200 for full; 502 when both failed
+//     const http = anyOk ? (result.docotorsData.ok && result.apoe.ok ? 200 : 207) : 502;
+
+//     return res.status(http).json({
+//       ok: anyOk && (!requireBoth || (result.ptau.ok && result.apoe.ok)),
+//       requireBoth,
+//       ptau: result.ptau,
+//       apoe: result.apoe
+//     });
+//   } catch (err) {
+//     console.error('[Evexia] combined order error:', err);
+//     if (err.name === 'AbortError')
+//       return res.status(504).json({ error: 'Upstream request timed out' });
+//     return res.status(500).json({ error: err.message || 'Server error' });
+//   }
+// }
+
+// --- Combined flow: APOE + Doctors Data only ---
+async function patientOrderApoeDoctorsData(req, res) {
   try {
     const q = { ...(req.query || {}), ...(req.body || {}) };
 
-    // Inputs (match your existing create endpoint)
     const PatientID = String(q.PatientID ?? q.patientID ?? '').trim();
     const OrderType = String(q.OrderType ?? q.orderType ?? '').trim();
     const PhlebotomyOption = String(q.PhlebotomyOption ?? q.phlebotomyOption ?? '').trim();
     const CollectionDate = String(q.CollectionDate ?? q.collectionDate ?? '').trim();
 
-    // What to place
-    const wantPtau = !!(q.wantPtau ?? q.ptau ?? q.PTAU);
-    const wantApoe = !!(q.wantApoe ?? q.apoe ?? q.APOE);
-
-    // Business rule: all-or-nothing?
-    const requireBoth = ['1', 'true', 'yes', 'on'].includes(
-      String(q.requireBoth ?? 'false').toLowerCase()
-    );
+    // Tests we allow (NO PTAU)
+    const wantApoe = !!(q.apoe ?? q.wantApoe ?? q.APOE);
+    const wantDoctorsData = Boolean(q.doctorsData || q.doctors_data || q.wantDoctorsData || q.DD);
 
     if (!PatientID || !OrderType || !PhlebotomyOption) {
       return res.status(400).json({ error: 'Missing PatientID, OrderType, or PhlebotomyOption' });
     }
-    if (!wantPtau && !wantApoe) {
-      return res.status(400).json({ error: 'Pick at least one test (ptau/apoe)' });
+    if (!wantApoe && !wantDoctorsData) {
+      return res.status(400).json({ error: 'Pick at least one test (apoe/doctorsData)' });
     }
 
     const clientId = pickClientId(req, q);
-    const AUTH_RAW = pickAuthKey();
-    const AUTH = process.env.EVEXIA_BEARER_TOKEN; // match other routes but ensure Bearer
+    const AUTH = pickAuthKey();
     const BASE = pickBaseUrl();
 
     if (!AUTH) return res.status(500).json({ error: 'Server missing EVEXIA_AUTH_KEY' });
 
-    const PTAU_PRODUCT_ID = 200018; // Labcorp
-    const APOE_PRODUCT_ID = 6724; // Kashi
+    const APOE_PRODUCT_ID = 6724;
+    const DOCTORS_DATA_PRODUCT_ID = 347;
 
     const timeoutMs = Number(process.env.EVEXIA_TIMEOUT_MS || 15000);
     const postEvx = async (path, body) => {
       const url = new URL(path, BASE);
       const controller = new AbortController();
       const to = setTimeout(() => controller.abort(), timeoutMs);
+
       try {
         const r = await fetch(url, {
           method: 'POST',
@@ -845,13 +1043,15 @@ async function patientOrderCombinedPtauFirst(req, res) {
           body: JSON.stringify(body),
           signal: controller.signal
         });
-        const text = await r.text();
+
+        const txt = await r.text();
         let data;
         try {
-          data = JSON.parse(text);
+          data = JSON.parse(txt);
         } catch {
-          data = text;
+          data = txt;
         }
+
         if (!r.ok) {
           const e = new Error('Upstream error');
           e.status = r.status;
@@ -875,24 +1075,13 @@ async function patientOrderCombinedPtauFirst(req, res) {
       return resp?.PatientOrderID ?? resp?.patientOrderID ?? resp?.patientOrderId ?? null;
     };
 
-    const addItem = (patientOrderID, productID, isPanel) =>
+    const addItem = (patientOrderID, productID) =>
       postEvx('/api/EDIPlatform/OrderItemAdd', {
         externalClientID: clientId,
         patientOrderID,
         productID,
-        isPanel: !!isPanel
+        isPanel: false
       });
-
-    const addItems = (patientOrderID, clientId, productIDList, isPanel) => {
-      postEvx('/api/EDIPlatform/OrderItemAddMultiple', {
-        externalClientID: clientId,
-        patientOrderID,
-        items: productIDList.map(productID => ({
-          productID,
-          isPanel: !!isPanel
-        }))
-      });
-    };
 
     const completeOrder = patientOrderID =>
       postEvx('/api/EDIPlatform/PatientOrderComplete', {
@@ -901,82 +1090,61 @@ async function patientOrderCombinedPtauFirst(req, res) {
         patientOrderID
       });
 
-    // Best-effort cancel (only used if requireBoth=true and second leg fails)
-    const cancelOrder = (patientOrderID, reason) =>
-      postEvx('/api/EDIPlatform/OrderEmpty', {
-        externalClientID: clientId,
-        patientID: PatientID,
-        patientOrderID
-      });
-
     const result = {
-      ptau: { ok: false, orderId: null, error: null },
-      apoe: { ok: false, orderId: null, error: null }
+      apoe: { ok: false, orderId: null, error: null },
+      doctorsData: { ok: false, orderId: null, error: null }
     };
 
-    // 1) PTAU
-    let ptauId = null;
-    if (wantPtau) {
-      try {
-        ptauId = await createOrder();
-        if (!ptauId) throw new Error('No patientOrderID from PatientOrderAdd (PTAU)');
-        await addItem(ptauId, PTAU_PRODUCT_ID);
-        await completeOrder(ptauId);
-        result.ptau.ok = true;
-        result.ptau.orderId = String(ptauId);
-      } catch (e) {
-        result.ptau.error = e?.status
-          ? `Evexia ${e.status}: ${stringifyUpstream(e.body)}`
-          : e?.message || 'error';
-      }
-    }
-
-    // 2) APOE (separate order)
-    let apoeId = null;
+    // --- APOE ---
     if (wantApoe) {
       try {
-        apoeId = await createOrder();
-        if (!apoeId) throw new Error('No patientOrderID from PatientOrderAdd (APOE)');
+        const apoeId = await createOrder();
+        if (!apoeId) throw new Error('No patientOrderID for APOE');
+
         await addItem(apoeId, APOE_PRODUCT_ID);
         await completeOrder(apoeId);
+
         result.apoe.ok = true;
         result.apoe.orderId = String(apoeId);
       } catch (e) {
         result.apoe.error = e?.status
           ? `Evexia ${e.status}: ${stringifyUpstream(e.body)}`
           : e?.message || 'error';
-
-        // Compensate only if we promised "both or nothing"
-        if (requireBoth && result.ptau.ok) {
-          try {
-            await cancelOrder(ptauId, 'Compensating cancel after APOE failure');
-            result.ptau.ok = false;
-            result.ptau.error = 'Canceled due to APOE failure';
-          } catch (cErr) {
-            result.ptau.error = `APOE failed; also failed to cancel PTAU: ${
-              cErr?.status
-                ? `Evexia ${cErr.status}: ${stringifyUpstream(cErr.body)}`
-                : cErr?.message || 'cancel error'
-            }`;
-          }
-        }
       }
     }
 
-    const anyOk = result.ptau.ok || result.apoe.ok;
-    // 207 for partial success; 200 for full; 502 when both failed
-    const http = anyOk ? (result.ptau.ok && result.apoe.ok ? 200 : 207) : 502;
+    // --- Doctors Data ---
+    if (wantDoctorsData) {
+      try {
+        const ddId = await createOrder();
+        if (!ddId) throw new Error('No patientOrderID for DoctorsData');
+
+        await addItem(ddId, DOCTORS_DATA_PRODUCT_ID);
+        await completeOrder(ddId);
+
+        result.doctorsData.ok = true;
+        result.doctorsData.orderId = String(ddId);
+      } catch (e) {
+        result.doctorsData.error = e?.status
+          ? `Evexia ${e.status}: ${stringifyUpstream(e.body)}`
+          : e?.message || 'error';
+      }
+    }
+
+    const anyOk = result.apoe.ok || result.doctorsData.ok;
+    const allOk = result.apoe.ok && result.doctorsData.ok;
+    const http = anyOk ? (allOk ? 200 : 207) : 502;
 
     return res.status(http).json({
-      ok: anyOk && (!requireBoth || (result.ptau.ok && result.apoe.ok)),
-      requireBoth,
-      ptau: result.ptau,
-      apoe: result.apoe
+      ok: anyOk,
+      apoe: result.apoe,
+      doctorsData: result.doctorsData
     });
   } catch (err) {
-    console.error('[Evexia] combined order error:', err);
-    if (err.name === 'AbortError')
+    console.error('[Evexia] APOE+DD error:', err);
+    if (err.name === 'AbortError') {
       return res.status(504).json({ error: 'Upstream request timed out' });
+    }
     return res.status(500).json({ error: err.message || 'Server error' });
   }
 }
@@ -1108,6 +1276,43 @@ async function patientOrderCombinedApoeFirst(req, res) {
       }
     };
 
+    const getEvx = async path => {
+      const url = new URL(path, BASE);
+      const controller = new AbortController();
+      const to = setTimeout(() => controller.abort(), timeoutMs);
+
+      try {
+        const r = await fetch(url, {
+          method: 'GET',
+          headers: {
+            Authorization: AUTH,
+            Accept: 'application/json, text/plain, */*'
+          },
+          signal: controller.signal
+        });
+
+        const text = await r.text();
+        let data;
+
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = text;
+        }
+
+        if (!r.ok) {
+          const e = new Error('Upstream error');
+          e.status = r.status;
+          e.body = data;
+          throw e;
+        }
+
+        return data;
+      } finally {
+        clearTimeout(to);
+      }
+    };
+
     const createOrder = async () => {
       const resp = await postEvx('/api/EDIPlatform/PatientOrderAdd', {
         externalClientID: clientId,
@@ -1127,12 +1332,17 @@ async function patientOrderCombinedApoeFirst(req, res) {
         isPanel: 'false'
       });
 
-    const completeOrder = patientOrderID =>
-      postEvx('/api/EDIPlatform/PatientOrderComplete', {
+    const completeOrder = patientOrderID => {
+      const query = new URLSearchParams({
         externalClientID: clientId,
-        patientID: PatientID,
-        patientOrderID
+        patientOrderID: String(patientOrderID),
+        patientPay: 'true', // or 'false'
+        includeFHR: 'false',
+        clientPhysicianID: '0'
       });
+
+      return getEvx(`/api/EDIPlatform/PatientOrderComplete?${query.toString()}`);
+    };
 
     const cancelOrder = (patientOrderID, reason) =>
       postEvx('/api/EDIPlatform/OrderCancel', {
@@ -1492,7 +1702,10 @@ const patientOrderCompleteHandler = async (req, res) => {
   try {
     const patientOrderID = req.query.patientOrderID || req.body?.patientOrderID;
 
-    const externalClientID = process.env.EVEXIA_EXTERNAL_CLIENT_ID;
+    const q = { ...(req.query || {}), ...(req.body || {}) };
+    const externalClientID = pickClientId(req, q) || process.env.EVEXIA_EXTERNAL_CLIENT_ID;
+
+    const clientId = pickClientId(req, q);
     const AUTH = pickAuthKey();
     const BASE = pickBaseUrl();
 
@@ -1511,7 +1724,7 @@ const patientOrderCompleteHandler = async (req, res) => {
     const url = new URL(COMPLETE_PATH, BASE);
 
     url.searchParams.set('patientOrderID', patientOrderID);
-    url.searchParams.set('externalClientID', externalClientID);
+    url.searchParams.set('externalClientID', clientId);
     url.searchParams.set('patientPay', patientPay);
     url.searchParams.set('includeFHR', includeFHR);
     url.searchParams.set('clientPhysicianID', clientPhysicianID);
@@ -1744,7 +1957,6 @@ async function patientAddV2(req, res) {
   if (!r.ok) throw new Error(`Evexia patientAddV2 failed: ${r.status}`);
   return r.json();
 }
-
 
 async function patientListHandler(req, res) {
   try {
@@ -2330,7 +2542,6 @@ async function PatientSearchHandler(req, res) {
     } catch {
       return res.status(200).send(raw);
     }
-
   } catch (err) {
     console.error('[Evexia] PatientSearch error:', err);
     if (err.name === 'AbortError') {
@@ -2339,7 +2550,6 @@ async function PatientSearchHandler(req, res) {
     return res.status(500).json({ error: err.message || 'Internal server error' });
   }
 }
-
 
 router.get('/order-list-by-status', OrderListByStatusHandler);
 router.post('/order-add', addOrderHandler);
@@ -2368,7 +2578,7 @@ router.get('/order-detail', orderDetailHandler);
 router.post('/analyte-result', analyteResultHandler);
 
 // ✅ mount the combined flow
-router.post('/patient-order-combined-ptau-first', patientOrderCombinedPtauFirst);
+// router.post('/patient-order-combined-ptau-first', patientOrderCombinedPtauFirst);
 router.post('/patient-order-combined-apoe-first', patientOrderCombinedApoeFirst);
 
 router.get('/lab-result', labResultHandler);
@@ -2386,4 +2596,6 @@ router.get('/draw-center-locator', getDrawCenterLocator);
 router.post('/draw-center-locator', getDrawCenterLocator);
 
 router.get('/patient-search', PatientSearchHandler);
+router.post('/patient-order-apoe-dd', patientOrderApoeDoctorsData);
+
 module.exports = router;

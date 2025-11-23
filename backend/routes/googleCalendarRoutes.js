@@ -193,21 +193,6 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
       }
     });
 
-    // Send confirmation message to user
-    try {
-      const knex = await initKnex();
-      await knex('messages').insert({
-        recipient_id: req.user.id,
-        sender_type: 'admin',
-        category: 'announcement',
-        title: 'Appointment Confirmed',
-        body: `Your appointment for ${new Date(ev.start.dateTime).toLocaleString()} has been confirmed. Join here: ${ev.hangoutLink}`,
-        is_sent: true
-      });
-    } catch (msgError) {
-      console.error('Failed to send appointment confirmation message:', msgError);
-    }
-
     res.json({
       success: true,
       platform: 'google',

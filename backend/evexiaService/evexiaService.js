@@ -6,7 +6,6 @@ const loadSSMParams = require('../utils/loadSSMParams');
 
 const HARD_DEFAULT_AUTH_KEY = process.env.EVEXIA_BEARER_TOKEN;
 
-
 const pickEnv = (...names) => {
   for (const n of names) {
     const v = (process.env[n] || '').trim();
@@ -31,10 +30,9 @@ async function patientAddV2(patientData) {
   const BASE = pickBaseUrl();
   const PATH = pickPatientAddV2Path();
 
-  
   const url = new URL(PATH, BASE);
   const payload = { ...patientData, ExternalClientID };
-console.log('[Evexia DEBUG] Sending patientAddV2 payload:', JSON.stringify(payload, null, 2));
+  console.log('[Evexia DEBUG] Sending patientAddV2 payload:', JSON.stringify(payload, null, 2));
   const r = await fetch(url, {
     method: 'POST',
     headers: {
@@ -69,6 +67,20 @@ async function runEvexiaSequence(patientData) {
     return resp.json();
   };
 
+  const getEvx = async (path, body) => {
+    const url = new URL(path, pickBaseUrl());
+    const resp = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: pickAuthKey(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    if (!resp.ok) throw new Error(`Evexia ${path} failed: ${resp.status}`);
+    return resp.json();
+  };
+
   // Step 1: Create Order
   const orderResp = await postEvx('/api/EDIPlatform/OrderAdd', {
     externalClientID: clientId,
@@ -87,7 +99,7 @@ async function runEvexiaSequence(patientData) {
   });
 
   // Step 3: Complete Order
-  await postEvx('/api/EDIPlatform/PatientOrderComplete', {
+  await getEvx('/api/EDIPlatform/PatientOrderComplete', {
     externalClientID: clientId,
     patientID: PatientID,
     patientOrderID

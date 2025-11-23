@@ -50,13 +50,15 @@ function normalizeUrl(u) {
 const PRICE_IDS = {
   BRAINHEALTH: process.env.STRIPE_PRICE_BRAINHEALTH || '',
   APOE: process.env.STRIPE_PRICE_APOE || '',
-  PTAU: process.env.STRIPE_PRICE_PTAU || ''
+  PTAU: process.env.STRIPE_PRICE_PTAU || '',
+  DOCTORS_DATA: process.env.STRIPE_PRICE_DOCTORS_DATA || ''
 };
-const AMOUNTS = { BRAINHEALTH: 44900, APOE: 12500, PTAU: 29400 };
+const AMOUNTS = { BRAINHEALTH: 44900, APOE: 12500, PTAU: 29400, DOCTORS_DATA: 9900 };
 const nameMap = {
   BRAINHEALTH: 'Brain Health Blueprint',
   APOE: 'APOE Gene Test',
-  PTAU: 'p-Tau217 Alzheimer’s Risk Marker'
+  PTAU: 'p-Tau217 Alzheimer’s Risk Marker',
+  DOCTORS_DATA: 'Doctors Data Test'
 };
 function lineItemFromKey(key) {
   const priceId = PRICE_IDS[key];
@@ -77,10 +79,12 @@ router.post('/checkout', express.json(), async (req, res) => {
     const s = getStripe(); // env read happens here, not at import-time
 
     const {
-      brainhealth,
       apoe,
       ptau,
+      brainhealth,
+      doctors_data,
       customer_email,
+
       customer_first_name,
       customer_last_name,
       customer_phone,
@@ -97,6 +101,7 @@ router.post('/checkout', express.json(), async (req, res) => {
     if (brainhealth) items.push(lineItemFromKey('BRAINHEALTH'));
     if (apoe) items.push(lineItemFromKey('APOE'));
     if (ptau) items.push(lineItemFromKey('PTAU'));
+    if (doctors_data) items.push(lineItemFromKey('DOCTORS_DATA'));
     if (!items.length) return res.status(400).json({ error: 'No items selected' });
     if (!success_url || !cancel_url)
       return res.status(400).json({ error: 'success_url and cancel_url required' });
@@ -118,7 +123,12 @@ router.post('/checkout', express.json(), async (req, res) => {
     const splitApoePtau = boolish(bodySplit ?? meta.splitApoePtau ?? false);
     const requireBoth = boolish(bodyRequireBoth ?? meta.requireBoth ?? false);
 
-    const cartSummary = JSON.stringify({ brainhealth: !!brainhealth, apoe: !!apoe, ptau: !!ptau });
+    const cartSummary = JSON.stringify({
+      brainhealth: !!brainhealth,
+      apoe: !!apoe,
+      ptau: !!ptau,
+      doctors_data: !!doctors_data
+    });
     const idemKey = crypto.randomUUID();
 
     const finalMeta = {
@@ -223,7 +233,6 @@ router.post('/stripe-payment-intent', express.json(), async (req, res) => {
       });
     }
 
-
     const setupIntent = await s.setupIntents.create({
       customer: customer.id,
       usage: 'off_session',
@@ -254,7 +263,7 @@ router.post('/stripe-payment-intent', express.json(), async (req, res) => {
 });
 
 // --------------------------------------------
-//  CHARGE AFTER SETUP — RUN AFTER STEP THREE /// LEGACY DO NOT USE WITHOUT 
+//  CHARGE AFTER SETUP — RUN AFTER STEP THREE /// LEGACY DO NOT USE WITHOUT
 // --------------------------------------------
 router.post('/charge-after-setup', express.json(), async (req, res) => {
   try {
@@ -316,7 +325,9 @@ router.get('/session/:id', async (req, res) => {
       street2: details.address?.line2 || null,
       city: details.address?.city || null,
       state: details.address?.state || null,
-      zip: details.address?.postal_code || null
+      zip: details.address?.postal_code || null,
+      // ⭐ Add this:
+      metadata: session.metadata || {}
     });
   } catch (err) {
     console.error('session lookup failed:', err);
