@@ -302,9 +302,6 @@ export default function StepThreeAccountSetup() {
         orderJson.PatientOrderID ||
         orderJson.patientOrderID;
 
-      setField('evexia_patient_order_id', PatientOrderID);
-      setField('evexia_patient_id', PatientID);
-      setField('evexia_product_id', ProductID);
 
       if (!PatientOrderID) {
         console.error('❌ OrderAdd missing patient order ID', orderJson);
@@ -314,6 +311,11 @@ export default function StepThreeAccountSetup() {
       console.log(session);
       const ProductID =
         orderJson.Product_ID || orderJson.ProductID || orderJson.productID;
+
+      setField('evexia_patient_order_id', PatientOrderID);
+      setField('evexia_patient_id', PatientID);
+      setField('evexia_product_id', ProductID);
+
 
       if (session.metadata.pickedCore === '1') {
         await addItem(205704);
