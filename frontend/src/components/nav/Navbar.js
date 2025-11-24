@@ -154,7 +154,7 @@ function Navbar() {
           {/* CTA pills as LINKS using your button classes */}
 
           <li role="none" className="navbar-ctas">
-            <PillOne to="/order">Order</PillOne>
+            <PillOne to="/order"> {isLoggedIn ? 'Order' : 'Join'}</PillOne>
             <PillTwo to="/contact">Contact</PillTwo>
           </li>
         </ul>

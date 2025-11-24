@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSignup } from './SignupContext';
+import { useAuth } from '../../auth/AuthContext';
 
 const PRICES = {
   CORE: 44900,
@@ -57,6 +58,7 @@ const S = {
 
 export default function CheckoutStep() {
   const { state, setField } = useSignup();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [cart, setCart] = useState({
@@ -68,11 +70,21 @@ export default function CheckoutStep() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const email = state.email || '';
+  const email = state.email || user?.email || '';
 
   useEffect(() => {
-    if (!email) navigate('/join');
-  }, [email, navigate]);
+    // If logged-in user exists but SignupContext has no email,
+    // sync it automatically instead of redirecting.
+    if (user?.email && !state.email) {
+      setField('email', user.email);
+      return;
+    }
+
+    // If truly no email and no user → force join screen
+    if (!email) {
+      navigate('/join');
+    }
+  }, [email, user, state.email, setField, navigate]);
 
   function toggle(key, val) {
     setCart((prev) => ({ ...prev, [key]: val }));
@@ -83,8 +95,7 @@ export default function CheckoutStep() {
     setError('');
     setField('pickedCore', cart.CORE);
     setField('pickedApoe', cart.APOE);
-    setField('evexia_patient_id')
-
+    setField('evexia_patient_id');
 
     const body = {
       brainhealth: cart.CORE,
@@ -97,7 +108,7 @@ export default function CheckoutStep() {
 
       meta: {
         pickedApoe: cart.APOE ? '1' : '0',
-        pickedCore: cart.CORE ? '1' : '0',
+        pickedCore: cart.CORE ? '1' : '0'
         // pickedCoreData: cart.DOCTORS_DATA ? '1' : '0' // Legacy Test
       }
     };
@@ -178,7 +189,7 @@ export default function CheckoutStep() {
             <span style={{ flex: 1 }}>Doctors Data Test</span>
             <span>{usd(PRICES.DOCTORS_DATA)}</span>
           </label>
-        )}  
+        )}
       </div>
 
       <div style={{ marginTop: 16 }}>
