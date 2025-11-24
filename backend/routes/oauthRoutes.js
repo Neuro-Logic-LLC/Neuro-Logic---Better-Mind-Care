@@ -176,7 +176,7 @@ router.get('/google/callback', async (req, res, next) => {
     if (!user) {
       const fe = process.env.FRONTEND_URL || 'https://staging.bettermindcare.com';
       const qs = new URLSearchParams({ email, reason: 'oauth_no_account' });
-      return res.redirect(`${fe}/sign-up?${qs.toString()}`);
+      return res.redirect(`${fe}/join?${qs.toString()}`);
     }
 
     // --- Save tokens (optional) ---
