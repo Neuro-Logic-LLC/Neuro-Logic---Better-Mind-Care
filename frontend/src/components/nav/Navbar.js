@@ -10,7 +10,7 @@ import React from 'react';
 
 function Navbar() {
   const navigate = useNavigate();
-  const { user, setUser } = useAuth();
+  const { user, logout, setUser } = useAuth();
   const isLoggedIn = !!user;
   console.log('Navbar user:', user);
   const role = (isLoggedIn ? user?.role : '') || '';
@@ -43,8 +43,8 @@ function Navbar() {
       try {
         localStorage.removeItem('token');
       } catch {}
-      setUser(null);
-      navigate('/login', { replace: true });
+      logout();
+
     }
   };
 
