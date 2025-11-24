@@ -2756,10 +2756,6 @@ router.post('/patient-order-core-with-apoe', patientOrderCoreWithApoeData)
 router.post('/save-evexia-ids', async (req, res) => {
   const knex = await initKnex();
 
-  if (!req.user?.id) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
   const { evxPatientID, evxPatientOrderID, evxProductID } = req.body;
 
   try {
