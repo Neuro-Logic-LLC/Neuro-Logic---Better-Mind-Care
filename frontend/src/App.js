@@ -22,7 +22,7 @@ import EvexiaLabReport from './pages/evexialabreportpg/evexialabreport';
 import ScreeningOrder from './pages/screeningorderpg/ScreeningOrder';
 import UserList from './pages/userslistpg/UserList';
 import AuditLog from '../src/pages/auditpg/AuditLog';
-import { AuthProvider } from './auth/AuthContext';
+import { AuthProvider  } from './auth/AuthContext';
 import ProtectedRoute from './auth/ProtectedRoute';
 import Login from './pages/loginpg/login';
 import SignUp from './pages/signuppg/SignUp';
@@ -50,7 +50,7 @@ import { useAuth } from './auth/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 
 function App() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const isLoggedIn = !!user;
 
   return (
@@ -174,7 +174,9 @@ function App() {
                   <Route
                     path="/join"
                     element={
-                      isLoggedIn ? (
+                      loading ? (
+                        <div></div> // or spinner
+                      ) : isLoggedIn ? (
                         <Navigate to="/join/checkout" replace />
                       ) : (
                         <EmailStep />
