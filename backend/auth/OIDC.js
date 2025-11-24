@@ -67,7 +67,7 @@ async function startAuth({ state, nonce }) {
   // Google expects a single space-separated scope string
     url.searchParams.set(
       'scope',
-      'openid profile email https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.freebusy'
+      'openid profile email https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.freebusy'
     );
   url.searchParams.set('state', state);
   url.searchParams.set('nonce', nonce);
