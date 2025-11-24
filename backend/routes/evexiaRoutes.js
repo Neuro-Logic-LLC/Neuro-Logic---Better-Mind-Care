@@ -2756,18 +2756,16 @@ router.post('/patient-order-core-with-apoe', patientOrderCoreWithApoeData)
 router.post('/save-evexia-ids', async (req, res) => {
   const knex = await initKnex();
 
-  const { evxPatientID, evxPatientOrderID, evxProductID } = req.body;
+  const { userId, evxPatientID, evxPatientOrderID, evxProductID } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: "Missing userId" });
+  }
 
   try {
     await knex('users')
-      .insert({
-        id: req.user.id,
-        evx_patient_id: evxPatientID,
-        evx_patient_order_id: evxPatientOrderID,
-        evx_product_id: evxProductID
-      })
-      .onConflict('id') // if a user with this ID exists...
-      .merge({          // ...update these fields instead of failing
+      .where({ id: userId })
+      .update({
         evx_patient_id: evxPatientID,
         evx_patient_order_id: evxPatientOrderID,
         evx_product_id: evxProductID
@@ -2779,5 +2777,4 @@ router.post('/save-evexia-ids', async (req, res) => {
     res.status(500).json({ error: 'Database error' });
   }
 });
-
 module.exports = router;

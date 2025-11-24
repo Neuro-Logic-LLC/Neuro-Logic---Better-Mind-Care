@@ -95,7 +95,7 @@ export default function StepThreeAccountSetup() {
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
+      credentials: 'include', //changed 
       body: JSON.stringify(body)
     });
 
@@ -209,6 +209,11 @@ export default function StepThreeAccountSetup() {
         body: JSON.stringify(signupBody)
       });
 
+      const data = await res.json();
+      const newUserId = data.user_id;
+      if (!newUserId) {
+        throw new Error('Paid signup did not return user_id');
+      }
       // ------------------------------------------------------------
       // SUCCESS → redirect
       // ------------------------------------------------------------
@@ -296,9 +301,9 @@ export default function StepThreeAccountSetup() {
         orderJson.PatientOrderID ||
         orderJson.patientOrderID;
 
-      setField('evexia_patient_order_id', session.PatientOrderID || '');
-      setField('evexia_patient_id', session.productID || false);
-      setField('orderId', session.Patient_Order_ID || false);
+      setField('evexia_patient_order_id', PatientOrderID);
+      setField('evexia_patient_id', PatientID);
+      setField('evexia_product_id', ProductID);
 
       if (!PatientOrderID) {
         console.error('❌ OrderAdd missing patient order ID', orderJson);
@@ -359,8 +364,6 @@ export default function StepThreeAccountSetup() {
         method: 'GET'
       });
 
-
-
       // await fetch('/api/auth/login', {
       //   method: 'POST',
       //   headers: { 'Content-Type': 'application/json' },
@@ -376,6 +379,7 @@ export default function StepThreeAccountSetup() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
+          user_id: newUserId,
           evxPatientID: PatientID,
           evxPatientOrderID: PatientOrderID,
           evxProductID: ProductID
