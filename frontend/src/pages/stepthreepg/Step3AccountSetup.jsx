@@ -382,7 +382,7 @@ export default function StepThreeAccountSetup() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          user_id: newUserId,
+          userId: newUserId,
           evxPatientID: PatientID,
           evxPatientOrderID: PatientOrderID,
           evxProductID: ProductID
