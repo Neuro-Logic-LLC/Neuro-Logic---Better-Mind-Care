@@ -210,10 +210,10 @@ export default function StepThreeAccountSetup() {
       });
 
       const data = await res.json();
-      const newUserId = data.user_id;
-      if (!newUserId) {
-        throw new Error('Paid signup did not return user_id');
-      }
+      // const newUserId = data.user_id;
+      // if (!newUserId) {
+      //   throw new Error('Paid signup did not return user_id');
+      // }
       // ------------------------------------------------------------
       // SUCCESS → redirect
       // ------------------------------------------------------------
@@ -382,7 +382,7 @@ export default function StepThreeAccountSetup() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          userId: newUserId,
+          // userId: newUserId,
           evxPatientID: PatientID,
           evxPatientOrderID: PatientOrderID,
           evxProductID: ProductID
