@@ -95,7 +95,7 @@ export default function StepThreeAccountSetup() {
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', //changed 
+      credentials: 'include', //changed
       body: JSON.stringify(body)
     });
 
@@ -250,23 +250,24 @@ export default function StepThreeAccountSetup() {
           EmailAddress: state.email,
           FirstName: state.first,
           LastName: state.last,
-          StreetAddress: state.address,
+
+          // correct stripe fields:
+          StreetAddress: state.street,
           StreetAddress2: state.address2 || '',
           City: state.city,
           State: state.state,
           PostalCode: state.zip,
           Phone: state.phone,
+
           DOB: local.dob,
           Gender: local.gender === 'Male' ? 'M' : 'F',
+
+          // caregiver (only fields you actually have)
           Guardian: local.cgFirst || '',
-          GuardianRelationship: local.GuardianRelationship || '',
-          GuardianAddress: local.GuardianAddress || '',
-          GuardianAddress2: local.GuardianAddress2 || '',
-          GuardianCity: local.GuardianCity || '',
-          GuardianPostalCode: local.GuardianPostalCode || '',
-          GuardianState: local.GuardianState || '',
-          GuardianPhone: local.GuardianPhone || '',
-          ExternalClientID: state.externalClientId
+          GuardianPhone: local.cgPhone || '',
+          GuardianEmail: local.cgEmail || '',
+
+          ExternalClientID: state.externalClientId || ''
         };
 
         const patRes = await fetch('/api/evexia/patient-add', {
