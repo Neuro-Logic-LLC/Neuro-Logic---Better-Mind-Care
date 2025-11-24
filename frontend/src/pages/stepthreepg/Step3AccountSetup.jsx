@@ -209,23 +209,6 @@ export default function StepThreeAccountSetup() {
         body: JSON.stringify(signupBody)
       });
 
-      const meRes = await fetch('/api/auth/me', {
-        method: 'GET',
-        credentials: 'include'
-      });
-      const meData = await meRes.json();
-
-      if (!meData.user) {
-        throw new Error('User not logged in after signup');
-      }
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.error || 'Signup failed.');
-        return;
-      }
-
       // ------------------------------------------------------------
       // SUCCESS → redirect
       // ------------------------------------------------------------
@@ -376,27 +359,18 @@ export default function StepThreeAccountSetup() {
         method: 'GET'
       });
 
-      await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          email: state.email,
-          password
-        })
-      });
 
-      const me = await fetch('/api/auth/me', {
-        method: 'GET',
-        credentials: 'include'
-      });
-      // if (me.ok) {
-      //   const meData = await getJsonSafe(me);
-      //   if (meData?.user) {
-      //     navigate('/admin/dashboard');
-      //     return;
-      //   }
-      // }
+
+      // await fetch('/api/auth/login', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   credentials: 'include',
+      //   body: JSON.stringify({
+      //     email: state.email,
+      //     password
+      //   })
+      // });
+
       await fetch('/api/evexia/save-evexia-ids', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
