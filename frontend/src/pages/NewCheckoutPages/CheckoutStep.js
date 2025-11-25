@@ -71,9 +71,7 @@ export default function CheckoutStep() {
 
   const email = state.email || '';
 
-  useEffect(() => {
-    if (!email) navigate('/join');
-  }, [email, navigate]);
+
 
   useEffect(() => {
   if (!email) return;
