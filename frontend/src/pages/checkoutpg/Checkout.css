@@ -38,3 +38,11 @@
   color: var(--slate, #64748b);
   font-size: 14px;
 }
+
+.email-label {
+  margin-bottom: 0.5rem;
+}
+
+.checkout-btn {
+  border-radius: 16px !important;
+}

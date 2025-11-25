@@ -320,7 +320,7 @@ function HealthQuestionsForm({ gender, setGender }) {
       }
     });
 
-    if (formData.diabetes === 'Yes' && !formData.diabetesType) {
+    if (['Yes', 'Unsure'].includes(formData.diabetes) && !formData.diabetesType) {
       newErrors.diabetesType = 'Please indicate the diabetes type.';
     }
 
@@ -626,10 +626,10 @@ function HealthQuestionsForm({ gender, setGender }) {
           onChange={handleChange}
           error={errors.diabetes}
         />
-        {formData.diabetes === 'Yes' && (
+        {['Yes', 'Unsure'].includes(formData.diabetes) && (
           <RadioQuestions
             id="diabetesType"
-            label="If yes, which type?"
+            label="What type?"
             options={['Type 1', 'Type 2']}
             value={formData.diabetesType}
             onChange={handleChange}

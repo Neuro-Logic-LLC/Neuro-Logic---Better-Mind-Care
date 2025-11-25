@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { PrimaryButton } from '../../components/button/Buttons';
+
 import './Checkout.css';
 
 const CATALOG = [
@@ -141,13 +143,13 @@ export default function CheckoutPage() {
           <h2 className="text-lg font-semibold mb-4">Order</h2>
           <div className="space-y-3 text-sm">
             <label className="block">
-              <span className="text-gray-700">Email (optional for receipt)</span>
+              <span className="text-gray-700 email-label">Email (optional for receipt)</span>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-800"
+                className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-800"
               />
             </label>
 
@@ -162,13 +164,13 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <button
+            <PrimaryButton
               onClick={handleCheckout}
               disabled={loading || total === 0}
-              className="w-full rounded-2xl px-4 py-2 font-semibold shadow hover:shadow-md border border-gray-900 disabled:opacity-60"
+              className="w-full checkout-btn"
             >
               {loading ? 'Starting checkout...' : 'Pay with Stripe'}
-            </button>
+            </PrimaryButton>
 
             <p className="text-xs text-gray-600">
               You will be redirected to Stripe Checkout.
