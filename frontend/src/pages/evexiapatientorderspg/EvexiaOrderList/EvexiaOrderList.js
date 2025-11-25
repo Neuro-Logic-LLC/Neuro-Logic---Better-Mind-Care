@@ -203,7 +203,7 @@ export default function EvexiaOrderList({
         console.log(`Fetched ${list.length} orders by status=${statusDescr}`);
       } catch (err) {
         console.error('OrderListByStatus failed:', err);
-        setError(err.message || 'Failed to load orders by status. Refresh the page or try again shortly.');
+        setError(err.message || 'Failed to load orders by status');
       } finally {
         setLoading(false);
       }
@@ -348,10 +348,7 @@ export default function EvexiaOrderList({
       setPage(json && Number.isFinite(json.page) ? json.page : page);
     } catch (err) {
       if (err && err.name === 'AbortError') return;
-      setError(
-        (err && err.message) ||
-          'Failed to load orders. Refresh the page or try again shortly.'
-      );
+      setError((err && err.message) || 'Failed to load orders');
     } finally {
       setLoading(false);
     }
@@ -527,7 +524,7 @@ export default function EvexiaOrderList({
       await fetchData();
       setShowAddOrder(false);
     } catch (e) {
-      setActionError(e?.message || 'Failed to add the order. Please, try again.');
+      setActionError(e?.message || 'Failed to add order');
     } finally {
       setAddBusy(false);
     }
@@ -670,8 +667,8 @@ export default function EvexiaOrderList({
             Show Open Orders
           </button>
           <button
-            className="btn btn-primary"
-            style={{ marginLeft: '10px', padding: '0.3rem 0.75rem', fontSize: '14px' }}
+            className="btn btn-outline-teal"
+            style={{ marginLeft: '10px' }}
             onClick={() => fetchOrdersByStatus('LabResultReady')}
           >
             Show Lab Result Ready
@@ -1080,7 +1077,7 @@ function AddItemDialog({ onClose, onDone, patientOrderID, externalClientID }) {
       onDone && onDone();
       onClose && onClose();
     } catch (e) {
-      setErr(e?.message || 'Failed to add item(s) — try again.');
+      setErr(e?.message || 'Failed to add item(s)');
     } finally {
       setBusy(false);
     }
@@ -1180,10 +1177,7 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
         [];
       setItems(list);
     } catch (err) {
-      setError(
-        err.message ||
-          'Failed to fetch items. Refresh the page or try again shortly.'
-      );
+      setError(err.message || 'Failed to fetch items');
     } finally {
       setLoading(false);
     }
@@ -1280,7 +1274,6 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
             className="btn btn-outline-teal inline-flex items-center"
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
-            style={{ padding: '0.3rem 0.75rem', fontSize: '14px' }}
           >
             {open ? <ChevronUp /> : <ChevronDown />}
           </button>
@@ -1308,7 +1301,7 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
               <div className="font-semibold">
                 🛒 Order Cart — {items.length} item{items.length !== 1 && 's'}
               </div>
-              <button className="btn btn-outline-teal" onClick={fetchItems} style={{ padding: '0.3rem 0.75rem', fontSize: '14px' }}>
+              <button className="btn btn-outline-teal" onClick={fetchItems}>
                 <RefreshCcw className="h-4 w-4 mr-1" /> Refresh
               </button>
             </div>
@@ -1377,7 +1370,7 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
 
             {/* Order Actions */}
             <div className="mt-6 border-t pt-3 space-y-3">
-              <div className="font-semibold mb-2">Order Actions</div>
+              <div className="font-semibold mb-2">⚙️ Order Actions</div>
               <div className="flex flex-wrap gap-2">
                 <button
                   className="btn btn-outline-teal"
@@ -1387,20 +1380,18 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
                   🧹 Empty Order
                 </button>
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-outline-teal"
                   disabled={busy}
                   onClick={() => handleSubmitOrder(false, false)}
-                  style={{ padding: '0.3rem 0.75rem', fontSize: '14px' }}
                 >
-                  Submit Order
+                  ✅ Submit Order
                 </button>
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-outline-teal"
                   disabled={busy}
                   onClick={handleCancelOrder}
-                  style={{ padding: '0.3rem 0.75rem', fontSize: '14px' }}
                 >
-                  Cancel Order
+                  ❌ Cancel Order
                 </button>
               </div>
             </div>

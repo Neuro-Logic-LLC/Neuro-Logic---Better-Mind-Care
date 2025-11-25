@@ -140,7 +140,7 @@ export default function Login() {
     const pwd = String(password || '');
 
     if (!emailClean) {
-      setError('Please double-check this field.');
+      setError('Email is required.');
       return;
     }
     if (pwd.length < 8) {
@@ -167,8 +167,7 @@ export default function Login() {
 
       // ❌ Wrong password — stop here
       if (!res.ok) {
-        const isDev = process.env.NODE_ENV === 'development';
-        setError(data.error || 'Something didn’t go through — try again.');
+        setError(data.error || 'Invalid credentials');
         setBusy(false);
         return;
       }
@@ -202,8 +201,7 @@ export default function Login() {
       // Backend may not say "mfa_required" but still need code
       setStep(2);
     } catch (err) {
-      const isDev = process.env.NODE_ENV === 'development';
-      setError(isDev ? String(err?.message || err) : 'Something didn’t go through — try again.');
+      setError(String(err?.message || err));
     } finally {
       setBusy(false);
     }
@@ -215,7 +213,7 @@ export default function Login() {
     const emailCanon = canonEmail(email);
 
     if (code.length !== 6) {
-      setError('Please enter the 6-digit code.');
+      setError('Enter the 6-digit code.');
       return;
     }
 
@@ -237,11 +235,9 @@ export default function Login() {
         navigate('/admin/dashboard');
         return;
       }
-      const isDev = process.env.NODE_ENV === 'development';
-      setError(data.error || data.message || (isDev ? `MFA failed (${res.status})` : 'Something didn’t go through — try again.'));
+      setError(data.error || data.message || `MFA failed (${res.status})`);
     } catch (e) {
-      const isDev = process.env.NODE_ENV === 'development';
-      setError(isDev ? String(e?.message || e) : 'Something didn’t go through — try again.');
+      setError(String(e?.message || e));
     } finally {
       setBusy(false);
     }
@@ -268,7 +264,7 @@ export default function Login() {
 
   return (
     <div
-      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--teal-gradient)' }}
+      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
     >
       <main
         style={{

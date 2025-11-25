@@ -71,8 +71,3 @@
   height: 48px;
   margin-bottom: 12px;
 }
-
-.card-form {
-  min-height: 0;
-  justify-content: flex-start;
-}

@@ -1,116 +1,81 @@
 /** @format */
 
 import React from 'react';
-import { useAuth } from '../../auth/AuthContext';
-import { Link } from 'react-router-dom';
-import LockNKeyIcon from '../../assets/icons/LockNKeyIcon.png';
-import CircleCheckIcon from '../../assets/icons/CircleCheckIcon.png';
+import { useNavigate } from 'react-router-dom';
+import Card from '../../components/cards/Card';
 import DividerWave from '../../components/bg/DividerWave';
+import {
+  // PrimaryButton,
+  // SecondaryButton,
+  // OutlineButton,
+  PillOne,
+  PillTwo
+} from '../../components/button/Buttons';
+import { useAuth } from '../../auth/AuthContext';
+
+import CaregiverIcon from '../../assets/icons/Caregiver.png';
+import HeartHandsIcon from '../../assets/icons/HeartHands.png';
+import LocationIcon from '../../assets/icons/Location.png';
 import './home.css';
 
 function Home() {
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const isLoggedIn = !!user;
+  const handleViewDetails = () => {
+    if (user) {
+      navigate('/dashboard');
+      return;
+    }
+    navigate('/sign-up');
+  };
 
-  if (isLoggedIn) {
-    // Dashboard for logged-in users
-    return (
-      <main className="main-content">
-        <DividerWave />
-        <section className="hero-section">
-          <h1>Welcome to Your Better Mind Care Dashboard</h1>
-          <p>
-            The Better Mind Care Dashboard is your secure portal for viewing your appointments, messages, lab results, and your personalized Brain Health Report.
-          </p>
-          <div className="privacy-notice">
-            <div className="privacy-item">
-              <img src={LockNKeyIcon} alt="Lock and Key Icon" className="privacy-icon" />
-              <h4>Your information is private, encrypted,</h4>
-            </div>
-            <div className="privacy-item">
-              <img src={CircleCheckIcon} alt="Circle Check Icon" className="privacy-icon" />
-              <h4>and only used to deliver your results and updates.</h4>
-            </div>
-          </div>
-        </section>
-
-        <section className="features-section">
-          <div className="features-grid">
-            <Link to="/my-reports" className="feature-card-link">
-              <div className="feature-card">
-                <h3>Reports & Labs</h3>
-                <p>View Your Reports & Lab Results</p>
-                <p className="card-subtitle">Access your Brain Health Report, lab PDFs, and all documents shared with your account.</p>
-              </div>
-            </Link>
-            <Link to="/patient-booking" className="feature-card-link">
-              <div className="feature-card">
-                <h3>Appointments</h3>
-                <p>Your Appointments</p>
-                <p className="card-subtitle">Review your intake appointment and lab appointment details, including past visits.</p>
-              </div>
-            </Link>
-            <Link to="/messages" className="feature-card-link">
-              <div className="feature-card">
-                <h3>Messages</h3>
-                <p>Messages From Better Mind Care</p>
-                <p className="card-subtitle">See system updates, helpful announcements, and any direct messages sent to you.</p>
-              </div>
-            </Link>
-            <Link to="/my-reports" className="feature-card-link">
-              <div className="feature-card">
-                <h3>Resources</h3>
-                <p>Helpful Resources & FAQs</p>
-                <p className="card-subtitle">Browse account-holder FAQs and clinician-written guides to support your brain health journey.</p>
-              </div>
-            </Link>
-          </div>
-        </section>
-      </main>
-    );
-  }
-
-  // Landing page for non-logged-in users
   return (
     <main className="main-content">
-      <DividerWave />
       <section className="hero-section">
-        <h1>Welcome to Your Better Mind Care Dashboard</h1>
+        <h1>Supporting Alzheimer's Care & Families</h1>
         <p>
-          The Better Mind Care Dashboard is your secure portal for viewing your appointments, messages, lab results, and your personalized Brain Health Report.
+          We're here to guide, support, and empower caregivers and loved ones
+          every step of the way.
         </p>
-        <div className="privacy-notice">
-          <div className="privacy-item">
-            <img src={LockNKeyIcon} alt="Lock and Key Icon" className="privacy-icon" />
-            <h4>Your information is private, encrypted,</h4>
-          </div>
-          <div className="privacy-item">
-            <img src={CircleCheckIcon} alt="Circle Check Icon" className="privacy-icon" />
-            <h4>and only used to deliver your results and updates.</h4>
-          </div>
-        </div>
-      </section>
 
-      <section className="features-section">
-        <div className="features-grid">
-          <div className="feature-card">
-            <h3>Reports & Labs</h3>
-            <p>Access your personalized Brain Health Report and lab summaries.</p>
-          </div>
-          <div className="feature-card">
-            <h3>Appointments</h3>
-            <p>View your intake appointment and lab appointments.</p>
-          </div>
-          <div className="feature-card">
-            <h3>Messages</h3>
-            <p>Receive updates, news, and direct messages from our team.</p>
-          </div>
-          <div className="feature-card">
-            <h3>Resources</h3>
-            <p>Find FAQs and clinician-written brain health guidance.</p>
-          </div>
+        <div className="button-row">
+          <PillOne onClick={() => navigate('/')}>Learn More</PillOne>
+          {/* was /about */}
+          <PillTwo onClick={() => navigate('/')}>Resources</PillTwo>
+          {/* was /resources  */}
+          {/* <OutlineButton onClick={() => navigate('/intake-form')}>
+            Start Now
+          </OutlineButton> */}
         </div>
-        <p className="features-micro-copy">You'll get access to these features once you sign in.</p>
+
+        {/* <div className="card-wrapper">
+          <Card title="Welcome" subtitle="Your intake is scheduled">
+            <SecondaryButton onClick={handleViewDetails}>
+              View Details
+            </SecondaryButton>
+          </Card>
+        </div> */}
+
+        <section className="card-section">
+          <div style={{ cursor: 'pointer' }} className="card-grid">
+            <Card
+              title="For Caregivers"
+              subtitle="Tips, advice..."
+              icon={CaregiverIcon}
+            />
+            <Card
+              title="For Loved Ones"
+              subtitle="Engaging activities...stuff this and that and the other"
+              icon={HeartHandsIcon}
+            />
+            <Card
+              title="Local Resources"
+              subtitle="Find services nearby"
+              icon={LocationIcon}
+            />
+          </div>
+          <DividerWave />
+        </section>
       </section>
     </main>
   );

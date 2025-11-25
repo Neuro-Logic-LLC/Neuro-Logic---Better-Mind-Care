@@ -59,7 +59,7 @@ export default function EvexiaPatientList({
       setPatients(normalize(list));
     } catch (e) {
       if (e?.name !== 'AbortError')
-        setError(e?.message || 'We couldn’t load this section. Refresh the page or try again shortly.');
+        setError(e?.message || 'Failed to load patients');
     } finally {
       setLoading(false);
     }
@@ -123,7 +123,7 @@ export default function EvexiaPatientList({
           </button>
           <button
             onClick={() => setShowAdd(true)}
-            className="btn btn-secondary"
+            className="btn btn-primary"
           >
             Add Patient
           </button>
@@ -300,7 +300,7 @@ function AddPatientDialog({ onClose, onCreated }) {
       if (!res.ok) {
         const msg =
           data?.error ||
-          (Array.isArray(data) ? data.join('; ') : 'Something didn’t go through — try again.');
+          (Array.isArray(data) ? data.join('; ') : 'Failed to add patient');
         throw new Error(msg);
       }
       onCreated?.(data);

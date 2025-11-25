@@ -5,7 +5,6 @@ import {
 } from '../../calendarApi/calendarApi';
 
 import { useAuth } from '../../auth/AuthContext';
-import { PillTwo } from '../../components/button/Buttons';
 
 // Fetch slots for a specific day
 async function fetchDayAvailability(date) {
@@ -147,8 +146,9 @@ export default function PatientBooking() {
 
     return (
       <div>
-         <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-           <PillTwo
+        <div className="flex items-center justify-between mb-3">
+          <button
+            className="btn btn-outline-teal"
             onClick={() => {
               if (month === 1) {
                 setMonth(12);
@@ -159,7 +159,7 @@ export default function PatientBooking() {
             }}
           >
             ←
-          </PillTwo>
+          </button>
 
           <h2 className="text-xl font-bold">
             {new Date(year, month - 1, 1).toLocaleString('default', {
@@ -168,7 +168,8 @@ export default function PatientBooking() {
             })}
           </h2>
 
-           <PillTwo
+          <button
+            className="btn btn-outline-teal"
             onClick={() => {
               if (month === 12) {
                 setMonth(1);
@@ -179,16 +180,16 @@ export default function PatientBooking() {
             }}
           >
             →
-          </PillTwo>
+          </button>
         </div>
 
-          <div
-           style={{
-             display: 'grid',
-             gridTemplateColumns: 'repeat(7, 1fr)',
-             gap: 6
-           }}
-         >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(7, 1fr)',
+            gap: 6
+          }}
+        >
           {days}
         </div>
       </div>
@@ -199,12 +200,12 @@ export default function PatientBooking() {
   function renderSlots() {
     return (
       <div style={{ textAlign: 'center', maxWidth: 300, margin: '0 auto' }}>
-        <PillTwo
-          className="mb-4 mx-auto"
+        <button
+          className="btn btn-outline-teal mb-4 mx-auto"
           onClick={() => setSelectedDay(null)}
         >
           ← Back to month
-        </PillTwo>
+        </button>
 
         <h3 className="font-bold text-lg mb-4">
           {new Date(selectedDay + 'T00:00:00-06:00').toLocaleDateString(
@@ -221,7 +222,7 @@ export default function PatientBooking() {
         <div style={{ display: 'grid', gap: 10 }}>
           {slots.length ? (
             slots.map((slot) => (
-              <PillTwo
+              <button
                 key={slot.start}
                 className="btn btn-secondary"
                 style={{ width: '100%' }}
@@ -232,7 +233,7 @@ export default function PatientBooking() {
                   hour: 'numeric',
                   minute: '2-digit'
                 })}
-              </PillTwo>
+              </button>
             ))
           ) : (
             <div>No available times</div>
@@ -247,13 +248,13 @@ export default function PatientBooking() {
   function renderBooking() {
     return (
       <div className="max-w-md mx-auto text-center">
-        <PillTwo
-          className="mb-4"
+        <button
+          className="btn btn-outline-teal mb-4"
           style={{ marginLeft: 'auto', marginRight: 'auto' }}
           onClick={() => setSelectedSlot(null)}
         >
           ← Back to times
-        </PillTwo>
+        </button>
         {selectedSlot && (
           <h3 className="text-xl font-bold mb-6">
             {new Date(selectedSlot.start).toLocaleString('en-US', {
@@ -281,24 +282,25 @@ export default function PatientBooking() {
             Booking as <strong>{bookingName}</strong> ({bookingEmail})
           </div>
 
-           <PillTwo
-             style={{
-               width: '100%',
-               padding: '12px',
-               fontSize: '1rem',
-               borderRadius: '8px'
-             }}
-             onClick={handleBook}
-           >
-             Confirm Booking
-           </PillTwo>
+          <button
+            className="btn btn-primary"
+            style={{
+              width: '100%',
+              padding: '12px',
+              fontSize: '1rem',
+              borderRadius: '8px'
+            }}
+            onClick={handleBook}
+          >
+            Confirm Booking
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-lg mx-auto" style={{ minHeight: '60vh' }}>
+    <div className="p-6 max-w-lg mx-auto">
       {!selectedDay && renderMonth()}
       {selectedDay && !selectedSlot && renderSlots()}
       {selectedSlot && renderBooking()}

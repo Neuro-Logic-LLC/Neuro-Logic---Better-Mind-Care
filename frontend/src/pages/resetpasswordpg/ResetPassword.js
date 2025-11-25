@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { OutlineButtonHoverDark } from '../../components/button/Buttons';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -63,41 +62,56 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="reset-pass-page" style={{ background: 'var(--teal-gradient)', minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: '10vh', textAlign: 'center' }}>
+    <div style={{ padding: '2rem', maxWidth: '400px', margin: 'auto' }}>
       <h2>Reset Your Password</h2>
 
       <input
-        className="reset-input"
         type="password"
         placeholder="New password"
         value={newPassword}
         onChange={(e) => setNewPassword(e.target.value)}
         autoComplete="new-password"
         aria-label="New password"
-        style={{ margin: '0.5rem 0' }}
+        style={{
+          marginTop: '15px',
+          width: '100%',
+          marginBottom: '1rem',
+          padding: '0.5rem',
+          cursor: 'pointer'
+        }}
       />
 
       <input
-        className="reset-input"
         type="password"
         placeholder="Confirm password"
         value={confirmPassword}
         onChange={(e) => setConfirmPassword(e.target.value)}
         autoComplete="new-password"
         aria-label="Confirm password"
-        style={{ margin: '0.5rem 0' }}
+        style={{
+          width: '100%',
+          marginBottom: '1rem',
+          padding: '0.5rem',
+          cursor: 'pointer'
+        }}
       />
 
-      <OutlineButtonHoverDark
+      <button
         onClick={handleSubmit}
         disabled={submitting}
-        style={{ marginTop: '25px' }}
+        style={{
+          padding: '0.5rem 1rem',
+          background: submitting ? '#777' : '#333',
+          color: 'white',
+          cursor: submitting ? 'not-allowed' : 'pointer',
+          borderRadius: '5px'
+        }}
       >
         {submitting ? 'Resetting...' : 'Reset Password'}
-      </OutlineButtonHoverDark>
+      </button>
 
       {status && (
-        <p className={status.includes('successful') ? 'success' : 'error'} role="alert">
+        <p style={{ marginTop: '1rem' }} role="alert">
           {status}
         </p>
       )}
