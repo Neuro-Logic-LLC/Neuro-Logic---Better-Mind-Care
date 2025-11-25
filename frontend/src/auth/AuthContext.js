@@ -17,15 +17,17 @@ function readMeta(name) {
   return el ? el.getAttribute('content') : '';
 }
 const API_BASE = (() => {
-  const metaBase = document
-    .querySelector('meta[name="app-env:api-base"]')
-    ?.content?.trim();
+  const metaBase =
+    document.querySelector('meta[name="app-env:api-base"]')?.content?.trim();
   const configBase = window.__APP_CONFIG__?.API_BASE?.trim();
 
   if (configBase) return configBase.replace(/\/+$/, '');
   if (metaBase) return metaBase.replace(/\/+$/, '');
 
   const host = window.location.hostname;
+
+  if (host === 'localhost' || host === '127.0.0.1')
+    return ''; // use relative URLs for dev proxy
 
   if (host.includes('staging.bettermindcare.com'))
     return 'https://staging.bettermindcare.com';
@@ -62,51 +64,28 @@ const AuthContext = createContext({
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [evxPatientID, setEvxPatientID] = useState('');
-  const [evxPatientOrderID, setEvxPatientOrderID] = useState('');
-  const [evxProductID, setEvxProductID] = useState('');
-
-  const setEvexiaData = ({ patientId, orderId }) => {
-    if (patientId) setEvxPatientID(patientId);
-    if (orderId) setEvxPatientOrderID(orderId);
-  };
 
   const checkSession = useCallback(async () => {
     setLoading(true);
     try {
-      const { res, data } = await req('/api/auth/me', {
-        method: 'GET',
-        credentials: 'include'
-      });
-
-      if (res && data && data.user) {
-        const u = data.user;
-        setUser(u);
-
-        // ⭐ IMPORTANT — store Evexia IDs
-        setEvxPatientID(u.evx_patient_id || '');
-        setEvxPatientOrderID(u.evx_patient_order_id || '');
-        setEvxProductID(u.evx_product_id || '');
+      const { res, data } = await req('/api/auth/me', { method: 'GET', credentials: 'include' });
+      if (res && data) {
+        setUser(data.user || null);
       } else {
         setUser(null);
-        setEvxPatientID('');
-        setEvxPatientOrderID('');
-        setEvxProductID('');
       }
     } catch {
       setUser(null);
-      setEvxPatientID('');
-      setEvxPatientOrderID('');
-      setEvxProductID('');
     } finally {
       setLoading(false);
     }
   }, []);
 
-const reloadUser = () => checkSession();
-
   useEffect(() => {
-    checkSession();
+    // Temporarily bypass login for testing
+    setUser({ role: 'admin', id: 1, email: 'test@example.com' });
+    setLoading(false);
+    // checkSession();
   }, [checkSession]);
 
   const logout = useCallback(async () => {
@@ -136,18 +115,7 @@ const reloadUser = () => checkSession();
   }, [setUser]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        setUser,
-        loading,
-        logout,
-        evxPatientID,
-        evxPatientOrderID,
-        reloadUser,
-        setEvexiaData
-      }}
-    >
+    <AuthContext.Provider value={{ user, setUser, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );

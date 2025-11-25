@@ -7,7 +7,7 @@ function IntakeForm() {
   const [selectedPatientId, setSelectedPatientId] = useState('');
 
   return (
-    <div className="form-section">
+    <div className="form-section bg-gradient-white-seafoam">
       <div className="form-container">
         <h2>Get Started</h2>
         <PatientDemographicsForm

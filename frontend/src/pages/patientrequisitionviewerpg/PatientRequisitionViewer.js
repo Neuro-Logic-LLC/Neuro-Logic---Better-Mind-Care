@@ -84,7 +84,7 @@ export default function PatientRequisitionViewer() {
       })
       .catch((e) => {
         if (e.name !== 'AbortError') {
-          setError(e.message || 'Error fetching requisition.');
+          setError(e.message || 'We couldn’t fetch your requistion. Refresh the page or try again shortly.');
           setStatus('error');
         }
       });
@@ -119,7 +119,7 @@ export default function PatientRequisitionViewer() {
   const searchDrawCenters = async () => {
     try {
       if (!zip.trim()) {
-        setDcError('Please enter a ZIP code.');
+        setDcError('Please double-check your ZIP code.');
         setDcStatus('error');
         return;
       }

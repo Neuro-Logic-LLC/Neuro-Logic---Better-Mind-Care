@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSignup } from './SignupContext';
-import { useAuth } from '../../auth/AuthContext';
 
 const PRICES = {
   CORE: 44900,
@@ -58,7 +57,6 @@ const S = {
 
 export default function CheckoutStep() {
   const { state, setField } = useSignup();
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [cart, setCart] = useState({
@@ -70,21 +68,11 @@ export default function CheckoutStep() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const email = state.email || user?.email || '';
+  const email = state.email || '';
 
   useEffect(() => {
-    // If logged-in user exists but SignupContext has no email,
-    // sync it automatically instead of redirecting.
-    if (user?.email && !state.email) {
-      setField('email', user.email);
-      return;
-    }
-
-    // If truly no email and no user → force join screen
-    if (!email) {
-      navigate('/join');
-    }
-  }, [email, user, state.email, setField, navigate]);
+    if (!email) navigate('/join');
+  }, [email, navigate]);
 
   function toggle(key, val) {
     setCart((prev) => ({ ...prev, [key]: val }));
@@ -95,7 +83,7 @@ export default function CheckoutStep() {
     setError('');
     setField('pickedCore', cart.CORE);
     setField('pickedApoe', cart.APOE);
-    setField('evexia_patient_id');
+    setField('pickedDoctorsData', cart.DOCTORS_DATA);
 
     const body = {
       brainhealth: cart.CORE,
@@ -108,8 +96,8 @@ export default function CheckoutStep() {
 
       meta: {
         pickedApoe: cart.APOE ? '1' : '0',
-        pickedCore: cart.CORE ? '1' : '0'
-        // pickedCoreData: cart.DOCTORS_DATA ? '1' : '0' // Legacy Test
+        pickedCore: cart.CORE ? '1' : '0',
+        pickedDoctorsData: cart.DOCTORS_DATA ? '1' : '0'
       }
     };
 
@@ -153,6 +141,7 @@ export default function CheckoutStep() {
           <input
             type="checkbox"
             checked={cart.CORE}
+            disabled={true}
             onChange={(e) => {
               toggle('CORE', e.target.checked);
               setField('pickedCore', e.target.checked);
@@ -166,7 +155,6 @@ export default function CheckoutStep() {
           <input
             type="checkbox"
             checked={cart.APOE}
-            disabled={!cart.CORE}
             onChange={(e) => {
               toggle('APOE', e.target.checked);
               setField('pickedApoe', e.target.checked);
@@ -181,15 +169,15 @@ export default function CheckoutStep() {
               type="checkbox"
               checked={cart.DOCTORS_DATA}
               onChange={(e) => {
-                // toggle('DOCTORS_DATA', e.target.checked);
-                // setField('pickedCore', e.target.checked);
+                toggle('DOCTORS_DATA', e.target.checked);
+                setField('pickedDoctorsData', e.target.checked);
               }}
             />
 
             <span style={{ flex: 1 }}>Doctors Data Test</span>
             <span>{usd(PRICES.DOCTORS_DATA)}</span>
           </label>
-        )}
+        )}  
       </div>
 
       <div style={{ marginTop: 16 }}>

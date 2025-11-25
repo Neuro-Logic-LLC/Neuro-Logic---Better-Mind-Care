@@ -3,6 +3,10 @@ a {
   text-decoration: none;
 }
 
+.main-content {
+  background: var(--seafoam-gradient);
+}
+
 /* Keep hover color if you want it */
 a:hover {
   text-decoration: none;
@@ -19,6 +23,7 @@ a.btn:active {
   color: inherit;
 }
 
+
 .hero-section h1,
 .hero-section p {
   text-align: center;
@@ -28,4 +33,239 @@ a.btn:active {
   max-width: 60ch;
   margin: 0 auto;
   color: var(--color-muted);
+}
+
+.privacy-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: 600px;
+  margin: 2rem auto 0;
+}
+
+.privacy-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.privacy-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.privacy-notice p {
+  font-size: 1rem;
+  margin: 0;
+  text-align: center;
+  color: var(--charcoal); /* Dark color for visibility */
+  font-weight: 500;
+}
+
+/* CTA Buttons for landing page */
+.cta-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.cta-buttons .btn {
+  padding: 0.75rem 2rem;
+}
+
+.cta-buttons .btn-outline {
+  background: none;
+  border: 2px solid var(--teal);
+  color: var(--teal);
+}
+
+.cta-buttons .btn-outline:hover {
+  background: var(--teal);
+  color: white;
+}
+
+/* Features Section */
+.features-section {
+  padding: 6rem 2rem 4rem;
+  background: var(--bg-gradient-teal);
+  margin-top: -4rem; /* Overlap more with hero for gradient to start higher */
+}
+
+.features-grid {
+  max-width: 800px;
+  margin: 2rem auto 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+.feature-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid color-mix(in oklab, var(--soft-blue) 35%, white);
+  transform: translateY(-2px);
+  cursor: default;
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.feature-card:nth-child(1) { animation-delay: 0.1s; }
+.feature-card:nth-child(2) { animation-delay: 0.2s; }
+.feature-card:nth-child(3) { animation-delay: 0.3s; }
+.feature-card:nth-child(4) { animation-delay: 0.4s; }
+
+.feature-card h3 {
+  color: var(--teal);
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.feature-card p {
+  color: var(--charcoal);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.card-subtitle {
+  font-size: 0.9rem !important;
+  color: var(--color-muted) !important;
+  margin-top: 0.5rem !important;
+}
+
+.feature-card-link {
+  text-decoration: none;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.feature-card-link:hover {
+  transform: translateY(-4px);
+}
+
+.feature-card-link:hover .feature-card {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.features-micro-copy {
+  text-align: center;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  margin-top: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 768px) {
+  .privacy-notice {
+    align-items: center;
+  }
+  .privacy-item {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .cta-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .features-section {
+    padding: 3rem 1rem 2rem;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+
+  .feature-card {
+    padding: 1.5rem;
+  }
+
+  .dashboard-sections {
+    padding: 4rem 2rem;
+    background: var(--seafoam-gradient);
+  }
+
+  .dashboard-grid {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+  }
+
+  .dashboard-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid color-mix(in oklab, var(--soft-blue) 35%, white);
+  }
+
+  .dashboard-card h3 {
+    color: var(--teal);
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+  }
+
+  .dashboard-card p {
+    color: var(--charcoal);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .dashboard-link {
+    display: inline-block;
+    background: var(--teal);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.2s ease;
+  }
+
+  .dashboard-link:hover {
+    background: var(--gold-amber);
+  }
+
+  .dashboard-sections {
+    padding: 2rem 1rem;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .dashboard-card {
+    padding: 1.5rem;
+  }
 }
