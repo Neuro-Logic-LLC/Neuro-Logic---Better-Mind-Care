@@ -1,4 +1,14 @@
 /** @format */
+/**
+ * Button Components
+ *
+ * Main types: PrimaryButton, SecondaryButton, OutlineButton, PillOne, PillTwo
+ *
+ * Extra options (via className):
+ * - .btn-danger: For destructive actions (white bg, coral border/text)
+ * - .btn-outline-teal: Teal outline variant
+ * - Disabled: Add 'disabled' prop for auto-styling (opacity, no cursor)
+ */
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './buttons.css';
@@ -14,7 +24,6 @@ export const PrimaryButton = React.forwardRef(
   ({ children, className, type, ...props }, ref) => (
     <button
       ref={ref}
-      // default to type="button" so forms don’t submit by accident
       type={type ?? 'button'}
       className={mergeButtonClasses('btn btn-primary', className)}
       {...props}
@@ -43,6 +52,19 @@ export const OutlineButton = React.forwardRef(
       ref={ref}
       type={type ?? 'button'}
       className={mergeButtonClasses('btn btn-outline', className)}
+      {...props}
+    >
+      {children}
+    </button>
+  )
+);
+
+export const OutlineButtonHoverDark = React.forwardRef(
+  ({ children, className, type, ...props }, ref) => (
+    <button
+      ref={ref}
+      type={type ?? 'button'}
+      className={mergeButtonClasses('btn btn-outline-hover-dark', className)}
       {...props}
     >
       {children}
