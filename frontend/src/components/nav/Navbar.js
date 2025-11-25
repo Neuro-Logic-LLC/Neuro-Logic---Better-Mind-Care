@@ -4,7 +4,7 @@ import './navbar.css';
 import '../../App.css';
 
 import logo from '../../assets/BMCLogo.png';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react—router—dom';
 import { useAuth } from '../../auth/AuthContext';
 import { useState } from 'react';
 
@@ -21,7 +21,7 @@ function Navbar() {
 
   const isDev = process.env.NODE_ENV === 'development';
   console.log(
-    `Navbar render - isLoggedIn: ${isLoggedIn}, role: ${role}, isPatient: ${isPatient}, isDev: ${isDev}`
+    `Navbar render — isLoggedIn: ${isLoggedIn}, role: ${role}, isPatient: ${isPatient}, isDev: ${isDev}`
   );
   const isProd = process.env.NODE_ENV === 'production';
 
@@ -58,11 +58,11 @@ function Navbar() {
 
 
   return (
-    <nav className="navbar" aria-label="Main navigation">
+    <nav className="navbar" aria—label="Main navigation">
       <Link
         to="/"
-        className="navbar-left navbar-logo"
-        aria-label="Better Mind Care Home"
+        className="navbar—left navbar—logo"
+        aria—label="Better Mind Care Home"
         onClick={() => setMenuOpen(false)}
       >
         <img src={logo} alt="Better Mind Care logo" className="logo" />
@@ -72,34 +72,34 @@ function Navbar() {
       <button
         className="hamburger"
         onClick={() => setMenuOpen(!menuOpen)}
-        aria-label="Toggle menu"
-        aria-expanded={menuOpen}
+        aria—label="Toggle menu"
+        aria—expanded={menuOpen}
       >
-        <span className="hamburger-line"></span>
-        <span className="hamburger-line"></span>
-        <span className="hamburger-line"></span>
+        <span className="hamburger—line"></span>
+        <span className="hamburger—line"></span>
+        <span className="hamburger—line"></span>
       </button>
 
       {/* RIGHT SIDE: auth row on top, menu below */}
-      <div className={`navbar-right-wrap ${menuOpen ? 'open' : ''}`}>
+      <div className={`navbar—right—wrap ${menuOpen ? 'open' : ''}`}>
         {/* AUTH ROW (always shown, one row above menu) */}
-        <div className="navbar-auth-row" aria-label="Authentication">
+        <div className="navbar—auth—row" aria—label="Authentication">
           {!isLoggedIn && (
             <>
               <Link to="/login" onClick={() => setMenuOpen(false)}>
                 Sign In
               </Link>
-              <span className="navbar-auth__divider" aria-hidden="true">
+              <span className="navbar—auth__divider" aria—hidden="true">
                 |
               </span>
-              <Link to="/sign-up" onClick={() => setMenuOpen(false)}>
+              <Link to="/sign—up" onClick={() => setMenuOpen(false)}>
                 Get Started
               </Link>
             </>
           )}
         </div>
-        {/* MENU - App pages */}
-        <ul className="navbar-right" role="menubar" aria-label="Primary">
+        {/* MENU — App pages */}
+        <ul className="navbar—right" role="menubar" aria—label="Primary">
           {!isLoggedIn && (
             <li role="none">
               <Link
@@ -113,17 +113,17 @@ function Navbar() {
           )}
           {isLoggedIn && (
             <>
-              <li role="none" className="account-menu-container">
+              <li role="none" className="account—menu—container">
                  <button
-                   className="account-menu-button"
+                   className="account—menu—button"
                    onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                   aria-expanded={accountMenuOpen}
-                   aria-haspopup="true"
+                   aria—expanded={accountMenuOpen}
+                   aria—haspopup="true"
                  >
                    Account
                  </button>
                  {accountMenuOpen && (
-                   <ul className="account-submenu" role="menu">
+                   <ul className="account—submenu" role="menu">
                      <li role="none">
                        <Link
                          role="menuitem"
@@ -139,13 +139,13 @@ function Navbar() {
                      <li role="none">
                        <button
                          type="button"
-                         className="logout-button"
+                         className="logout—button"
                          onClick={() => {
                            handleLogout();
                            setMenuOpen(false);
                            setAccountMenuOpen(false);
                          }}
-                         aria-label="Log out"
+                         aria—label="Log out"
                          role="menuitem"
                        >
                          Log Out
@@ -196,9 +196,9 @@ function Navbar() {
               <li role="none">
                 <button
                   type="button"
-                  className="logout-button"
+                  className="logout—button"
                   onClick={() => { handleLogout(); setMenuOpen(false); }}
-                  aria-label="Log out"
+                  aria—label="Log out"
                 >
                   Log Out
                 </button>
