@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSignup } from './SignupContext';
+import { OutlineButtonHoverDark } from '../../components/button/Buttons';
 
 const PRICES = {
   CORE: 44900,
@@ -196,13 +197,12 @@ export default function CheckoutStep() {
 
       <div style={{ marginTop: 16 }}>
         {totalCents > 0 ? (
-          <button
-            className="your-btn"
+          <OutlineButtonHoverDark
             disabled={!agreeTos || loading}
             onClick={startStripeCheckout}
           >
             Continue to Payment
-          </button>
+          </OutlineButtonHoverDark>
         ) : (
           <p style={{ color: '#999', marginTop: 12 }}>
             Select at least one test to continue.
