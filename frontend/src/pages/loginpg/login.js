@@ -139,7 +139,6 @@ export default function Login() {
 
     if (!emailClean) {
       setError('Please double-check this field.');
-      setError('Please double-check this field.');
       return;
     }
     if (pwd.length < 8) {
@@ -168,7 +167,6 @@ export default function Login() {
       if (!res.ok) {
         const isDev = process.env.NODE_ENV === 'development';
         setError(data.error || 'Something didn’t go through — try again.');
-    
         setBusy(false);
         return;
       }
@@ -202,7 +200,8 @@ export default function Login() {
       // Backend may not say "mfa_required" but still need code
       setStep(2);
     } catch (err) {
-      setError(String(err?.message || err));
+      const isDev = process.env.NODE_ENV === 'development';
+      setError(isDev ? String(err?.message || err) : 'Something didn’t go through — try again.');
     } finally {
       setBusy(false);
     }
@@ -214,7 +213,6 @@ export default function Login() {
     const emailCanon = canonEmail(email);
 
     if (code.length !== 6) {
-      setError('Please enter the 6-digit code.');
       setError('Please enter the 6-digit code.');
       return;
     }
@@ -237,9 +235,11 @@ export default function Login() {
         navigate('/admin/dashboard');
         return;
       }
-      setError(data.error || data.message || `MFA failed (${res.status})`);
+      const isDev = process.env.NODE_ENV === 'development';
+      setError(data.error || data.message || (isDev ? `MFA failed (${res.status})` : 'Something didn’t go through — try again.'));
     } catch (e) {
-      setError(String(e?.message || e));
+      const isDev = process.env.NODE_ENV === 'development';
+      setError(isDev ? String(e?.message || e) : 'Something didn’t go through — try again.');
     } finally {
       setBusy(false);
     }
@@ -266,7 +266,7 @@ export default function Login() {
 
   return (
     <div
-      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
+      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--teal-gradient)' }}
     >
       <main
         style={{

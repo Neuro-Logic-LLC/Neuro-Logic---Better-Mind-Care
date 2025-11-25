@@ -237,11 +237,11 @@ export default function StepThreeAccountSetup() {
       });
 
       const data = await res.json();
-      console.log(data);
-      // const newUserId = data.user_id;
-      // if (!newUserId) {
-      //   throw new Error('Paid signup did not return user_id');
-      // }
+
+      if (!res.ok) {
+        alert(data.error || 'Signup failed.');
+        return;
+      }
 
       // ------------------------------------------------------------
       // SUCCESS → redirect
@@ -342,6 +342,7 @@ export default function StepThreeAccountSetup() {
       setField('evexia_patient_order_id', PatientOrderID);
       setField('evexia_patient_id', PatientID);
       setField('evexia_product_id', ProductID);
+
 
       if (session.metadata.pickedCore === '1') {
         await addItem(205704);

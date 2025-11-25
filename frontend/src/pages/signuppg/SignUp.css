@@ -12,22 +12,7 @@
   font-family: var(--font-body, 'Open Sans', system-ui, sans-serif);
 }
 
-/* App shell (unchanged layout) */
-html,
-body,
-#root {
-  height: 100%;
-}
-.AppShell {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-.PageBody {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
+
 
 /* Form wrapper */
 .auth-form {

@@ -594,9 +594,9 @@ function HealthQuestionsForm({ gender, setGender }) {
           id="understandCondition"
           label="Which best describes your current experience with brain health / Alzheimer's?"
           options={[
-            { value: 1, label: '1. Preventative — no symptoms' },
-            { value: 2, label: '2. Preventative — family history' },
-            { value: 3, label: '3. Preventative — mild age-related decline' },
+            { value: 1, label: '1. Preventative - no symptoms' },
+            { value: 2, label: '2. Preventative - family history' },
+            { value: 3, label: '3. Preventative - mild age-related decline' },
             { value: 4, label: '4. Worrisome forgetfulness, no testing' },
             { value: 5, label: '5. Diagnosed with Alzheimer’s' }
           ]}

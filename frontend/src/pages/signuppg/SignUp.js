@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiEyeOff, FiEye } from 'react-icons/fi';
+import { OutlineButtonHoverDark, OutlineButton } from '../../components/button/Buttons';
 import './SignUp.css';
 
 export default function SignUp() {
@@ -282,11 +283,15 @@ export default function SignUp() {
             {error && <p className="error">{error}</p>}
             {error && <p className="error">{error}</p>}
 
-          <button className="btn-submit" type="submit">
-            Sign Up
-          </button>
-        </div>
-      </form>
+            <OutlineButtonHoverDark
+              type="submit"
+              className="btn-outline-hover-dark"
+              style={{ width: '33.33%', margin: '0 auto', padding: '0.8rem 2rem', display: 'block' }}
+            >
+              Sign Up
+            </OutlineButtonHoverDark>
+          </div>
+        </form>
 
         {showResend && (
           <div className="resend-confirmation-box">

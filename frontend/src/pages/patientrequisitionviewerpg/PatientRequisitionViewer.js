@@ -130,7 +130,7 @@ export default function PatientRequisitionViewer() {
   const searchDrawCenters = async () => {
     try {
       if (!zip.trim()) {
-        setDcError('Please enter a ZIP code.');
+        setDcError('Please double-check your ZIP code.');
         setDcStatus('error');
         return;
       }

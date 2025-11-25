@@ -210,7 +210,7 @@ export default function CheckoutStep() {
             <span style={{ flex: 1 }}>Doctors Data Test</span>
             <span>{usd(PRICES.DOCTORS_DATA)}</span>
           </label>
-        )}
+        )}  
       </div>
 
       <div style={{ marginTop: 16 }}>

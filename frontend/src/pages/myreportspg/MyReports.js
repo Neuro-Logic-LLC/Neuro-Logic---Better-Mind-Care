@@ -80,8 +80,11 @@ function MyReports() {
   if (err) return <p style={{ color: 'crimson' }}>Error: {err}</p>;
 
   return (
-    <div className="report-list-page">
-      <h1>My Past Reports</h1>
+    <div className="report-list-page bg-gradient-white-seafoam">
+      <div className="reports-section-header">
+        <h1>REPORTS LIST</h1>
+        <h2>Your Reports & Documents</h2>
+      </div>
       {reports.length === 0 ? (
         <div className="no-reports-empty-state">
           <p>

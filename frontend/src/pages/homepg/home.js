@@ -1,25 +1,14 @@
 /** @format */
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import Card from '../../components/cards/Card';
-import DividerWave from '../../components/bg/DividerWave';
-import {
-  // PrimaryButton,
-  // SecondaryButton,
-  // OutlineButton,
-  PillOne,
-  PillTwo
-} from '../../components/button/Buttons';
 import { useAuth } from '../../auth/AuthContext';
-
-import CaregiverIcon from '../../assets/icons/Caregiver.png';
-import HeartHandsIcon from '../../assets/icons/HeartHands.png';
-import LocationIcon from '../../assets/icons/Location.png';
+import { Link } from 'react-router-dom';
+import LockNKeyIcon from '../../assets/icons/LockNKeyIcon.png';
+import CircleCheckIcon from '../../assets/icons/CircleCheckIcon.png';
+import DividerWave from '../../components/bg/DividerWave';
 import './home.css';
 
 function Home() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const isLoggedIn = !!user;
 
@@ -134,8 +123,9 @@ function Home() {
   // Landing page for non-logged-in users
   return (
     <main className="main-content">
+      <DividerWave />
       <section className="hero-section">
-        <h1>Supporting Alzheimer's Care & Families</h1>
+        <h1>Welcome to Your Better Mind Care Dashboard</h1>
         <p>
 <<<<<<< HEAD
           The Better Mind Care Dashboard is your secure portal for viewing your

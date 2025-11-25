@@ -127,7 +127,7 @@ export default function EvexiaPatientList({
           </button>
           <button
             onClick={() => setShowAdd(true)}
-            className="btn btn-primary"
+            className="btn btn-secondary"
           >
             Add Patient
           </button>

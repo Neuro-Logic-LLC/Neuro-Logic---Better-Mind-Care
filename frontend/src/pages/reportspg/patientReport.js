@@ -37,8 +37,10 @@ const Section = ({ section, fallbackFooter }) => {
 
   const sectionId = section.id || section.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
+  const sectionId = section.id || section.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
   return (
-    <section className="report-section" id={section.id}>
+    <section className="report-section" id={sectionId}>
       <h2>{section.title}</h2>
       {section.body && (
         <div
@@ -87,7 +89,6 @@ function PatientReport() {
           credentials: 'include'
         });
         if (!res.ok) throw new Error(res.statusText || 'Failed to load report');
-        if (!res.ok) throw new Error(res.statusText || 'Failed to load report');
         const data = await res.json();
 
         if (!cancelled) {
@@ -104,7 +105,7 @@ function PatientReport() {
       } catch (err) {
         if (!cancelled) {
           console.error('Report fetch failed:', err);
-          setError('Unable to load report.');
+          setError('We couldn’t load this section. Refresh the page or try again shortly.');
           setReport(null);
         }
       } finally {
@@ -141,19 +142,50 @@ function PatientReport() {
     report.footerBanner ||
     'Educational wellness content — not medical advice. See full disclaimer on page 1.';
 
+  const tocSections = [
+    'Overview',
+    'Your Personalized Recommendations',
+    'Supplement Guidance',
+    'Your Test Results',
+    'FAQs & Definitions'
+  ];
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <main className="patient-report-page">
+    <main className="patient-report-page bg-gradient-teal">
       <header className="report-page__header">
-        <div>
-          <h1>
-            Patient Report{' '}
-            {report.isDraft && (
-              <span className="report-badge report-badge--draft">Draft</span>
-            )}
-          </h1>
-          <p className="timestamp">{report.reportDate || ''}</p>
-        </div>
+        <h1>Your Personalized Brain Health Report</h1>
+        <p>This report is based on your lab results, intake information, and evidence-informed cognitive risk analysis. Use the table of contents to navigate through your personalized recommendations.</p>
+        <button className="btn btn-primary" onClick={handlePrint}>Download as PDF</button>
       </header>
+
+      <nav className="table-of-contents">
+        <h2>Table of Contents</h2>
+        <ul>
+          {tocSections.map((title, index) => {
+            const slug = title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            return (
+              <li key={index}>
+                <a href={`#${slug}`}>{title}</a>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      <nav className="table-of-contents">
+        <h2>Table of Contents</h2>
+        <ul>
+          {tocSections.map((title, index) => (
+            <li key={index}>
+              <a href={`#${title.toLowerCase().replace(/\s+/g, '-')}`}>{title}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
       {report.globalDisclaimer && (
         <section className="report-banner" aria-label="Global disclaimer">
