@@ -275,21 +275,54 @@ export default function Login() {
           flex: 1,
           display: 'flex',
           justifyContent: 'center',
-          alignItems: 'center'
+          alignItems: 'flex-start',
+          paddingTop: '4rem',
+          paddingBottom: '3rem'
         }}
       >
-        <form
-          onSubmit={handleLogin}
-          className="login-form"
+        <div
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
             maxWidth: 360,
             width: '100%',
-            padding: '1rem'
+            marginLeft: '10%', // slightly left-biased
+            borderTop: '1px solid rgba(0,0,0,0.05)' // faint top divider
           }}
         >
+          <h1
+            style={{
+              fontWeight: 700,
+              fontSize: '2.1rem',
+              color: 'var(--color-heading)',
+              marginBottom: '1rem',
+              textAlign: 'center'
+            }}
+          >
+            Log In
+          </h1>
+          <p
+            style={{
+              fontWeight: 400,
+              fontSize: '1.1rem',
+              color: 'var(--color-muted)',
+              marginBottom: '2rem',
+              textAlign: 'center',
+              maxWidth: '55ch',
+              marginLeft: 'auto',
+              marginRight: 'auto'
+            }}
+          >
+            Welcome back. Sign in to access your account.
+          </p>
+          <form
+            onSubmit={handleLogin}
+            className="login-form"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem', // generous vertical spacing
+              width: '100%'
+            }}
+          >
           {step === 1 && (
             <>
               {error && (
@@ -306,14 +339,15 @@ export default function Login() {
                 autoComplete="username"
                 required
                 style={{
-                  cursor: 'pointer',
                   width: '100%',
+                  height: 48,
                   padding: '12px 14px',
                   fontSize: '1rem',
                   boxSizing: 'border-box',
-                  borderRadius: 8,
-                  border: '1px solid #cbd5e1',
-                  textAlign: 'center'
+                  borderRadius: 6,
+                  border: '1px solid #dce1e6',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                  textAlign: 'left' // changed from center
                 }}
               />
 
@@ -326,15 +360,16 @@ export default function Login() {
                   autoComplete="current-password"
                   required
                   style={{
-                    cursor: 'pointer',
-                    textAlign: 'center',
                     width: '100%',
+                    height: 48,
                     padding: '12px 14px',
                     paddingRight: 44,
                     fontSize: '1rem',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: 8,
-                    boxSizing: 'border-box'
+                    border: '1px solid #dce1e6',
+                    borderRadius: 6,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                    boxSizing: 'border-box',
+                    textAlign: 'left'
                   }}
                 />
                 <button
@@ -365,15 +400,19 @@ export default function Login() {
                 disabled={busy || !email || !password}
                 style={{
                   width: '100%',
-                  padding: '0.5rem',
+                  padding: '0.75rem',
                   fontSize: '1rem',
-                  backgroundColor: '#111',
+                  fontWeight: 600,
+                  backgroundColor: 'var(--teal)',
                   color: '#fff',
                   border: 'none',
                   borderRadius: 6,
                   cursor: busy ? 'not-allowed' : 'pointer',
-                  opacity: busy ? 0.8 : 1
+                  opacity: busy ? 0.8 : 1,
+                  transition: 'background-color 0.2s ease'
                 }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--dark-teal)'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--teal)'}
               >
                 {busy ? 'Submitting…' : 'Submit'}
               </button>
@@ -383,19 +422,24 @@ export default function Login() {
                 onClick={() => window.location.assign(googleAuthUrl)}
                 style={{
                   width: '100%',
-                  padding: '0.5rem',
+                  padding: '0.75rem',
                   fontSize: '1rem',
+                  fontWeight: 600,
                   backgroundColor: '#fff',
                   color: '#000',
                   border: '1px solid #ccc',
                   borderRadius: 6,
                   cursor: 'pointer',
-                  marginTop: '0.5rem',
+                  marginTop: '1rem',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 8
+                  gap: 8,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                  transition: 'box-shadow 0.2s ease'
                 }}
+                onMouseEnter={(e) => e.target.style.boxShadow = '0 2px 6px rgba(0,0,0,0.12)'}
+                onMouseLeave={(e) => e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'}
               >
                 <img
                   src="https://developers.google.com/identity/images/g-logo.png"
@@ -487,8 +531,13 @@ export default function Login() {
                 maxLength={6}
                 style={{
                   width: '100%',
-                  padding: '0.5rem',
+                  height: 48,
+                  padding: '12px 14px',
                   fontSize: '1rem',
+                  border: '1px solid #dce1e6',
+                  borderRadius: 6,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                  boxSizing: 'border-box',
                   textAlign: 'center'
                 }}
               />
@@ -498,15 +547,19 @@ export default function Login() {
                 disabled={busy || mfaCode.length !== 6}
                 style={{
                   width: '100%',
-                  padding: '0.5rem',
+                  padding: '0.75rem',
                   fontSize: '1rem',
-                  backgroundColor: '#111',
+                  fontWeight: 600,
+                  backgroundColor: 'var(--teal)',
                   color: '#fff',
                   border: 'none',
                   borderRadius: 6,
                   cursor: busy ? 'not-allowed' : 'pointer',
-                  opacity: busy ? 0.8 : 1
+                  opacity: busy ? 0.8 : 1,
+                  transition: 'background-color 0.2s ease'
                 }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--dark-teal)'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--teal)'}
               >
                 {busy ? 'Verifying…' : 'Verify'}
               </button>
