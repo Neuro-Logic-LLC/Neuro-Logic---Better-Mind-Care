@@ -45,7 +45,7 @@ export default function SuccessPage() {
 
        <Link
          to="/login"
-         className="inline-block rounded-xl border border-gray-900 px-4 py-2 font-semibold hover:bg-gray-900 hover:text-white transition-colors"
+         className="inline-block rounded-xl border-2 border-teal-600 text-teal-600 px-4 py-2 font-semibold hover:bg-teal-600 hover:text-white transition-colors"
        >
          Go to Login
        </Link>
