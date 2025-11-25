@@ -44,13 +44,14 @@ import SignupProvider from './pages/NewCheckoutPages/SignupContext';
 import PatientOrders from './pages/evexiapatientorderspg/EvexiaPatientOrders';
 import PatientRequisitionViewer from './pages/patientrequisitionviewerpg/PatientRequisitionViewer';
 import StepThreeAccountSetup from './pages/stepthreepg/Step3AccountSetup';
-import JoinCheckoutWrapper from './pages/NewCheckoutPages/JoinCheckoutWrapper';
-import { useAuth } from './auth/AuthContext';
+import Account from './pages/accountpg/Account';
+import Support from './pages/supportpg/Support';
+import Messages from './pages/messagespg/Messages';
+import Appointments from './pages/appointmentspg/Appointments';
+import Article from './pages/myreportspg/articles/Article';
+import NotFound from './pages/notfoundpg/NotFound';
 
 function App() {
-  const { user, loading } = useAuth();
-  const isLoggedIn = !!user;
-
   return (
     <div className="AppShell">
       <Navbar />
@@ -64,8 +65,22 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/evexia-lab-results" element={<EvexiaLabReport />} />
-            <Route path="/google-calendar" element={<GoogleCalendar />} />
+             <Route
+               path="/evexia-lab-results"
+               element={
+                 <ProtectedRoute>
+                   <EvexiaLabReport />
+                 </ProtectedRoute>
+               }
+             />
+             <Route
+               path="/google-calendar"
+               element={
+                 <ProtectedRoute>
+                   <GoogleCalendar />
+                 </ProtectedRoute>
+               }
+             />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/success" element={<SuccessPage />} />
             <Route path="/cancel-order" element={<CancelPage />} />
@@ -148,29 +163,86 @@ function App() {
               }
             />
 
-            <Route path="/automated-lab-results" element={<AutomatedLabResults />} />
+             <Route
+               path="/automated-lab-results"
+               element={
+                 <ProtectedRoute>
+                   <AutomatedLabResults />
+                 </ProtectedRoute>
+               }
+             />
 
-            <Route path="/patient-req" element={<PatientRequisitionViewer />} />
+             <Route
+               path="/patient-req"
+               element={
+                 <ProtectedRoute>
+                   <PatientRequisitionViewer />
+                 </ProtectedRoute>
+               }
+             />
 
             <Route path="/confirm-email" element={<ConfirmEmail />} />
 
-            {/* 2-step flow */}
-            <Route
-              path="/join"
-              element={
-                loading ? (
-                  <div></div>
-                ) : isLoggedIn ? (
-                  <Navigate to="/join/checkout" replace />
-                ) : (
-                  <EmailStep />
-                )
-              }
-            />
+             <Route path="/join" element={<EmailStep />} />
             <Route path="/join/checkout" element={<CheckoutStep />} />
-            <Route path="/account-info" element={<StepThreeAccountSetup />} />
-            {/* optional 404 */}
-            {/* <Route path="*" element={<NotFound />} /> */}
+             <Route
+               path="/account-info"
+               element={
+                 <ProtectedRoute>
+                   <StepThreeAccountSetup />
+                 </ProtectedRoute>
+               }
+             />
+             <Route path="/sign-up" element={<SignUp />} />
+             <Route
+               path="/account"
+               element={
+                 <ProtectedRoute>
+                   <Account />
+                 </ProtectedRoute>
+               }
+             />
+             <Route
+               path="/support"
+               element={
+                 <ProtectedRoute>
+                   <Support />
+                 </ProtectedRoute>
+               }
+             />
+             <Route
+               path="/messages"
+               element={
+                 <ProtectedRoute>
+                   <Messages />
+                 </ProtectedRoute>
+               }
+             />
+             <Route
+               path="/appointments"
+               element={
+                 <ProtectedRoute>
+                   <Appointments />
+                 </ProtectedRoute>
+               }
+             />
+             <Route
+               path="/faq"
+               element={
+                 <ProtectedRoute>
+                   <Resources />
+                 </ProtectedRoute>
+               }
+             />
+             <Route
+               path="/resources/articles/:slug"
+               element={
+                 <ProtectedRoute>
+                   <Article />
+                 </ProtectedRoute>
+               }
+             />
+             <Route path="*" element={<NotFound />} />
           </Routes>
         </SignupProvider>
       </main>
