@@ -2,11 +2,11 @@
 
 import './navbar.css';
 import '../../App.css';
-
+import { PillOne, PillTwo } from '../button/Buttons';
 import logo from '../../assets/BMCLogo.png';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
-import { useState } from 'react';
+import React from 'react';
 
 function Navbar() {
   const navigate = useNavigate();
@@ -15,9 +15,6 @@ function Navbar() {
   console.log('Navbar user:', user);
   const role = (isLoggedIn ? user?.role : '') || '';
   const isPatient = role.toLowerCase() === 'patient';
-
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
   const isDev = process.env.NODE_ENV === 'development';
   console.log(
@@ -55,59 +52,82 @@ function Navbar() {
     ? 'https://bettermindcare.com'
     : 'https://staging.bettermindcare.com';
 
-
-
   return (
     <nav className="navbar" aria-label="Main navigation">
       <Link
         to="/"
         className="navbar-left navbar-logo"
         aria-label="Better Mind Care Home"
-        onClick={() => setMenuOpen(false)}
       >
         <img src={logo} alt="Better Mind Care logo" className="logo" />
       </Link>
 
-      {/* Hamburger menu button for mobile */}
-      <button
-        className="hamburger"
-        onClick={() => setMenuOpen(!menuOpen)}
-        aria-label="Toggle menu"
-        aria-expanded={menuOpen}
-      >
-        <span className="hamburger-line"></span>
-        <span className="hamburger-line"></span>
-        <span className="hamburger-line"></span>
-      </button>
-
       {/* RIGHT SIDE: auth row on top, menu below */}
-      <div className={`navbar-right-wrap ${menuOpen ? 'open' : ''}`}>
-        {/* AUTH ROW (always shown, one row above menu) */}
+      <div
+        className="navbar-right-wrap"
+        style={{ display: 'flex', justifyContent: 'space-evenly' }}
+      >
+        {/* AUTH ROW (always shown, one row above CTAs) */}
         <div className="navbar-auth-row" aria-label="Authentication">
-          {!isLoggedIn && (
-            <>
-              <Link to="/login" onClick={() => setMenuOpen(false)}>
-                Sign In
-              </Link>
-              <span className="navbar-auth__divider" aria-hidden="true">
-                |
-              </span>
-              <Link to="/sign-up" onClick={() => setMenuOpen(false)}>
-                Get Started
-              </Link>
-            </>
-          )}
+          <Link to="/login">Sign In</Link>
+          {/* <span className="navbar-auth__divider" aria-hidden="true">
+            |
+          </span>
+          <Link to="/sign-up">Sign Up</Link> */}
         </div>
-        {/* MENU - App pages */}
+        {/* MENU / CTAs - WordPress sections */}
         <ul className="navbar-right" role="menubar" aria-label="Primary">
-          {!isLoggedIn && (
+          {/* <li role="none">
+            <a
+              role="menuitem"
+              href={`${wpBase}/early-detection`}
+              className="wp-link"
+            >
+              Early Detection
+            </a>
+          </li>
+          <li role="none">
+            <a
+              role="menuitem"
+              href={`${wpBase}/preventive-care`}
+              className="wp-link"
+            >
+              Preventive Care
+            </a>
+          </li>
+          <li role="none">
+            <a
+              role="menuitem"
+              href={`${wpBase}/our-approach`}
+              className="wp-link"
+            >
+              Our Approach
+            </a>
+          </li>
+          <li role="none">
+            <a role="menuitem" href={`${wpBase}/pricing`} className="wp-link">
+              Pricing
+            </a>
+          </li> */}
+
+          {/* Internal routes */}
+          {/* <li role="none">
+            <Link role="menuitem" to="/about">
+              About
+            </Link>
+          </li> */}
+
+          {isLoggedIn && (
             <li role="none">
-              <Link
-                role="menuitem"
-                to="/support"
-                onClick={() => setMenuOpen(false)}
-              >
-                Help / Support
+              <Link role="menuitem" to="/admin/dashboard">
+                Dash
+              </Link>
+            </li>
+          )}
+          {isLoggedIn && isPatient && (
+            <li role="none">
+              <Link role="menuitem" to="/resources">
+                Resources
               </Link>
             </li>
           )}
@@ -138,7 +158,7 @@ function Navbar() {
             <PillTwo to="/contact">Contact</PillTwo>
           </li>
         </ul>
-        </div>
+      </div>
     </nav>
   );
 }

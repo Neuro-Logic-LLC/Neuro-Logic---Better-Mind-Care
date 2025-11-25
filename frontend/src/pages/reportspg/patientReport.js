@@ -37,15 +37,8 @@ const Section = ({ section, fallbackFooter }) => {
 
   const sectionId = section.id || section.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
-  const sectionId =
-    section.id ||
-    section.title
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9-]/g, '');
-
   return (
-    <section className="report-section" id={sectionId}>
+    <section className="report-section" id={section.id}>
       <h2>{section.title}</h2>
       {section.body && (
         <div
@@ -93,6 +86,7 @@ function PatientReport() {
         const res = await fetch(`/api/reports/${reportId}`, {
           credentials: 'include'
         });
+        if (!res.ok) throw new Error(res.statusText || 'Failed to load report');
         if (!res.ok) throw new Error(res.statusText || 'Failed to load report');
         const data = await res.json();
 
@@ -147,20 +141,8 @@ function PatientReport() {
     report.footerBanner ||
     'Educational wellness content — not medical advice. See full disclaimer on page 1.';
 
-  const tocSections = [
-    'Overview',
-    'Your Personalized Recommendations',
-    'Supplement Guidance',
-    'Your Test Results',
-    'FAQs & Definitions'
-  ];
-
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
-    <main className="patient-report-page bg-gradient-teal">
+    <main className="patient-report-page">
       <header className="report-page__header">
         <div>
           <h1>

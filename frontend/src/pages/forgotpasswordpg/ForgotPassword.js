@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { OutlineButtonHoverDark } from '../../components/button/Buttons';
 import './ForgotPassword.css';
 
 function ForgotPassword() {
@@ -44,9 +43,9 @@ function ForgotPassword() {
         </div>
 
         <div>
-          <OutlineButtonHoverDark type="submit" style={{ marginTop: '15px' }}>
+          <button className="reset-button" type="submit">
             Send Reset Link
-          </OutlineButtonHoverDark>
+          </button>
         </div>
       </form>
 

@@ -1,7 +1,6 @@
 /** @format */
 
 import React from 'react';
-import CircleCheckIcon from '../../../assets/icons/CircleCheckIcon.png';
 import './resources.css';
 
 function Resources() {

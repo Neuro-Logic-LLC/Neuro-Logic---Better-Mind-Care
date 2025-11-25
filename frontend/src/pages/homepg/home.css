@@ -3,10 +3,6 @@ a {
   text-decoration: none;
 }
 
-.main-content {
-  background: var(--seafoam-gradient);
-}
-
 /* Keep hover color if you want it */
 a:hover {
   text-decoration: none;
@@ -22,7 +18,6 @@ a.btn:active {
   text-decoration: none !important;
   color: inherit;
 }
-
 
 .hero-section h1,
 .hero-section p {

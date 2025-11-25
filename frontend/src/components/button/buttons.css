@@ -30,13 +30,13 @@
   outline-offset: 3px;
 }
 
-/* ===== Primary (teal → darker aqua) ===== */
+/* ===== Primary (orange → teal) ===== */
 .btn-primary {
-  background-color: var(--teal);
+  background-color: var(--gold-amber);
   color: #ffffff !important;
 }
 .btn-primary:hover {
-  background-color: var(--dark-teal);
+  background-color: var(--dark-amber);
   color: #ffffff !important;
 }
 
@@ -57,30 +57,19 @@
   border: 2px solid var(--teal);
 }
 .btn-outline:hover {
-  background-color: var(--teal);
+  background-color: var(--soft-white);
   color: white;
 }
 
 /* Teal outline (used in calendar toolbar/buttons) */
 .btn-outline-teal {
   background-color: #fff;
-  color: var(--dark-teal);
+  color: var(--teal);
   border: 2px solid var(--teal);
 }
 .btn-outline-teal:hover {
-  background-color: #fff;
-  color: var(--dark-teal);
-}
-
-/* Outline with dark teal hover */
-.btn-outline-hover-dark {
-  background-color: #fff !important;
-  color: var(--teal) !important;
-  border: 2px solid var(--teal) !important;
-}
-.btn-outline-hover-dark:hover {
-  background-color: var(--dark-teal) !important;
-  color: white !important;
+  background-color: color-mix(in oklab, var(--teal) 12%, #fff);
+  color: var(--teal);
 }
 
 /* Destructive actions */
@@ -141,7 +130,7 @@
   color: #ffffff !important;
 }
 .btn-pill-two:hover {
-  background-color: var(--dark-teal);
+  background-color: var(--dark-teal); /* dark-teal on hover */
   color: #ffffff !important;
   transform: translateY(-1px);
 }

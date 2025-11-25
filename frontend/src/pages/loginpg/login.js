@@ -168,8 +168,7 @@ export default function Login() {
       if (!res.ok) {
         const isDev = process.env.NODE_ENV === 'development';
         setError(data.error || 'Something didn’t go through — try again.');
-        const isDev = process.env.NODE_ENV === 'development';
-        setError(data.error || 'Something didn’t go through — try again.');
+    
         setBusy(false);
         return;
       }
@@ -203,8 +202,7 @@ export default function Login() {
       // Backend may not say "mfa_required" but still need code
       setStep(2);
     } catch (err) {
-      const isDev = process.env.NODE_ENV === 'development';
-      setError(isDev ? String(err?.message || err) : 'Something didn’t go through — try again.');
+      setError(String(err?.message || err));
     } finally {
       setBusy(false);
     }
@@ -239,11 +237,9 @@ export default function Login() {
         navigate('/admin/dashboard');
         return;
       }
-      const isDev = process.env.NODE_ENV === 'development';
-      setError(data.error || data.message || (isDev ? `MFA failed (${res.status})` : 'Something didn’t go through — try again.'));
+      setError(data.error || data.message || `MFA failed (${res.status})`);
     } catch (e) {
-      const isDev = process.env.NODE_ENV === 'development';
-      setError(isDev ? String(e?.message || e) : 'Something didn’t go through — try again.');
+      setError(String(e?.message || e));
     } finally {
       setBusy(false);
     }
@@ -270,7 +266,7 @@ export default function Login() {
 
   return (
     <div
-      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--teal-gradient)' }}
+      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
     >
       <main
         style={{

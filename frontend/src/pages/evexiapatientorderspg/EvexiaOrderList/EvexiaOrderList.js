@@ -355,10 +355,7 @@ export default function EvexiaOrderList({
       setPage(json && Number.isFinite(json.page) ? json.page : page);
     } catch (err) {
       if (err && err.name === 'AbortError') return;
-      setError(
-        (err && err.message) ||
-          'Failed to load orders. Refresh the page or try again shortly.'
-      );
+      setError((err && err.message) || 'Failed to load orders');
     } finally {
       setLoading(false);
     }
@@ -1097,7 +1094,7 @@ function AddItemDialog({ onClose, onDone, patientOrderID, externalClientID }) {
       onDone && onDone();
       onClose && onClose();
     } catch (e) {
-      setErr(e?.message || 'Failed to add item(s) — try again.');
+      setErr(e?.message || 'Failed to add item(s)');
     } finally {
       setBusy(false);
     }
@@ -1197,10 +1194,7 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
         [];
       setItems(list);
     } catch (err) {
-      setError(
-        err.message ||
-          'Failed to fetch items. Refresh the page or try again shortly.'
-      );
+      setError(err.message || 'Failed to fetch items');
     } finally {
       setLoading(false);
     }
@@ -1297,7 +1291,6 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
             className="btn btn-outline-teal inline-flex items-center"
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
-            style={{ padding: '0.3rem 0.75rem', fontSize: '14px' }}
           >
             {open ? <ChevronUp /> : <ChevronDown />}
           </button>
@@ -1395,7 +1388,7 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
 
             {/* Order Actions */}
             <div className="mt-6 border-t pt-3 space-y-3">
-              <div className="font-semibold mb-2">Order Actions</div>
+              <div className="font-semibold mb-2">⚙️ Order Actions</div>
               <div className="flex flex-wrap gap-2">
                 <button
                   className="btn btn-outline-teal"
@@ -1405,20 +1398,18 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
                   🧹 Empty Order
                 </button>
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-outline-teal"
                   disabled={busy}
                   onClick={() => handleSubmitOrder(false, false)}
-                  style={{ padding: '0.3rem 0.75rem', fontSize: '14px' }}
                 >
-                  Submit Order
+                  ✅ Submit Order
                 </button>
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-outline-teal"
                   disabled={busy}
                   onClick={handleCancelOrder}
-                  style={{ padding: '0.3rem 0.75rem', fontSize: '14px' }}
                 >
-                  Cancel Order
+                  ❌ Cancel Order
                 </button>
               </div>
             </div>
