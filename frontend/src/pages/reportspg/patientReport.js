@@ -12,7 +12,13 @@ const renderItems = (items = []) => {
           item.title ||
           item.description ||
           Math.random().toString(36);
-        const content = item.title || item.description || '';
+        let content = '';
+
+        if (typeof item === 'string') {
+          content = item;
+        } else {
+          content = item.title || item.description || '';
+        }
         return <li key={key}>{content}</li>;
       })}
     </ul>

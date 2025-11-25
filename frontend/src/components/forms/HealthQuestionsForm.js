@@ -377,9 +377,28 @@ function HealthQuestionsForm({ gender, setGender }) {
       return;
     }
 
+    // --- BMI Calculation ---
+    const heightFeet = Number(formData.heightFeet);
+    const heightInches = Number(formData.heightInches);
+    const weightLbs = Number(formData.weightLbs);
+
+    let bmi = '';
+
+    if (
+      Number.isFinite(heightFeet) &&
+      Number.isFinite(heightInches) &&
+      Number.isFinite(weightLbs)
+    ) {
+      const totalInches = heightFeet * 12 + heightInches;
+      if (totalInches > 0) {
+        bmi = ((weightLbs / (totalInches * totalInches)) * 703).toFixed(1);
+      }
+    }
+
     const payloadFormData = {
       ...formData,
-      understandCondition: understandCode
+      understandCondition: understandCode,
+      bmi: bmi
     };
 
     const yesNoFields = [
@@ -427,8 +446,8 @@ function HealthQuestionsForm({ gender, setGender }) {
     });
 
     const numericBounds = {
-      heightFeet: { min: 3, max: 7 },
-      heightInches: { min: 0, max: 11 },
+      heightFeet: { min: 3, max: 12 },
+      heightInches: { min: 0, max: 12 },
       weightLbs: { min: 60, max: 600 },
       hba1c: { min: 3, max: 15 },
       fasting_glucose: { min: 50, max: 400 },
@@ -497,10 +516,17 @@ function HealthQuestionsForm({ gender, setGender }) {
       navigate('/report', {
         state: {
           report: {
-            sections: Array.isArray(data.saved.report_output.report)
-              ? data.saved.report_output.report
-              : [],
+            sections: [
+              ...(Array.isArray(data.saved.report_output.report)
+                ? data.saved.report_output.report
+                : []),
+              {
+                title: 'Body Mass Index',
+                items: [{ title: `BMI: ${bmi}` }]
+              }
+            ],
             labRecommendations: data.saved.report_output.labRecommendations,
+            bmi,
             userEmail: data.saved.user_email,
             submittedAt: data.saved.submitted_at
           }
