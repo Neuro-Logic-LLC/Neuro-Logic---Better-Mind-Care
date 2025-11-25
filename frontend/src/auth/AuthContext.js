@@ -17,8 +17,9 @@ function readMeta(name) {
   return el ? el.getAttribute('content') : '';
 }
 const API_BASE = (() => {
-  const metaBase =
-    document.querySelector('meta[name="app-env:api-base"]')?.content?.trim();
+  const metaBase = document
+    .querySelector('meta[name="app-env:api-base"]')
+    ?.content?.trim();
   const configBase = window.__APP_CONFIG__?.API_BASE?.trim();
 
   if (configBase) return configBase.replace(/\/+$/, '');
@@ -26,8 +27,7 @@ const API_BASE = (() => {
 
   const host = window.location.hostname;
 
-  if (host === 'localhost' || host === '127.0.0.1')
-    return ''; // use relative URLs for dev proxy
+  if (host === 'localhost' || host === '127.0.0.1') return ''; // use relative URLs for dev proxy
 
   if (host.includes('staging.bettermindcare.com'))
     return 'https://staging.bettermindcare.com';

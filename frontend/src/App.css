@@ -36,8 +36,6 @@
   font-family: 'Open Sans', sans-serif !important;
 }
 
-
-
 /* Calendar highlight color */
 .rbc-today {
   background-color: var(--soft-blue) !important;
@@ -77,8 +75,13 @@
   --color-danger: var(--warm-coral);
 
   /* Background Gradients */
-   --seafoam-gradient: linear-gradient(to top, var(--seafoam) 0%, #ffffff 90%);
-   --teal-gradient: linear-gradient(to top, var(--teal) 0%, var(--seafoam) 55%, #ffffff 90%);
+  --seafoam-gradient: linear-gradient(to top, var(--seafoam) 0%, #ffffff 90%);
+  --teal-gradient: linear-gradient(
+    to top,
+    var(--teal) 0%,
+    var(--seafoam) 55%,
+    #ffffff 90%
+  );
 
   /* States */
   --color-link: var(--darker-amber);

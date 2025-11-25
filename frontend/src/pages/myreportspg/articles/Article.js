@@ -80,11 +80,29 @@ const articlesData = {
       }
     ],
     citations: [
-      { label: 'National Institute on Aging — Lifestyle factors and cognitive aging', url: 'https://www.nia.nih.gov/' },
-      { label: 'Harvard Medical School — Inflammation, sleep, and brain function', url: 'https://www.health.harvard.edu/' },
-      { label: 'Mayo Clinic — Brain-body connection and metabolic health', url: 'https://www.mayoclinic.org/' },
-      { label: 'Cleveland Clinic — Nutrient status and cognitive support', url: 'https://health.clevelandclinic.org/' },
-      { label: 'Alzheimer\'s Association and NIH — Peer-reviewed research summaries', url: 'https://www.alz.org/' }
+      {
+        label:
+          'National Institute on Aging — Lifestyle factors and cognitive aging',
+        url: 'https://www.nia.nih.gov/'
+      },
+      {
+        label:
+          'Harvard Medical School — Inflammation, sleep, and brain function',
+        url: 'https://www.health.harvard.edu/'
+      },
+      {
+        label: 'Mayo Clinic — Brain-body connection and metabolic health',
+        url: 'https://www.mayoclinic.org/'
+      },
+      {
+        label: 'Cleveland Clinic — Nutrient status and cognitive support',
+        url: 'https://health.clevelandclinic.org/'
+      },
+      {
+        label:
+          "Alzheimer's Association and NIH — Peer-reviewed research summaries",
+        url: 'https://www.alz.org/'
+      }
     ]
   },
   'early-cognitive-changes': {
@@ -95,23 +113,28 @@ const articlesData = {
     sections: [
       {
         heading: 'Overview',
-        content: '<p>This article covers early signs of cognitive changes and what they might mean for brain health.</p>'
+        content:
+          '<p>This article covers early signs of cognitive changes and what they might mean for brain health.</p>'
       },
       {
         heading: 'Why This Topic Matters',
-        content: '<p>Early detection of cognitive changes can lead to timely interventions.</p>'
+        content:
+          '<p>Early detection of cognitive changes can lead to timely interventions.</p>'
       },
       {
         heading: 'What the Science Says',
-        content: '<p>Research indicates that cognitive changes can be influenced by multiple factors.</p>'
+        content:
+          '<p>Research indicates that cognitive changes can be influenced by multiple factors.</p>'
       },
       {
         heading: 'How This Connects to Your Report',
-        content: '<p>Your report includes assessments that may highlight early cognitive patterns.</p>'
+        content:
+          '<p>Your report includes assessments that may highlight early cognitive patterns.</p>'
       },
       {
         heading: 'Practical Takeaways',
-        content: '<p>Stay engaged in mentally stimulating activities and maintain regular health check-ups.</p>'
+        content:
+          '<p>Stay engaged in mentally stimulating activities and maintain regular health check-ups.</p>'
       }
     ],
     citations: [
@@ -126,27 +149,35 @@ const articlesData = {
     sections: [
       {
         heading: 'Overview',
-        content: '<p>Building lifestyle resilience helps protect brain health over time.</p>'
+        content:
+          '<p>Building lifestyle resilience helps protect brain health over time.</p>'
       },
       {
         heading: 'Why This Topic Matters',
-        content: '<p>Lifestyle factors play a crucial role in long-term brain health.</p>'
+        content:
+          '<p>Lifestyle factors play a crucial role in long-term brain health.</p>'
       },
       {
         heading: 'What the Science Says',
-        content: '<p>Studies show that healthy lifestyle habits can reduce cognitive decline risk.</p>'
+        content:
+          '<p>Studies show that healthy lifestyle habits can reduce cognitive decline risk.</p>'
       },
       {
         heading: 'How This Connects to Your Report',
-        content: '<p>Your report provides personalized lifestyle recommendations.</p>'
+        content:
+          '<p>Your report provides personalized lifestyle recommendations.</p>'
       },
       {
         heading: 'Practical Takeaways',
-        content: '<p>Focus on consistent healthy habits rather than perfection.</p>'
+        content:
+          '<p>Focus on consistent healthy habits rather than perfection.</p>'
       }
     ],
     citations: [
-      { label: 'Journal of the American Medical Association', url: 'https://jamanetwork.com/' }
+      {
+        label: 'Journal of the American Medical Association',
+        url: 'https://jamanetwork.com/'
+      }
     ]
   },
   'sleep-cognitive-clarity': {
@@ -157,23 +188,28 @@ const articlesData = {
     sections: [
       {
         heading: 'Overview',
-        content: '<p>Quality sleep is essential for cognitive function and brain health.</p>'
+        content:
+          '<p>Quality sleep is essential for cognitive function and brain health.</p>'
       },
       {
         heading: 'Why This Topic Matters',
-        content: '<p>Sleep affects memory, learning, and emotional regulation.</p>'
+        content:
+          '<p>Sleep affects memory, learning, and emotional regulation.</p>'
       },
       {
         heading: 'What the Science Says',
-        content: '<p>Research consistently links poor sleep to cognitive impairment.</p>'
+        content:
+          '<p>Research consistently links poor sleep to cognitive impairment.</p>'
       },
       {
         heading: 'How This Connects to Your Report',
-        content: '<p>Your sleep patterns may influence your overall health assessment.</p>'
+        content:
+          '<p>Your sleep patterns may influence your overall health assessment.</p>'
       },
       {
         heading: 'Practical Takeaways',
-        content: '<p>Aim for 7-9 hours of quality sleep and maintain consistent sleep schedules.</p>'
+        content:
+          '<p>Aim for 7-9 hours of quality sleep and maintain consistent sleep schedules.</p>'
       }
     ],
     citations: [
@@ -188,23 +224,28 @@ const articlesData = {
     sections: [
       {
         heading: 'Overview',
-        content: '<p>Lab tests can provide valuable insights into brain health markers.</p>'
+        content:
+          '<p>Lab tests can provide valuable insights into brain health markers.</p>'
       },
       {
         heading: 'Why This Topic Matters',
-        content: '<p>Understanding lab results helps you make informed health decisions.</p>'
+        content:
+          '<p>Understanding lab results helps you make informed health decisions.</p>'
       },
       {
         heading: 'What the Science Says',
-        content: '<p>Certain biomarkers are associated with cognitive health outcomes.</p>'
+        content:
+          '<p>Certain biomarkers are associated with cognitive health outcomes.</p>'
       },
       {
         heading: 'How This Connects to Your Report',
-        content: '<p>Your lab results are interpreted in the context of brain health.</p>'
+        content:
+          '<p>Your lab results are interpreted in the context of brain health.</p>'
       },
       {
         heading: 'Practical Takeaways',
-        content: '<p>Discuss lab results with your healthcare provider for personalized guidance.</p>'
+        content:
+          '<p>Discuss lab results with your healthcare provider for personalized guidance.</p>'
       }
     ],
     citations: [

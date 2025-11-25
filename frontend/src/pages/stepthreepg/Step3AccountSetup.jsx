@@ -339,18 +339,7 @@ export default function StepThreeAccountSetup() {
       const ProductID =
         orderJson.Product_ID || orderJson.ProductID || orderJson.productID;
 
-      setField('evexia_patient_order_id', PatientOrderID);
-      setField('evexia_patient_id', PatientID);
-      setField('evexia_product_id', ProductID);
-
-
-      if (session.metadata.pickedCore === '1') {
-        await addItem(205704);
-        console.log(
-          'should have added core here, but doesnt and needs to be updated'
-        );
-      }
-      if (session.metadata.pickedApoe === '1') {
+      if (session.metadata.pickedApoe === "1") {
         await addItem(6724);
       }
 

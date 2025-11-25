@@ -35,7 +35,12 @@ const Section = ({ section, fallbackFooter }) => {
     return null;
   }
 
-  const sectionId = section.id || section.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const sectionId =
+    section.id ||
+    section.title
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
 
   const sectionId = section.id || section.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
@@ -88,7 +93,7 @@ function PatientReport() {
         const res = await fetch(`/api/reports/${reportId}`, {
           credentials: 'include'
         });
-        if (!res.ok) throw new Error(res.statusText || 'Failed to load report');
+        if (!res.ok) throw new Error(res.statusText || 'We couldn’t load this section. Refresh the page or try again shortly.');
         const data = await res.json();
 
         if (!cancelled) {

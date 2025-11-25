@@ -203,14 +203,10 @@ export default function EvexiaOrderList({
         console.log(`Fetched ${list.length} orders by status=${statusDescr}`);
       } catch (err) {
         console.error('OrderListByStatus failed:', err);
-<<<<<<< HEAD
         setError(
           err.message ||
             'Failed to load orders by status. Refresh the page or try again shortly.'
         );
-=======
-        setError(err.message || 'Failed to load orders by status. Refresh the page or try again shortly.');
->>>>>>> 613a3d1 (Apply only frontend changes from ui-theme-updates with teal gradients)
       } finally {
         setLoading(false);
       }
@@ -534,13 +530,9 @@ export default function EvexiaOrderList({
       await fetchData();
       setShowAddOrder(false);
     } catch (e) {
-<<<<<<< HEAD
       setActionError(
         e?.message || 'Failed to add the order. Please, try again.'
       );
-=======
-      setActionError(e?.message || 'Failed to add the order. Please, try again.');
->>>>>>> 613a3d1 (Apply only frontend changes from ui-theme-updates with teal gradients)
     } finally {
       setAddBusy(false);
     }
@@ -684,15 +676,11 @@ export default function EvexiaOrderList({
           </button>
           <button
             className="btn btn-primary"
-<<<<<<< HEAD
             style={{
               marginLeft: '10px',
               padding: '0.3rem 0.75rem',
               fontSize: '14px'
             }}
-=======
-            style={{ marginLeft: '10px', padding: '0.3rem 0.75rem', fontSize: '14px' }}
->>>>>>> 613a3d1 (Apply only frontend changes from ui-theme-updates with teal gradients)
             onClick={() => fetchOrdersByStatus('LabResultReady')}
           >
             Show Lab Result Ready
@@ -1040,6 +1028,7 @@ function AddOrderDialog({
               Cancel
             </button>
             <button type="submit" className="btn btn-primary" disabled={busy}>
+            <button type="submit" className="btn btn-primary" disabled={busy}>
               {busy ? 'Saving…' : 'Save Order'}
             </button>
           </div>
@@ -1325,15 +1314,11 @@ function OrderRowWithItems({ row, onRefresh, externalClientID }) {
               <div className="font-semibold">
                 🛒 Order Cart — {items.length} item{items.length !== 1 && 's'}
               </div>
-<<<<<<< HEAD
               <button
                 className="btn btn-outline-teal"
                 onClick={fetchItems}
                 style={{ padding: '0.3rem 0.75rem', fontSize: '14px' }}
               >
-=======
-              <button className="btn btn-outline-teal" onClick={fetchItems} style={{ padding: '0.3rem 0.75rem', fontSize: '14px' }}>
->>>>>>> 613a3d1 (Apply only frontend changes from ui-theme-updates with teal gradients)
                 <RefreshCcw className="h-4 w-4 mr-1" /> Refresh
               </button>
             </div>

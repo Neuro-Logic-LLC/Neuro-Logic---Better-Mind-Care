@@ -186,8 +186,8 @@
 }
 
 /* ===== Actions ===== */
-.report-section a[target="_blank"]::after {
-  content: " (Opens in a new tab)";
+.report-section a[target='_blank']::after {
+  content: ' (Opens in a new tab)';
   font-size: 0.8rem;
   color: color-mix(in oklab, var(--charcoal) 70%, white);
 }

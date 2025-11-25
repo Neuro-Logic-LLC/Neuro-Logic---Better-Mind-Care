@@ -11,9 +11,13 @@ function ArticleBody({ sections, onSectionVisible }) {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const sectionId = entry.target.id;
-            const heading = sectionId.replace('section-', '').replace(/-/g, ' ');
+            const heading = sectionId
+              .replace('section-', '')
+              .replace(/-/g, ' ');
             // Convert back to title case
-            const titleCaseHeading = heading.replace(/\b\w/g, l => l.toUpperCase());
+            const titleCaseHeading = heading.replace(/\b\w/g, (l) =>
+              l.toUpperCase()
+            );
             onSectionVisible(titleCaseHeading);
           }
         });

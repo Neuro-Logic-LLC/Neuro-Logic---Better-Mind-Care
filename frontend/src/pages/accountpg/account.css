@@ -3,7 +3,7 @@
 .account-page {
   width: 100%;
   min-height: 100vh;
-   background: var(--seafoam-gradient);
+  background: var(--seafoam-gradient);
   padding: 2rem 1rem;
 }
 
@@ -86,7 +86,7 @@
   cursor: pointer;
 }
 
-.checkbox-label input[type="checkbox"] {
+.checkbox-label input[type='checkbox'] {
   width: 18px;
   height: 18px;
   accent-color: var(--teal);

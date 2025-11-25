@@ -69,13 +69,45 @@ export default function CheckoutStep() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-   const email = state.email || '';
+  const email = state.email || '';
 
-   // useEffect(() => {
-   //   if (!email) navigate('/join');
-   // }, [email, navigate]);
+  useEffect(() => {
+    if (!email) navigate('/join');
+  }, [email, navigate]);
 
-   function toggle(key, val) {
+  useEffect(() => {
+  if (!email) return;
+
+  fetch('/api/auth/reached-checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+}, [email]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const resumeId = params.get('resume_id');
+
+    if (!resumeId) return;
+
+    async function load() {
+      const res = await fetch(`/api/auth/pending-signup/${resumeId}`);
+      const data = await res.json();
+
+      if (!res.ok) return;
+
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          setField(key, value);
+        }
+      });
+    }
+
+    load();
+  }, []);
+
+  function toggle(key, val) {
     setCart((prev) => ({ ...prev, [key]: val }));
   }
 
@@ -178,7 +210,7 @@ export default function CheckoutStep() {
             <span style={{ flex: 1 }}>Doctors Data Test</span>
             <span>{usd(PRICES.DOCTORS_DATA)}</span>
           </label>
-        )}  
+        )}
       </div>
 
       <div style={{ marginTop: 16 }}>

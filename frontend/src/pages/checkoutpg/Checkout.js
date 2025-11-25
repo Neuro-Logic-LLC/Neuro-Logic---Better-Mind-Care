@@ -14,6 +14,7 @@ const usd = (cents) =>
 function computeTotal(c) {
   return (
     (c.APOE ? 12500 : 0) + (c.PTAU ? 30900 : 0) + (c.DOCTORS_DATA ? 9900 : 0)
+    (c.APOE ? 12500 : 0) + (c.PTAU ? 30900 : 0) + (c.DOCTORS_DATA ? 9900 : 0)
   );
 }
 
@@ -120,14 +121,37 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div style={{ background: '#ffffff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
-      <div className="max-w-4xl mx-auto" style={{ background: '#ffffff', borderRadius: '16px', padding: '2rem', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-      <header className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold">BetterMindCare Checkout</h1>
-        <Link className="text-sm underline" to="/success" title="Preview success">
-          Preview success
-        </Link>
-      </header>
+    <div
+      style={{
+        background: '#ffffff',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '6rem 1rem 2rem'
+      }}
+    >
+      <div
+        className="max-w-4xl mx-auto"
+        style={{
+          background: '#ffffff',
+          borderRadius: '16px',
+          padding: '2rem',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+        <header className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold">
+            BetterMindCare Checkout
+          </h1>
+          <Link
+            className="text-sm underline"
+            to="/success"
+            title="Preview success"
+          >
+            Preview success
+          </Link>
+        </header>
 
         <div className="grid md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-3">
@@ -141,19 +165,21 @@ export default function CheckoutPage() {
             ))}
           </div>
 
-        <aside className="md:col-span-1 p-4 rounded-2xl border border-gray-200 shadow-sm h-fit text-center">
-          <h2 className="text-lg font-semibold mb-4">Order</h2>
-          <div className="space-y-3 text-sm">
-            <label className="block">
-              <span className="text-gray-700">Email (optional for receipt)</span>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-800"
-              />
-            </label>
+          <aside className="md:col-span-1 p-4 rounded-2xl border border-gray-200 shadow-sm h-fit text-center">
+            <h2 className="text-lg font-semibold mb-4">Order</h2>
+            <div className="space-y-3 text-sm">
+              <label className="block">
+                <span className="text-gray-700 email-label mr-4 ">
+                  Email (optional for receipt)
+                </span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full rounded-xl border border-gray-300 px-3 py-2 ml-4 focus:outline-none focus:ring-2 focus:ring-gray-800"
+                />
+              </label>
 
               <div className="flex items-center justify-between pt-2 border-t">
                 <span className="font-semibold">Total</span>
@@ -177,13 +203,13 @@ export default function CheckoutPage() {
                 {loading ? 'Starting checkout...' : 'Pay with Stripe'}
               </PrimaryButton>
 
-            <p className="text-xs text-gray-600">
-              You will be redirected to Stripe Checkout.
-            </p>
-          </div>
-        </aside>
+              <p className="text-xs text-gray-600">
+                You will be redirected to Stripe Checkout.
+              </p>
+            </div>
+          </aside>
+        </div>
       </div>
-    </div>
     </div>
   );
 }
