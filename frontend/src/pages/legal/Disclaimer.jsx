@@ -1,6 +1,5 @@
 import React from 'react';
 import './legal-shared.css';
-import './disclaimer.css';
 
 const Disclaimer = () => (
   <main className="legal-page disclaimer-page">

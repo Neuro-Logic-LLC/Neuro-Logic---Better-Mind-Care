@@ -1,6 +1,5 @@
 import React from 'react';
-import './legal—shared.css';
-import './purchase—agreement.css';
+import './legal-shared.css';
 
 function PurchaseAgreement() {
   return (
