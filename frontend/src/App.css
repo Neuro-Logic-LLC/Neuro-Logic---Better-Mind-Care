@@ -109,6 +109,18 @@
   background: var(--seafoam-gradient);
 }
 
+.success-bg {
+  background: var(--seafoam-gradient) !important;
+}
+
+.success-bg .footer {
+  background: transparent !important;
+}
+
+.success-bg .footer-bottom {
+  background: transparent !important;
+}
+
 /* ====== Global Resets ====== */
 * {
   box-sizing: border-box;
