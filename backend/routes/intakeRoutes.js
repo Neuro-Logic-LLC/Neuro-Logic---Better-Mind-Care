@@ -4,7 +4,7 @@ const { submitIntake, getMyReports} = require('../controllers/intakeController')
 const { verifyToken, requireAdmin, requireAdminOrDoctor } = require('../middleware/auth');
 
 // Admin submits intake form on behalf of patient
-router.post('/submit',  requireAdminOrDoctor, submitIntake);
+router.post('/submit',  verifyToken, requireAdminOrDoctor, submitIntake);
 
 
 // Patient views their own reports
