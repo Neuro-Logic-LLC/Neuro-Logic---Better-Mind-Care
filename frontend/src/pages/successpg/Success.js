@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { fetchPaidCalendarAccess } from '../../calendarApi/calendarApi';
-import { ArrowLeft } from 'lucide-react';
 
 export default function SuccessPage() {
   const location = useLocation();
@@ -46,9 +45,8 @@ export default function SuccessPage() {
 
        <Link
          to="/login"
-         className="inline-flex items-center rounded-xl border border-gray-900 px-4 py-2 font-semibold hover:bg-gray-900 hover:text-white transition-colors"
+         className="inline-block rounded-xl border border-gray-900 px-4 py-2 font-semibold hover:bg-gray-900 hover:text-white transition-colors"
        >
-         <ArrowLeft className="mr-2 h-4 w-4" />
          Go to Login
        </Link>
     </div>
