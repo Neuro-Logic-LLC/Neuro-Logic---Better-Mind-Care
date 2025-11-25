@@ -6,6 +6,7 @@ import {
 
 import { useAuth } from '../../auth/AuthContext';
 import { PillTwo } from '../../components/button/Buttons';
+import { PillTwo } from '../../components/button/Buttons';
 
 // Fetch slots for a specific day
 async function fetchDayAvailability(date) {
@@ -147,17 +148,8 @@ export default function PatientBooking() {
 
     return (
       <div>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            flexWrap: 'nowrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '0.75rem'
-          }}
-        >
-          <PillTwo
+         <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+           <PillTwo
             onClick={() => {
               if (month === 1) {
                 setMonth(12);
@@ -169,6 +161,7 @@ export default function PatientBooking() {
           >
             ←
           </PillTwo>
+          </PillTwo>
 
           <h2 className="text-xl font-bold">
             {new Date(year, month - 1, 1).toLocaleString('default', {
@@ -177,7 +170,7 @@ export default function PatientBooking() {
             })}
           </h2>
 
-          <PillTwo
+           <PillTwo
             onClick={() => {
               if (month === 12) {
                 setMonth(1);
@@ -189,15 +182,16 @@ export default function PatientBooking() {
           >
             →
           </PillTwo>
+          </PillTwo>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(7, 1fr)',
-            gap: 6
-          }}
-        >
+          <div
+           style={{
+             display: 'grid',
+             gridTemplateColumns: 'repeat(7, 1fr)',
+             gap: 6
+           }}
+         >
           {days}
         </div>
       </div>
@@ -208,8 +202,12 @@ export default function PatientBooking() {
   function renderSlots() {
     return (
       <div style={{ textAlign: 'center', maxWidth: 300, margin: '0 auto' }}>
-        <PillTwo className="mb-4 mx-auto" onClick={() => setSelectedDay(null)}>
+        <PillTwo
+          className="mb-4 mx-auto"
+          onClick={() => setSelectedDay(null)}
+        >
           ← Back to month
+        </PillTwo>
         </PillTwo>
 
         <h3 className="font-bold text-lg mb-4">
@@ -228,6 +226,7 @@ export default function PatientBooking() {
           {slots.length ? (
             slots.map((slot) => (
               <PillTwo
+              <PillTwo
                 key={slot.start}
                 className="btn btn-secondary"
                 style={{ width: '100%' }}
@@ -238,6 +237,7 @@ export default function PatientBooking() {
                   hour: 'numeric',
                   minute: '2-digit'
                 })}
+              </PillTwo>
               </PillTwo>
             ))
           ) : (
@@ -255,10 +255,13 @@ export default function PatientBooking() {
       <div className="max-w-md mx-auto text-center">
         <PillTwo
           className="mb-4"
+        <PillTwo
+          className="mb-4"
           style={{ marginLeft: 'auto', marginRight: 'auto' }}
           onClick={() => setSelectedSlot(null)}
         >
           ← Back to times
+        </PillTwo>
         </PillTwo>
         {selectedSlot && (
           <h3 className="text-xl font-bold mb-6">
@@ -287,23 +290,24 @@ export default function PatientBooking() {
             Booking as <strong>{bookingName}</strong> ({bookingEmail})
           </div>
 
-          <PillTwo
-            style={{
-              width: '100%',
-              padding: '12px',
-              fontSize: '1rem',
-              borderRadius: '8px'
-            }}
-            onClick={handleBook}
-          >
-            Confirm Booking
-          </PillTwo>
+           <PillTwo
+             style={{
+               width: '100%',
+               padding: '12px',
+               fontSize: '1rem',
+               borderRadius: '8px'
+             }}
+             onClick={handleBook}
+           >
+             Confirm Booking
+           </PillTwo>
         </div>
       </div>
     );
   }
 
   return (
+    <div className="p-6 max-w-lg mx-auto" style={{ minHeight: '60vh' }}>
     <div className="p-6 max-w-lg mx-auto" style={{ minHeight: '60vh' }}>
       {!selectedDay && renderMonth()}
       {selectedDay && !selectedSlot && renderSlots()}

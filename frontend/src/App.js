@@ -15,7 +15,7 @@ import Footer from './components/Footer/Footer';
 
 // Pages
 import Home from './pages/homepg/home';
-import About from './pages/aboutpg/about';
+
 import Contact from './pages/contactpg/contact';
 import Resources from './pages/myreportspg/resourcepg/resources';
 import IntakeForm from './pages/intakepg/intakeForm';
@@ -48,15 +48,22 @@ import SignupProvider from './pages/NewCheckoutPages/SignupContext';
 import PatientOrders from './pages/evexiapatientorderspg/EvexiaPatientOrders';
 import PatientRequisitionViewer from './pages/patientrequisitionviewerpg/PatientRequisitionViewer';
 import StepThreeAccountSetup from './pages/stepthreepg/Step3AccountSetup';
-// import Account from './pages/accountpg/Account';
-// import Support from './pages/supportpg/Support';
-// import Messages from './pages/messagespg/Messages';
-// import Appointments from './pages/appointmentspg/Appointments';
-// import Article from './pages/myreportspg/articles/Article';
-// import NotFound from './pages/notfoundpg/NotFound';
+<<<<<<< HEAD
+import JoinCheckoutWrapper from './pages/NewCheckoutPages/JoinCheckoutWrapper';
+import { useAuth } from './auth/AuthContext';
+=======
+import Account from './pages/accountpg/Account';
+import Support from './pages/supportpg/Support';
+import Messages from './pages/messagespg/Messages';
+import Appointments from './pages/appointmentspg/Appointments';
+import Article from './pages/myreportspg/articles/Article';
+import NotFound from './pages/notfoundpg/NotFound';
+
+>>>>>>> ui-theme-updates
 
 function App() {
   return (
+<<<<<<< HEAD
     <div className="AppShell">
       <Navbar />
       <main className="PageBody">
@@ -92,13 +99,175 @@ function App() {
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
 
-            <Route path="/admin/users/:id" element={<UserDetails />} />
-            <Route path="/intake-form" element={<IntakeForm />} />
-            <Route path="/report" element={<PatientReport />} />
-            <Route path="/my-reports" element={<MyReports />} />
-            <Route path="/admin/dashboard" element={<Dashboard />} />
-            <Route path="/admin/users" element={<UserList />} />
-            <Route path="/admin/logs" element={<AuditLog />} />
+            <Route
+              path="/admin/users/:id"
+              element={
+                <ProtectedRoute>
+                  <UserDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/intake-form"
+              element={
+                <ProtectedRoute>
+                  <IntakeForm />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/report"
+              element={
+                <ProtectedRoute>
+                  <PatientReport />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-reports"
+              element={
+                <ProtectedRoute>
+                  <MyReports />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute>
+                  <UserList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/logs"
+              element={
+                <ProtectedRoute>
+                  <AuditLog />
+                </ProtectedRoute>
+              }
+            />
+=======
+    <AuthProvider>
+      <Router>
+        <div className="AppShell">
+          <Navbar />
+          <main className="PageBody">
+            {/* ✅ Provider goes OUTSIDE <Routes>, not inside */}
+            <SignupProvider>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/resources" element={<Resources />} />
+
+                <Route path="/login" element={<Login />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                 <Route
+                   path="/evexia-lab-results"
+                   element={
+                     <ProtectedRoute>
+                       <EvexiaLabReport />
+                     </ProtectedRoute>
+                   }
+                 />
+                 <Route
+                   path="/google-calendar"
+                   element={
+                     <ProtectedRoute>
+                       <GoogleCalendar />
+                     </ProtectedRoute>
+                   }
+                 />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/success" element={<SuccessPage />} />
+                <Route path="/cancel-order" element={<CancelPage />} />
+                <Route path="/order" element={<ProductsPage />} />
+                <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+
+                <Route
+                  path="/admin/users/:id"
+                  element={
+                    <ProtectedRoute>
+                      <UserDetails />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/intake-form"
+                  element={
+                    <ProtectedRoute>
+                      <IntakeForm />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/report"
+                  element={
+                    <ProtectedRoute>
+                      <PatientReport />
+                    </ProtectedRoute>
+                  }
+                />
+                 <Route
+                   path="/my-reports"
+                   element={
+                     <ProtectedRoute>
+                       <MyReports />
+                     </ProtectedRoute>
+                   }
+                 />
+                  <Route
+                    path="/faq"
+                    element={
+                      <ProtectedRoute>
+                        <Resources />
+                      </ProtectedRoute>
+                    }
+                  />
+                 <Route
+                   path="/resources/articles/:slug"
+                   element={
+                     <ProtectedRoute>
+                       <Article />
+                     </ProtectedRoute>
+                   }
+                 />
+
+                <Route
+                  path="/admin/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/users"
+                  element={
+                    <ProtectedRoute>
+                      <UserList />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/logs"
+                  element={
+                    <ProtectedRoute>
+                      <AuditLog />
+                    </ProtectedRoute>
+                  }
+                />
+>>>>>>> ui-theme-updates
 
             <Route path="/screening-order" element={<ScreeningOrder />} />
 
@@ -113,14 +282,8 @@ function App() {
               }
             />
 
-             <Route
-               path="/automated-lab-results"
-               element={
-                 <ProtectedRoute>
-                   <AutomatedLabResults />
-                 </ProtectedRoute>
-               }
-             />
+<<<<<<< HEAD
+            <Route path="/automated-lab-results" element={<AutomatedLabResults />} />
 
              <Route
                path="/patient-req"
@@ -198,6 +361,89 @@ function App() {
       </main>
       <Footer />
     </div>
+=======
+                 <Route
+                   path="/automated-lab-results"
+                   element={
+                     <ProtectedRoute>
+                       <AutomatedLabResults />
+                     </ProtectedRoute>
+                   }
+                 />
+
+                 <Route
+                   path="/patient-req"
+                   element={
+                     <ProtectedRoute>
+                       <PatientRequisitionViewer />
+                     </ProtectedRoute>
+                   }
+                 />
+
+                <Route path="/sign-up" element={<SignUp />} />
+                <Route path="/confirm-email" element={<ConfirmEmail />} />
+
+                {/* ✅ Your 2-step flow */}
+                <Route path="/join" element={<EmailStep />} />
+                <Route path="/join/checkout" element={<CheckoutStep />} />
+                 <Route
+                   path="/account-info"
+                   element={
+                     <ProtectedRoute>
+                       <StepThreeAccountSetup />
+                     </ProtectedRoute>
+                   }
+                 />
+                 <Route
+                   path="/account"
+                   element={
+                     <ProtectedRoute>
+                       <Account />
+                     </ProtectedRoute>
+                   }
+                 />
+                 <Route
+                   path="/support"
+                   element={
+                     <ProtectedRoute>
+                       <Support />
+                     </ProtectedRoute>
+                   }
+                 />
+                 <Route
+                   path="/messages"
+                   element={
+                     <ProtectedRoute>
+                       <Messages />
+                     </ProtectedRoute>
+                   }
+                 />
+                 <Route
+                   path="/appointments"
+                   element={
+                     <ProtectedRoute>
+                       <Appointments />
+                     </ProtectedRoute>
+                   }
+                 />
+                <Route
+                  path="/join/checkout"
+                  element={<CheckoutStep />}
+                />
+                <Route
+                  path="/account-info"
+                  element={<StepThreeAccountSetup />}
+                />
+                {/* optional 404 */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </SignupProvider>
+          </main>
+          <Footer />
+        </div>
+      </Router>
+    </AuthProvider>
+>>>>>>> ui-theme-updates
   );
 }
 

@@ -35,6 +35,8 @@ const Section = ({ section, fallbackFooter }) => {
     return null;
   }
 
+  const sectionId = section.id || section.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
   const sectionId =
     section.id ||
     section.title
@@ -91,11 +93,7 @@ function PatientReport() {
         const res = await fetch(`/api/reports/${reportId}`, {
           credentials: 'include'
         });
-        if (!res.ok)
-          throw new Error(
-            res.statusText ||
-              'We couldn’t load this section. Refresh the page or try again shortly.'
-          );
+        if (!res.ok) throw new Error(res.statusText || 'Failed to load report');
         const data = await res.json();
 
         if (!cancelled) {
@@ -112,9 +110,7 @@ function PatientReport() {
       } catch (err) {
         if (!cancelled) {
           console.error('Report fetch failed:', err);
-          setError(
-            'We couldn’t load this section. Refresh the page or try again shortly.'
-          );
+          setError('Unable to load report.');
           setReport(null);
         }
       } finally {
@@ -166,46 +162,16 @@ function PatientReport() {
   return (
     <main className="patient-report-page bg-gradient-teal">
       <header className="report-page__header">
-        <h1>Your Personalized Brain Health Report</h1>
-        <p>
-          This report is based on your lab results, intake information, and
-          evidence-informed cognitive risk analysis. Use the table of contents
-          to navigate through your personalized recommendations.
-        </p>
-        <button className="btn btn-primary" onClick={handlePrint}>
-          Download as PDF
-        </button>
+        <div>
+          <h1>
+            Patient Report{' '}
+            {report.isDraft && (
+              <span className="report-badge report-badge--draft">Draft</span>
+            )}
+          </h1>
+          <p className="timestamp">{report.reportDate || ''}</p>
+        </div>
       </header>
-
-      <nav className="table-of-contents">
-        <h2>Table of Contents</h2>
-        <ul>
-          {tocSections.map((title, index) => {
-            const slug = title
-              .toLowerCase()
-              .replace(/\s+/g, '-')
-              .replace(/[^a-z0-9-]/g, '');
-            return (
-              <li key={index}>
-                <a href={`#${slug}`}>{title}</a>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      <nav className="table-of-contents">
-        <h2>Table of Contents</h2>
-        <ul>
-          {tocSections.map((title, index) => (
-            <li key={index}>
-              <a href={`#${title.toLowerCase().replace(/\s+/g, '-')}`}>
-                {title}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
 
       {report.globalDisclaimer && (
         <section className="report-banner" aria-label="Global disclaimer">

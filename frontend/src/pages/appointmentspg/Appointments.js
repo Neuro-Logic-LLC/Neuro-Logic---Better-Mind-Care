@@ -19,15 +19,16 @@ function Appointments() {
     padding: '2rem',
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
   };
+
 
   const fetchAppointments = async () => {
     try {
       const response = await fetch('/api/appointments', {
         credentials: 'include',
         headers: {
-          Accept: 'application/json'
+          'Accept': 'application/json'
         }
       });
 

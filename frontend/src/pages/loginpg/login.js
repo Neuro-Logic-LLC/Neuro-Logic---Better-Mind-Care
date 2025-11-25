@@ -139,6 +139,7 @@ export default function Login() {
 
     if (!emailClean) {
       setError('Please double-check this field.');
+      setError('Please double-check this field.');
       return;
     }
     if (pwd.length < 8) {
@@ -165,6 +166,8 @@ export default function Login() {
 
       // ❌ Wrong password — stop here
       if (!res.ok) {
+        const isDev = process.env.NODE_ENV === 'development';
+        setError(data.error || 'Something didn’t go through — try again.');
         const isDev = process.env.NODE_ENV === 'development';
         setError(data.error || 'Something didn’t go through — try again.');
         setBusy(false);
@@ -201,11 +204,7 @@ export default function Login() {
       setStep(2);
     } catch (err) {
       const isDev = process.env.NODE_ENV === 'development';
-      setError(
-        isDev
-          ? String(err?.message || err)
-          : 'Something didn’t go through — try again.'
-      );
+      setError(isDev ? String(err?.message || err) : 'Something didn’t go through — try again.');
     } finally {
       setBusy(false);
     }
@@ -217,6 +216,7 @@ export default function Login() {
     const emailCanon = canonEmail(email);
 
     if (code.length !== 6) {
+      setError('Please enter the 6-digit code.');
       setError('Please enter the 6-digit code.');
       return;
     }
@@ -240,20 +240,10 @@ export default function Login() {
         return;
       }
       const isDev = process.env.NODE_ENV === 'development';
-      setError(
-        data.error ||
-          data.message ||
-          (isDev
-            ? `MFA failed (${res.status})`
-            : 'Something didn’t go through — try again.')
-      );
+      setError(data.error || data.message || (isDev ? `MFA failed (${res.status})` : 'Something didn’t go through — try again.'));
     } catch (e) {
       const isDev = process.env.NODE_ENV === 'development';
-      setError(
-        isDev
-          ? String(e?.message || e)
-          : 'Something didn’t go through — try again.'
-      );
+      setError(isDev ? String(e?.message || e) : 'Something didn’t go through — try again.');
     } finally {
       setBusy(false);
     }
@@ -280,12 +270,7 @@ export default function Login() {
 
   return (
     <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'var(--teal-gradient)'
-      }}
+      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--teal-gradient)' }}
     >
       <main
         style={{

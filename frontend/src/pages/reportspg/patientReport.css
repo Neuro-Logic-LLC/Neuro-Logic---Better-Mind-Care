@@ -5,6 +5,7 @@
   padding: 2.5rem 2.25rem 3rem;
   color: var(--charcoal);
   background: #fff;
+  background: #fff;
   font-family: var(--font-body, 'Open Sans', system-ui, sans-serif);
   border-radius: var(--radius-lg, 24px);
   box-shadow: var(--shadow-sm, 0 2px 12px rgba(23, 109, 129, 0.12));
@@ -186,8 +187,8 @@
 }
 
 /* ===== Actions ===== */
-.report-section a[target='_blank']::after {
-  content: ' (Opens in a new tab)';
+.report-section a[target="_blank"]::after {
+  content: " (Opens in a new tab)";
   font-size: 0.8rem;
   color: color-mix(in oklab, var(--charcoal) 70%, white);
 }

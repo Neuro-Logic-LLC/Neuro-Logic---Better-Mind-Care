@@ -21,6 +21,7 @@ function Messages() {
       const response = await fetch('/api/messages', {
         credentials: 'include',
         headers: {
+<<<<<<< HEAD
           Accept: 'application/json'
         }
       });
@@ -30,6 +31,15 @@ function Messages() {
           'We couldn’t fetch your message(s). Refresh the page or try again shortly.'
         );
       }
+=======
+          'Accept': 'application/json'
+        }
+      });
+
+       if (!response.ok) {
+         throw new Error('We couldn’t fetch your message(s). Refresh the page or try again shortly.');
+       }
+>>>>>>> 613a3d1 (Apply only frontend changes from ui-theme-updates with teal gradients)
 
       const data = await response.json();
       setMessages(data);
@@ -70,6 +80,7 @@ function Messages() {
 
   if (loading) {
     return (
+<<<<<<< HEAD
       <div
         style={{
           background: 'var(--seafoam-gradient)',
@@ -77,6 +88,9 @@ function Messages() {
           padding: '2rem'
         }}
       >
+=======
+      <div style={{ background: 'var(--seafoam-gradient)', minHeight: '100vh', padding: '2rem' }}>
+>>>>>>> 613a3d1 (Apply only frontend changes from ui-theme-updates with teal gradients)
         <div className="messages-page">
           <h1>Messages</h1>
           <p>Loading messages...</p>
@@ -86,6 +100,7 @@ function Messages() {
   }
 
   if (error) {
+<<<<<<< HEAD
     return (
       <div
         style={{
@@ -149,9 +164,53 @@ function Messages() {
             an important update or a personal message from our team.
           </p>
         )}
+=======
+     return (
+       <div style={{ background: 'var(--seafoam-gradient)', minHeight: '100vh', padding: '2rem' }}>
+         <div className="messages-page">
+           <h1>Messages</h1>
+           <p>{error}</p>
+         </div>
+       </div>
+     );
+   }
+
+  return (
+    <div style={{ background: 'var(--seafoam-gradient)', minHeight: '100vh', padding: '2rem' }}>
+      <div className="messages-page">
+      <h1>MESSAGES</h1>
+      <p>Messages from Better Mind Care</p>
+
+      <div className="messages-list">
+        {messages.map(message => (
+          <div key={message.id} className="message-item">
+            <div className="message-header">
+              <strong>{getSenderLabel(message.sender_type, message.category)}</strong>
+              <span className="message-category">{getCategoryLabel(message.category)}</span>
+              <span className="message-date">
+                {new Date(message.created_at).toLocaleDateString()}
+              </span>
+              {message.is_new && <span className="new-badge">New</span>}
+            </div>
+            <div className="message-subject">{message.title}</div>
+            <div className="message-preview" dangerouslySetInnerHTML={{
+              __html: message.body.length > 100 ? message.body.substring(0, 100) + '...' : message.body
+            }} />
+          </div>
+        ))}
+      </div>
+
+      {messages.length === 0 && (
+        <p className="no-messages">You don't have any messages yet. We'll notify you whenever there's an important update or a personal message from our team.</p>
+      )}
+>>>>>>> 613a3d1 (Apply only frontend changes from ui-theme-updates with teal gradients)
       </div>
     </div>
   );
 }
 
+<<<<<<< HEAD
 export default Messages;
+=======
+export default Messages;
+>>>>>>> 613a3d1 (Apply only frontend changes from ui-theme-updates with teal gradients)

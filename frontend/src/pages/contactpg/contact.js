@@ -3,38 +3,33 @@
 import React from 'react';
 import './contact.css';
 import DividerWave from '../../components/bg/DividerWave';
+import DividerWave from '../../components/bg/DividerWave';
 
 function Contact() {
   return (
-    <div
-      style={{
-        background: 'var(--seafoam-gradient)',
-        minHeight: '100vh',
-        padding: '2rem'
-      }}
-    >
+    <div style={{ background: 'var(--seafoam-gradient)', minHeight: '100vh', padding: '2rem' }}>
       <div className="contact-page">
         <h1>Contact Us</h1>
-        <p>
-          We’re here to help. Whether you have questions about your intake, your
-          report, or just need a human to talk to — we’ve got your back.
-        </p>
+      <p>
+        We’re here to help. Whether you have questions about your intake, your
+        report, or just need a human to talk to — we’ve got your back.
+      </p>
 
-        <div className="contact-section">
-          <h3>Email</h3>
-          <p>
-            <a href="mailto:support@BetterMindCare.com">
-              support@bettermindcare.com
-            </a>
-          </p>
-          {/* Need to link to Jim's Google Calendar */}
-          <h3>Phone</h3>
+      <div className="contact-section">
+        <h3>Email</h3>
+        <p>
+          <a href="mailto:support@BetterMindCare.com">
+            support@bettermindcare.com
+          </a>
+        </p>
+        {/* Need to link to Jim's Google Calendar */}
+        <h3>Phone</h3>
 
           <p>(760) 331-3116</p>
 
-          <h3>Schedule a Meeting</h3>
-          {/* // UPDATE WITH JIM'S GOOGLE CALENDARID LINK */}
-          {/* Once authenticated by Google Calendar, users can book a time directly.
+        <h3>Schedule a Meeting</h3>
+        {/* // UPDATE WITH JIM'S GOOGLE CALENDARID LINK */}
+        {/* Once authenticated by Google Calendar, users can book a time directly.
 				Go to calendar.google.com
 
 				Click ⚙️ → Appointment schedules
@@ -55,18 +50,18 @@ function Contact() {
           </p>
         </div>
 
-        <div className="feedback-form">
-          <h3 style={{ marginBottom: '2rem' }}>Send Us a Message</h3>
-          <form>
-            <input type="text" placeholder="Your Name" required />
-            <input type="email" placeholder="Your Email" required />
-            <textarea placeholder="Your Message" rows="5" required></textarea>
-            <button type="submit" className="btn">
-              Send Message
-            </button>
-          </form>
-        </div>
+      <div className="feedback-form">
+        <h3 style={{ marginBottom: '2rem' }}>Send Us a Message</h3>
+        <form>
+          <input type="text" placeholder="Your Name" required />
+          <input type="email" placeholder="Your Email" required />
+          <textarea placeholder="Your Message" rows="5" required></textarea>
+          <button type="submit" className="btn">
+            Send Message
+          </button>
+        </form>
       </div>
+    </div>
     </div>
   );
 }

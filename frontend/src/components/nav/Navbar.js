@@ -55,6 +55,8 @@ function Navbar() {
     ? 'https://bettermindcare.com'
     : 'https://staging.bettermindcare.com';
 
+
+
   return (
     <nav className="navbar" aria-label="Main navigation">
       <Link
@@ -110,104 +112,33 @@ function Navbar() {
             </li>
           )}
           {isLoggedIn && (
-            <>
-              <li role="none" className="account-menu-container">
-                <button
-                  className="account-menu-button"
-                  onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                  aria-expanded={accountMenuOpen}
-                  aria-haspopup="true"
-                >
-                  Account
-                </button>
-                {accountMenuOpen && (
-                  <ul className="account-submenu" role="menu">
-                    <li role="none">
-                      <Link
-                        role="menuitem"
-                        to="/account"
-                        onClick={() => {
-                          setMenuOpen(false);
-                          setAccountMenuOpen(false);
-                        }}
-                      >
-                        Account Settings
-                      </Link>
-                    </li>
-                    <li role="none">
-                      <button
-                        type="button"
-                        className="logout-button"
-                        onClick={() => {
-                          handleLogout();
-                          setMenuOpen(false);
-                          setAccountMenuOpen(false);
-                        }}
-                        aria-label="Log out"
-                        role="menuitem"
-                      >
-                        Log Out
-                      </button>
-                    </li>
-                  </ul>
-                )}
-              </li>
-              <li role="none">
-                <Link
-                  role="menuitem"
-                  to="/support"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Support / Help
-                </Link>
-              </li>
-
-              <li role="none">
-                <Link
-                  role="menuitem"
-                  to="/messages"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Messages
-                </Link>
-              </li>
-
-              <li role="none">
-                <Link
-                  role="menuitem"
-                  to="/resources"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Resources
-                </Link>
-              </li>
-
-              <li role="none">
-                <Link
-                  role="menuitem"
-                  to="/appointments"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Appointments
-                </Link>
-              </li>
-              <li role="none">
-                <button
-                  type="button"
-                  className="logout-button"
-                  onClick={() => {
-                    handleLogout();
-                    setMenuOpen(false);
-                  }}
-                  aria-label="Log out"
-                >
-                  Log Out
-                </button>
-              </li>
-            </>
+            <li role="none">
+              <Link role="menuitem" to="/google-calendar">
+                Calendar
+              </Link>
+            </li>
           )}
+          {isLoggedIn && (
+            <li role="none">
+              <button
+                type="button"
+                className="logout-button"
+                onClick={handleLogout}
+                aria-label="Log out"
+              >
+                Log Out
+              </button>
+            </li>
+          )}
+
+          {/* CTA pills as LINKS using your button classes */}
+
+          <li role="none" className="navbar-ctas">
+            <PillOne to="/order"> {isLoggedIn ? 'Order' : 'Join'}</PillOne>
+            <PillTwo to="/contact">Contact</PillTwo>
+          </li>
         </ul>
-      </div>
+        </div>
     </nav>
   );
 }

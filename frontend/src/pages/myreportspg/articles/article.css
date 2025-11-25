@@ -78,7 +78,7 @@
 }
 
 .toc-toggle:hover {
-  background: var(--seafoam-gradient);
+   background: var(--seafoam-gradient);
   border-color: var(--teal);
 }
 
@@ -145,7 +145,7 @@
 }
 
 .toc-link:hover {
-  background: var(--seafoam-gradient);
+   background: var(--seafoam-gradient);
   color: var(--teal);
 }
 
@@ -305,7 +305,7 @@
 .pull-quote {
   margin: 2rem 0;
   padding: 1.5rem;
-  background: var(--seafoam-gradient);
+   background: var(--seafoam-gradient);
   border-radius: var(--radius-md, 16px);
   text-align: center;
   font-style: italic;

@@ -6,9 +6,7 @@ function ArticleTOC({ sections, activeSection, onSectionClick }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const scrollToSection = (heading) => {
-    const element = document.getElementById(
-      `section-${heading.toLowerCase().replace(/\s+/g, '-')}`
-    );
+    const element = document.getElementById(`section-${heading.toLowerCase().replace(/\s+/g, '-')}`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
       onSectionClick(heading);
@@ -41,17 +39,13 @@ function ArticleTOC({ sections, activeSection, onSectionClick }) {
       >
         <ul>
           {sections.map((section, index) => {
-            const sectionId = section.heading
-              .toLowerCase()
-              .replace(/\s+/g, '-');
+            const sectionId = section.heading.toLowerCase().replace(/\s+/g, '-');
             return (
               <li key={index}>
                 <button
                   className={`toc-link ${activeSection === section.heading ? 'active' : ''}`}
                   onClick={() => scrollToSection(section.heading)}
-                  aria-current={
-                    activeSection === section.heading ? 'true' : 'false'
-                  }
+                  aria-current={activeSection === section.heading ? 'true' : 'false'}
                 >
                   {section.heading}
                 </button>

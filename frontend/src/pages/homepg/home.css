@@ -23,6 +23,7 @@ a.btn:active {
   color: inherit;
 }
 
+
 .hero-section h1,
 .hero-section p {
   text-align: center;
@@ -129,6 +130,7 @@ a.btn:active {
   justify-content: center;
 }
 
+<<<<<<< HEAD
 .feature-card:nth-child(1) {
   animation-delay: 0.1s;
 }
@@ -141,6 +143,12 @@ a.btn:active {
 .feature-card:nth-child(4) {
   animation-delay: 0.4s;
 }
+=======
+.feature-card:nth-child(1) { animation-delay: 0.1s; }
+.feature-card:nth-child(2) { animation-delay: 0.2s; }
+.feature-card:nth-child(3) { animation-delay: 0.3s; }
+.feature-card:nth-child(4) { animation-delay: 0.4s; }
+>>>>>>> 613a3d1 (Apply only frontend changes from ui-theme-updates with teal gradients)
 
 .feature-card h3 {
   color: var(--teal);
@@ -190,6 +198,10 @@ a.btn:active {
     align-items: center;
   }
   .privacy-item {
+<<<<<<< HEAD
+=======
+    flex-direction: column;
+>>>>>>> 613a3d1 (Apply only frontend changes from ui-theme-updates with teal gradients)
     text-align: center;
   }
 
@@ -200,7 +212,10 @@ a.btn:active {
 
   .features-section {
     padding: 3rem 1rem 2rem;
+<<<<<<< HEAD
     margin-top: -2rem;
+=======
+>>>>>>> 613a3d1 (Apply only frontend changes from ui-theme-updates with teal gradients)
   }
 
   .features-grid {

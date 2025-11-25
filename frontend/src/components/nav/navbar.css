@@ -9,6 +9,7 @@
   border-bottom: 1px solid color-mix(in oklab, var(--soft-blue) 55%, white);
 
   font-family: var(--font-body, 'Open Sans', system-ui, sans-serif);
+
 }
 
 /* Left brand */
@@ -126,6 +127,24 @@
   align-items: center;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* Links */
 .navbar-right a {
   display: flex;
@@ -242,14 +261,14 @@
 /* ===== Navbar (brand-updated) ===== */
 
 .navbar {
-  display: flex;
+    display: flex;
   justify-content: space-between;
   align-items: center;
 
   padding: 1rem 2rem;
 
   font-family: var(--font-body, 'Open Sans', system-ui, sans-serif);
-}
+  }
 
 /* Left brand */
 .navbar-left {
@@ -263,17 +282,19 @@
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-}
+
+
+  }
 
 .logo {
   height: 40px;
   width: auto;
   max-width: none;
   margin: 0;
-}
+  }
 
 /* Right nav */
-.navbar-right {
+  .navbar-right {
   list-style: none;
   display: flex;
   gap: 1.25rem;
@@ -351,12 +372,13 @@
 .navbar-right-wrap {
   margin-left: auto; /* pushes right side away from logo */
   display: flex;
-  flex-direction: column;
+    flex-direction: column;
   align-items: flex-end;
   gap: 8px;
-}
 
-.navbar-auth-row {
+  }
+
+  .navbar-auth-row {
   display: flex;
   align-items: center;
   gap: 8px;

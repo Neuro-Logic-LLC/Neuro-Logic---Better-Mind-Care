@@ -14,7 +14,11 @@ function CalloutBox({ type, children }) {
     }
   };
 
-  return <div className={`callout-box ${getCalloutClass()}`}>{children}</div>;
+  return (
+    <div className={`callout-box ${getCalloutClass()}`}>
+      {children}
+    </div>
+  );
 }
 
 export default CalloutBox;

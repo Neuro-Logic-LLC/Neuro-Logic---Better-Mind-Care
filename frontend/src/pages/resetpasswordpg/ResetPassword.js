@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { OutlineButtonHoverDark } from '../../components/button/Buttons';
+import { OutlineButtonHoverDark } from '../../components/button/Buttons';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -109,10 +110,7 @@ export default function ResetPassword() {
       </OutlineButtonHoverDark>
 
       {status && (
-        <p
-          className={status.includes('successful') ? 'success' : 'error'}
-          role="alert"
-        >
+        <p className={status.includes('successful') ? 'success' : 'error'} role="alert">
           {status}
         </p>
       )}

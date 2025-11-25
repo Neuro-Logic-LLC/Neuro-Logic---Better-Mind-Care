@@ -59,10 +59,14 @@ export default function EvexiaPatientList({
       setPatients(normalize(list));
     } catch (e) {
       if (e?.name !== 'AbortError')
+<<<<<<< HEAD
         setError(
           e?.message ||
             'We couldn’t load this section. Refresh the page or try again shortly.'
         );
+=======
+        setError(e?.message || 'We couldn’t load this section. Refresh the page or try again shortly.');
+>>>>>>> 613a3d1 (Apply only frontend changes from ui-theme-updates with teal gradients)
     } finally {
       setLoading(false);
     }
@@ -304,9 +308,13 @@ function AddPatientDialog({ onClose, onCreated }) {
       if (!res.ok) {
         const msg =
           data?.error ||
+<<<<<<< HEAD
           (Array.isArray(data)
             ? data.join('; ')
             : 'Something didn’t go through — try again.');
+=======
+          (Array.isArray(data) ? data.join('; ') : 'Something didn’t go through — try again.');
+>>>>>>> 613a3d1 (Apply only frontend changes from ui-theme-updates with teal gradients)
         throw new Error(msg);
       }
       onCreated?.(data);

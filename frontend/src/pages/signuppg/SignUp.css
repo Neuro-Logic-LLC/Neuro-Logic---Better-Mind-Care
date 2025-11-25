@@ -12,6 +12,8 @@
   font-family: var(--font-body, 'Open Sans', system-ui, sans-serif);
 }
 
+
+
 /* Form wrapper */
 .auth-form {
   max-width: 520px;
