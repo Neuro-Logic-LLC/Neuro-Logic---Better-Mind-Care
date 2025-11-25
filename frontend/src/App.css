@@ -217,6 +217,13 @@ textarea:focus-visible {
   margin-top: 48px;
 }
 
+/* App shell layout */
+.AppShell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 /* Page shell (matches your existing <main class="PageBody">) */
 .PageBody {
   flex: 1;
