@@ -37,12 +37,12 @@ const PrivacyPolicy = () => (
       {/* Google Reviewers Notice */}
       <section id="google-reviewers" className="legal-callout">
         <h2>Important Notice for Google Reviewers (Calendar Integration)</h2>
-        <p>
+        <p style={{ color: 'var(--charcoal)' }}>
           This app’s use of information received from Google APIs will adhere to
           the Google API Services User Data Policy, including the Limited Use
           requirements.
         </p>
-        <p>
+        <p style={{ color: 'var(--charcoal)' }}>
           Specifically, if you connect Google Calendar, we access only the
           minimum event metadata you authorize to deliver scheduling features.
           We do not use Google data for advertising or unrelated purposes, do
