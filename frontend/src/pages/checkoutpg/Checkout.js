@@ -118,7 +118,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div style={{ background: '#ffffff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
+    <div style={{ background: '#ffffff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6rem 1rem 2rem' }}>
       <div className="max-w-4xl mx-auto" style={{ background: '#ffffff', borderRadius: '16px', padding: '2rem', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
       <header className="flex items-center justify-between mb-6">
         <h1 className="text-2xl md:text-3xl font-bold">BetterMindCare Checkout</h1>
