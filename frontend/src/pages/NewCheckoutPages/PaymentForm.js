@@ -19,7 +19,7 @@ export default function PaymentForm({
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [paymentReady, setPaymentReady] = useState(false);
-  
+
   async function handleSubmit() {
     if (!stripe || !elements) return;
 

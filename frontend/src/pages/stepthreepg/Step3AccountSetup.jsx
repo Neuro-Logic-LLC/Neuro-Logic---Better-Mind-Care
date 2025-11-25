@@ -309,7 +309,7 @@ export default function StepThreeAccountSetup() {
       const ProductID =
         orderJson.Product_ID || orderJson.ProductID || orderJson.productID;
 
-      if (session.metadata.pickedApoe === "1") {
+      if (session.metadata.pickedApoe === '1') {
         await addItem(6724);
       }
 

@@ -320,7 +320,10 @@ function HealthQuestionsForm({ gender, setGender }) {
       }
     });
 
-    if (['Yes', 'Unsure'].includes(formData.diabetes) && !formData.diabetesType) {
+    if (
+      ['Yes', 'Unsure'].includes(formData.diabetes) &&
+      !formData.diabetesType
+    ) {
       newErrors.diabetesType = 'Please indicate the diabetes type.';
     }
 

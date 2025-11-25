@@ -139,7 +139,16 @@ export default function EvexiaLabReport() {
   const needsIds = !patientID || !patientOrderID;
 
   return (
-    <div style={{ display: 'grid', gap: 12, padding: 16, minHeight: '60vh', maxWidth: '800px', margin: '0 auto' }}>
+    <div
+      style={{
+        display: 'grid',
+        gap: 12,
+        padding: 16,
+        minHeight: '60vh',
+        maxWidth: '800px',
+        margin: '0 auto'
+      }}
+    >
       <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
         <h2 style={{ margin: 0, flex: 1 }}>Lab Report</h2>
         {!needsIds && (

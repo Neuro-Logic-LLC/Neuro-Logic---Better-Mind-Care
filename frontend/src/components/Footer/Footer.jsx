@@ -144,15 +144,15 @@ export default function Footer() {
           <img src={logo} alt="Better Mind Care" className="footer-logo" />
           <div className="footer-bottom__meta">
             <p>© Better Mind Care 2025</p>
-             <nav aria-label="Legal links" className="footer-legal">
-               <a href="/privacy">Privacy Policy</a>
-               <span aria-hidden="true">•</span>
-               <a href="/terms">Terms of Service</a>
-               <span aria-hidden="true">•</span>
-               <a href="/disclaimer">Disclaimer</a>
-               <span aria-hidden="true">•</span>
-               <a href="/purchase-agreement">Purchase Agreement</a>
-             </nav>
+            <nav aria-label="Legal links" className="footer-legal">
+              <a href="/privacy">Privacy Policy</a>
+              <span aria-hidden="true">•</span>
+              <a href="/terms">Terms of Service</a>
+              <span aria-hidden="true">•</span>
+              <a href="/disclaimer">Disclaimer</a>
+              <span aria-hidden="true">•</span>
+              <a href="/purchase-agreement">Purchase Agreement</a>
+            </nav>
           </div>
         </div>
       </section>

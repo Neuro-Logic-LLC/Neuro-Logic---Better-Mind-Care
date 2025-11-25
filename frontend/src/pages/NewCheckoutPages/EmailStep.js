@@ -65,17 +65,14 @@ export default function EmailStep() {
         <div
           style={{ display: 'flex', alignItems: 'center', marginLeft: '20px' }}
         >
-          <h1 className="text-2xl font-semibold mb-2">Join</h1>
+          <h1 className="text-2xl font-semibold my-4">Join</h1>
         </div>
-        <p
-          style={{ marginLeft: '20px' }}
-          className="text-sm text-neutral-600 mb-2"
-        >
+        <p style={{ marginLeft: '20px' }} className="text-sm text-neutral-600">
           Let's get your account set up.
         </p>
         <p
           style={{ marginLeft: '20px' }}
-          className="text-sm text-neutral-600 mb-6"
+          className="text-sm text-neutral-600 mb-4"
         >
           Enter your email to begin. It only takes a moment.
         </p>

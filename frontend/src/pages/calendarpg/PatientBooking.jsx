@@ -147,8 +147,17 @@ export default function PatientBooking() {
 
     return (
       <div>
-         <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-           <PillTwo
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            flexWrap: 'nowrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '0.75rem'
+          }}
+        >
+          <PillTwo
             onClick={() => {
               if (month === 1) {
                 setMonth(12);
@@ -168,7 +177,7 @@ export default function PatientBooking() {
             })}
           </h2>
 
-           <PillTwo
+          <PillTwo
             onClick={() => {
               if (month === 12) {
                 setMonth(1);
@@ -182,13 +191,13 @@ export default function PatientBooking() {
           </PillTwo>
         </div>
 
-          <div
-           style={{
-             display: 'grid',
-             gridTemplateColumns: 'repeat(7, 1fr)',
-             gap: 6
-           }}
-         >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(7, 1fr)',
+            gap: 6
+          }}
+        >
           {days}
         </div>
       </div>
@@ -199,10 +208,7 @@ export default function PatientBooking() {
   function renderSlots() {
     return (
       <div style={{ textAlign: 'center', maxWidth: 300, margin: '0 auto' }}>
-        <PillTwo
-          className="mb-4 mx-auto"
-          onClick={() => setSelectedDay(null)}
-        >
+        <PillTwo className="mb-4 mx-auto" onClick={() => setSelectedDay(null)}>
           ← Back to month
         </PillTwo>
 
@@ -281,17 +287,17 @@ export default function PatientBooking() {
             Booking as <strong>{bookingName}</strong> ({bookingEmail})
           </div>
 
-           <PillTwo
-             style={{
-               width: '100%',
-               padding: '12px',
-               fontSize: '1rem',
-               borderRadius: '8px'
-             }}
-             onClick={handleBook}
-           >
-             Confirm Booking
-           </PillTwo>
+          <PillTwo
+            style={{
+              width: '100%',
+              padding: '12px',
+              fontSize: '1rem',
+              borderRadius: '8px'
+            }}
+            onClick={handleBook}
+          >
+            Confirm Booking
+          </PillTwo>
         </div>
       </div>
     );

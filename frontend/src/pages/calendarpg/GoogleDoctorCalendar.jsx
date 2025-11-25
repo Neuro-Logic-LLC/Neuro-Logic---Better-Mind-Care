@@ -218,7 +218,9 @@ export default function GoogleDoctorCalendar() {
   const [events, setEvents] = useState([]);
   const [view, setView] = useState(Views.MONTH);
   const [date, setDate] = useState(new Date());
-  const [calendarId, setCalendarId] = useState('c_1881m5n5lf6ccjl6hhkho39p8h7eq@resource.calendar.google.com');
+  const [calendarId, setCalendarId] = useState(
+    'c_1881m5n5lf6ccjl6hhkho39p8h7eq@resource.calendar.google.com'
+  );
 
   // view range + tz
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
@@ -267,7 +269,7 @@ export default function GoogleDoctorCalendar() {
         calendarId,
         includePastDays
       );
-      console.log("RAW EVENTS:", evs);
+      console.log('RAW EVENTS:', evs);
       setEvents(
         (evs || []).map((e) => ({
           ...e,

@@ -55,8 +55,6 @@ function Navbar() {
     ? 'https://bettermindcare.com'
     : 'https://staging.bettermindcare.com';
 
-
-
   return (
     <nav className="navbar" aria-label="Main navigation">
       <Link
@@ -114,46 +112,46 @@ function Navbar() {
           {isLoggedIn && (
             <>
               <li role="none" className="account-menu-container">
-                 <button
-                   className="account-menu-button"
-                   onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                   aria-expanded={accountMenuOpen}
-                   aria-haspopup="true"
-                 >
-                   Account
-                 </button>
-                 {accountMenuOpen && (
-                   <ul className="account-submenu" role="menu">
-                     <li role="none">
-                       <Link
-                         role="menuitem"
-                         to="/account"
-                         onClick={() => {
-                           setMenuOpen(false);
-                           setAccountMenuOpen(false);
-                         }}
-                       >
-                         Account Settings
-                       </Link>
-                     </li>
-                     <li role="none">
-                       <button
-                         type="button"
-                         className="logout-button"
-                         onClick={() => {
-                           handleLogout();
-                           setMenuOpen(false);
-                           setAccountMenuOpen(false);
-                         }}
-                         aria-label="Log out"
-                         role="menuitem"
-                       >
-                         Log Out
-                       </button>
-                     </li>
-                   </ul>
-                 )}
-               </li>
+                <button
+                  className="account-menu-button"
+                  onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                  aria-expanded={accountMenuOpen}
+                  aria-haspopup="true"
+                >
+                  Account
+                </button>
+                {accountMenuOpen && (
+                  <ul className="account-submenu" role="menu">
+                    <li role="none">
+                      <Link
+                        role="menuitem"
+                        to="/account"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setAccountMenuOpen(false);
+                        }}
+                      >
+                        Account Settings
+                      </Link>
+                    </li>
+                    <li role="none">
+                      <button
+                        type="button"
+                        className="logout-button"
+                        onClick={() => {
+                          handleLogout();
+                          setMenuOpen(false);
+                          setAccountMenuOpen(false);
+                        }}
+                        aria-label="Log out"
+                        role="menuitem"
+                      >
+                        Log Out
+                      </button>
+                    </li>
+                  </ul>
+                )}
+              </li>
               <li role="none">
                 <Link
                   role="menuitem"
@@ -197,16 +195,19 @@ function Navbar() {
                 <button
                   type="button"
                   className="logout-button"
-                  onClick={() => { handleLogout(); setMenuOpen(false); }}
+                  onClick={() => {
+                    handleLogout();
+                    setMenuOpen(false);
+                  }}
                   aria-label="Log out"
                 >
                   Log Out
                 </button>
-               </li>
+              </li>
             </>
           )}
         </ul>
-        </div>
+      </div>
     </nav>
   );
 }

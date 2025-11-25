@@ -15,9 +15,7 @@ const usd = (cents) =>
 
 function computeTotal(c) {
   return (
-    (c.APOE ? 12500 : 0) +
-    (c.PTAU ? 30900 : 0) +
-    (c.DOCTORS_DATA ? 9900 : 0)
+    (c.APOE ? 12500 : 0) + (c.PTAU ? 30900 : 0) + (c.DOCTORS_DATA ? 9900 : 0)
   );
 }
 
@@ -38,7 +36,11 @@ function ProductRow({ item, selected, onToggle }) {
 }
 
 export default function CheckoutPage() {
-  const [cart, setCart] = useState({ APOE: false, PTAU: false, DOCTORS_DATA: false });
+  const [cart, setCart] = useState({
+    APOE: false,
+    PTAU: false,
+    DOCTORS_DATA: false
+  });
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -65,7 +67,8 @@ export default function CheckoutPage() {
       const selPtau = Boolean(cart.PTAU);
       const selDoctors = Boolean(cart.DOCTORS_DATA);
       const patientId = sessionStorage.getItem('evx_patientId') || undefined;
-      const patientOrderId = sessionStorage.getItem('evx_patientOrderId') || undefined;
+      const patientOrderId =
+        sessionStorage.getItem('evx_patientOrderId') || undefined;
 
       const baseUrl = window.location.origin;
 
@@ -80,7 +83,7 @@ export default function CheckoutPage() {
         ui_apoe: cart.APOE,
         ui_ptau: cart.PTAU,
         ui_doctors_data: cart.DOCTORS_DATA,
-        
+
         apoe: selApoe,
         ptau: selPtau,
         doctors_data: selDoctors,
@@ -106,7 +109,8 @@ export default function CheckoutPage() {
         throw new Error(text || 'Bad server response');
       }
 
-      if (!res.ok) throw new Error(data.error || `Checkout failed with ${res.status}`);
+      if (!res.ok)
+        throw new Error(data.error || `Checkout failed with ${res.status}`);
       if (!data?.url) throw new Error('No redirect URL from server');
 
       window.location.href = data.url;
@@ -118,67 +122,95 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div style={{ background: '#ffffff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6rem 1rem 2rem' }}>
-      <div className="max-w-4xl mx-auto" style={{ background: '#ffffff', borderRadius: '16px', padding: '2rem', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-      <header className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold">BetterMindCare Checkout</h1>
-        <Link className="text-sm underline" to="/success" title="Preview success">
-          Preview success
-        </Link>
-      </header>
+    <div
+      style={{
+        background: '#ffffff',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '6rem 1rem 2rem'
+      }}
+    >
+      <div
+        className="max-w-4xl mx-auto"
+        style={{
+          background: '#ffffff',
+          borderRadius: '16px',
+          padding: '2rem',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+        <header className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold">
+            BetterMindCare Checkout
+          </h1>
+          <Link
+            className="text-sm underline"
+            to="/success"
+            title="Preview success"
+          >
+            Preview success
+          </Link>
+        </header>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 space-y-3">
-          {CATALOG.map((item) => (
-            <ProductRow
-              key={item.key}
-              item={item}
-              selected={cart[item.key]}
-              onToggle={toggle}
-            />
-          ))}
-        </div>
-
-        <aside className="md:col-span-1 p-4 rounded-2xl border border-gray-200 shadow-sm h-fit text-center">
-          <h2 className="text-lg font-semibold mb-4">Order</h2>
-          <div className="space-y-3 text-sm">
-            <label className="block">
-              <span className="text-gray-700 email-label mr-4 ">Email (optional for receipt)</span>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full rounded-xl border border-gray-300 px-3 py-2 ml-4 focus:outline-none focus:ring-2 focus:ring-gray-800"
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="md:col-span-2 space-y-3">
+            {CATALOG.map((item) => (
+              <ProductRow
+                key={item.key}
+                item={item}
+                selected={cart[item.key]}
+                onToggle={toggle}
               />
-            </label>
-
-            <div className="flex items-center justify-between pt-2 border-t">
-              <span className="font-semibold">Total</span>
-              <span className="font-bold">{usd(total)}</span>
-            </div>
-
-            {error && (
-              <div aria-live="polite" className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-xl p-2">
-                {error}
-              </div>
-            )}
-
-            <PrimaryButton
-              onClick={handleCheckout}
-              disabled={loading || total === 0}
-              className="w-full checkout-btn"
-            >
-              {loading ? 'Starting checkout...' : 'Pay with Stripe'}
-            </PrimaryButton>
-
-            <p className="text-xs text-gray-600">
-              You will be redirected to Stripe Checkout.
-            </p>
+            ))}
           </div>
-        </aside>
+
+          <aside className="md:col-span-1 p-4 rounded-2xl border border-gray-200 shadow-sm h-fit text-center">
+            <h2 className="text-lg font-semibold mb-4">Order</h2>
+            <div className="space-y-3 text-sm">
+              <label className="block">
+                <span className="text-gray-700 email-label mr-4 ">
+                  Email (optional for receipt)
+                </span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full rounded-xl border border-gray-300 px-3 py-2 ml-4 focus:outline-none focus:ring-2 focus:ring-gray-800"
+                />
+              </label>
+
+              <div className="flex items-center justify-between pt-2 border-t">
+                <span className="font-semibold">Total</span>
+                <span className="font-bold">{usd(total)}</span>
+              </div>
+
+              {error && (
+                <div
+                  aria-live="polite"
+                  className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-xl p-2"
+                >
+                  {error}
+                </div>
+              )}
+
+              <PrimaryButton
+                onClick={handleCheckout}
+                disabled={loading || total === 0}
+                className="w-full checkout-btn"
+              >
+                {loading ? 'Starting checkout...' : 'Pay with Stripe'}
+              </PrimaryButton>
+
+              <p className="text-xs text-gray-600">
+                You will be redirected to Stripe Checkout.
+              </p>
+            </div>
+          </aside>
+        </div>
       </div>
-    </div>
     </div>
   );
 }

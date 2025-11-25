@@ -63,7 +63,19 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="reset-pass-page" style={{ background: 'var(--teal-gradient)', minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: '10vh', textAlign: 'center' }}>
+    <div
+      className="reset-pass-page"
+      style={{
+        background: 'var(--teal-gradient)',
+        minHeight: '60vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        paddingTop: '10vh',
+        textAlign: 'center'
+      }}
+    >
       <h2>Reset Your Password</h2>
 
       <input
@@ -97,7 +109,10 @@ export default function ResetPassword() {
       </OutlineButtonHoverDark>
 
       {status && (
-        <p className={status.includes('successful') ? 'success' : 'error'} role="alert">
+        <p
+          className={status.includes('successful') ? 'success' : 'error'}
+          role="alert"
+        >
           {status}
         </p>
       )}

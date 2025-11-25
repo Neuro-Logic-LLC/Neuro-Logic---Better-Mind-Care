@@ -29,7 +29,12 @@ const Section = ({ section, fallbackFooter }) => {
     return null;
   }
 
-  const sectionId = section.id || section.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const sectionId =
+    section.id ||
+    section.title
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
 
   return (
     <section className="report-section" id={sectionId}>
@@ -80,7 +85,11 @@ function PatientReport() {
         const res = await fetch(`/api/reports/${reportId}`, {
           credentials: 'include'
         });
-        if (!res.ok) throw new Error(res.statusText || 'We couldn’t load this section. Refresh the page or try again shortly.');
+        if (!res.ok)
+          throw new Error(
+            res.statusText ||
+              'We couldn’t load this section. Refresh the page or try again shortly.'
+          );
         const data = await res.json();
 
         if (!cancelled) {
@@ -97,7 +106,9 @@ function PatientReport() {
       } catch (err) {
         if (!cancelled) {
           console.error('Report fetch failed:', err);
-          setError('We couldn’t load this section. Refresh the page or try again shortly.');
+          setError(
+            'We couldn’t load this section. Refresh the page or try again shortly.'
+          );
           setReport(null);
         }
       } finally {
@@ -117,8 +128,6 @@ function PatientReport() {
       </div>
     );
   }
-
-
 
   if (!report) {
     return (
@@ -152,15 +161,24 @@ function PatientReport() {
     <main className="patient-report-page bg-gradient-teal">
       <header className="report-page__header">
         <h1>Your Personalized Brain Health Report</h1>
-        <p>This report is based on your lab results, intake information, and evidence-informed cognitive risk analysis. Use the table of contents to navigate through your personalized recommendations.</p>
-        <button className="btn btn-primary" onClick={handlePrint}>Download as PDF</button>
+        <p>
+          This report is based on your lab results, intake information, and
+          evidence-informed cognitive risk analysis. Use the table of contents
+          to navigate through your personalized recommendations.
+        </p>
+        <button className="btn btn-primary" onClick={handlePrint}>
+          Download as PDF
+        </button>
       </header>
 
       <nav className="table-of-contents">
         <h2>Table of Contents</h2>
         <ul>
           {tocSections.map((title, index) => {
-            const slug = title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            const slug = title
+              .toLowerCase()
+              .replace(/\s+/g, '-')
+              .replace(/[^a-z0-9-]/g, '');
             return (
               <li key={index}>
                 <a href={`#${slug}`}>{title}</a>
@@ -175,7 +193,9 @@ function PatientReport() {
         <ul>
           {tocSections.map((title, index) => (
             <li key={index}>
-              <a href={`#${title.toLowerCase().replace(/\s+/g, '-')}`}>{title}</a>
+              <a href={`#${title.toLowerCase().replace(/\s+/g, '-')}`}>
+                {title}
+              </a>
             </li>
           ))}
         </ul>

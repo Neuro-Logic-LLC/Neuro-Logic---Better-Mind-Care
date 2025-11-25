@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { fetchPaidCalendarAccess } from '../../calendarApi/calendarApi';
 import { OutlineButtonHoverDark } from '../../components/button/Buttons';
 
-
 export default function SuccessPage() {
   const location = useLocation();
   const [error, setError] = useState(null);
@@ -45,12 +44,12 @@ export default function SuccessPage() {
 
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
-       <OutlineButtonHoverDark
-         to="/login"
-         className="inline-block rounded-xl border-2 border-teal-600 text-teal-600 px-4 py-2 font-semibold hover:bg-teal-600 hover:text-white transition-colors"
-       >
-         Go to Login
-       </OutlineButtonHoverDark>
+      <OutlineButtonHoverDark
+        to="/login"
+        className="inline-block rounded-xl border-2 border-teal-600 text-teal-600 px-4 py-2 font-semibold hover:bg-teal-600 hover:text-white transition-colors"
+      >
+        Go to Login
+      </OutlineButtonHoverDark>
     </div>
   );
 }

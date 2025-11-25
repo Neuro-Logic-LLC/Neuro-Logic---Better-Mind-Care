@@ -1,7 +1,12 @@
 /** @format */
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate
+} from 'react-router-dom';
 import './App.css';
 
 // Shared Layout Components
@@ -64,8 +69,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-             <Route path="/evexia-lab-results" element={<EvexiaLabReport />} />
-             <Route path="/google-calendar" element={<GoogleCalendar />} />
+            <Route path="/evexia-lab-results" element={<EvexiaLabReport />} />
+            <Route path="/google-calendar" element={<GoogleCalendar />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/success" element={<SuccessPage />} />
             <Route path="/cancel-order" element={<CancelPage />} />
@@ -73,35 +78,38 @@ function App() {
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
 
-             <Route path="/admin/users/:id" element={<UserDetails />} />
-             <Route path="/intake-form" element={<IntakeForm />} />
-             <Route path="/report" element={<PatientReport />} />
-             <Route path="/my-reports" element={<MyReports />} />
-             <Route path="/admin/dashboard" element={<Dashboard />} />
-             <Route path="/admin/users" element={<UserList />} />
-             <Route path="/admin/logs" element={<AuditLog />} />
+            <Route path="/admin/users/:id" element={<UserDetails />} />
+            <Route path="/intake-form" element={<IntakeForm />} />
+            <Route path="/report" element={<PatientReport />} />
+            <Route path="/my-reports" element={<MyReports />} />
+            <Route path="/admin/dashboard" element={<Dashboard />} />
+            <Route path="/admin/users" element={<UserList />} />
+            <Route path="/admin/logs" element={<AuditLog />} />
 
-             <Route path="/screening-order" element={<ScreeningOrder />} />
+            <Route path="/screening-order" element={<ScreeningOrder />} />
 
-             <Route path="/patient-orders" element={<PatientOrders />} />
+            <Route path="/patient-orders" element={<PatientOrders />} />
 
-             <Route path="/automated-lab-results" element={<AutomatedLabResults />} />
+            <Route
+              path="/automated-lab-results"
+              element={<AutomatedLabResults />}
+            />
 
-             <Route path="/patient-req" element={<PatientRequisitionViewer />} />
+            <Route path="/patient-req" element={<PatientRequisitionViewer />} />
 
             <Route path="/confirm-email" element={<ConfirmEmail />} />
 
-             <Route path="/join" element={<EmailStep />} />
+            <Route path="/join" element={<EmailStep />} />
             <Route path="/join/checkout" element={<CheckoutStep />} />
-             <Route path="/account-info" element={<StepThreeAccountSetup />} />
-             <Route path="/sign-up" element={<SignUp />} />
-             <Route path="/account" element={<Account />} />
-             <Route path="/support" element={<Support />} />
-             <Route path="/messages" element={<Messages />} />
-             <Route path="/appointments" element={<Appointments />} />
-             <Route path="/faq" element={<Resources />} />
-             <Route path="/resources/articles/:slug" element={<Article />} />
-             <Route path="*" element={<NotFound />} />
+            <Route path="/account-info" element={<StepThreeAccountSetup />} />
+            <Route path="/sign-up" element={<SignUp />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/support" element={<Support />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/appointments" element={<Appointments />} />
+            <Route path="/faq" element={<Resources />} />
+            <Route path="/resources/articles/:slug" element={<Article />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </SignupProvider>
       </main>

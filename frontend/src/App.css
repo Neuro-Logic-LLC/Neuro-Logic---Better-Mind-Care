@@ -13,8 +13,9 @@
   cursor: pointer !important;
 }
 
-.rbc-event, .rbc-day-slot .rbc-background-event {
-  background-color:#176d81 !important;
+.rbc-event,
+.rbc-day-slot .rbc-background-event {
+  background-color: #176d81 !important;
 }
 
 .rbc-button-link {
@@ -22,10 +23,9 @@
   font-weight: 600 !important ;
 }
 
-.rbc-header{
+.rbc-header {
   color: #ffffff;
-  background-color:#0e3e4a !important;
-
+  background-color: #0e3e4a !important;
 }
 
 /* Calendar font override */
@@ -35,8 +35,6 @@
 .rbc-calendar * {
   font-family: 'Open Sans', sans-serif !important;
 }
-
-
 
 /* Calendar highlight color */
 .rbc-today {
@@ -53,6 +51,7 @@
   --dark-teal: #0e3e4a; /* deeper teal */
   --gold-amber: #f9a03f; /* orange */
   --dark-amber: #d87d1c; /* deeper orange */
+  --darker-amber: #b25f09; /* even deeper orange - wcag2.1 - complaint for orange on white  */
   --soft-white: #fafafa; /* Seasalt – background */
   --soft-blue: #a3e8dc; /* Tiffany Blue – optional accent */
   --seafoam: var(--soft-blue); /* alias for seafoam */
@@ -76,11 +75,16 @@
   --color-danger: var(--warm-coral);
 
   /* Background Gradients */
-   --seafoam-gradient: linear-gradient(to top, var(--seafoam) 0%, #ffffff 90%);
-   --teal-gradient: linear-gradient(to top, var(--teal) 0%, var(--seafoam) 55%, #ffffff 90%);
+  --seafoam-gradient: linear-gradient(to top, var(--seafoam) 0%, #ffffff 90%);
+  --teal-gradient: linear-gradient(
+    to top,
+    var(--teal) 0%,
+    var(--seafoam) 55%,
+    #ffffff 90%
+  );
 
   /* States */
-  --color-link: var(--gold-amber);
+  --color-link: var(--darker-amber);
   --color-link-hover: #008db0; /* darker aqua */
   --color-outline: var(--gold-amber);
   --color-error: var(--warm-coral);

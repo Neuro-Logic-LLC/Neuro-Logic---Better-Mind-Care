@@ -69,13 +69,13 @@ export default function CheckoutStep() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-   const email = state.email || '';
+  const email = state.email || '';
 
-   useEffect(() => {
-     if (!email) navigate('/join');
-   }, [email, navigate]);
+  useEffect(() => {
+    if (!email) navigate('/join');
+  }, [email, navigate]);
 
-   function toggle(key, val) {
+  function toggle(key, val) {
     setCart((prev) => ({ ...prev, [key]: val }));
   }
 
@@ -178,7 +178,7 @@ export default function CheckoutStep() {
             <span style={{ flex: 1 }}>Doctors Data Test</span>
             <span>{usd(PRICES.DOCTORS_DATA)}</span>
           </label>
-        )}  
+        )}
       </div>
 
       <div style={{ marginTop: 16 }}>
