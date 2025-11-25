@@ -1,7 +1,7 @@
 /** @format */
 
 import React from 'react';
-import { Link } from 'react—router—dom';
+import { Link } from 'react-router-dom';
 import './footer.css';
 import logo from '../../assets/BMCLogo.png';
 // const socialLinks = [
@@ -16,9 +16,9 @@ import logo from '../../assets/BMCLogo.png';
 //   const paths = Array.isArray(svgPathData) ? svgPathData : [svgPathData];
 //   return (
 //     <svg
-//       className="icon—circle__icon"
+//       className="icon-circle__icon"
 //       viewBox={`0 0 ${width} ${height}`}
-//       aria—hidden="true"
+//       aria-hidden="true"
 //       focusable="false"
 //     >
 //       {paths.map((d, idx) => (
@@ -30,20 +30,20 @@ import logo from '../../assets/BMCLogo.png';
 
 export default function Footer() {
   return (
-    <footer className="footer" role="contentinfo" aria—label="Site footer">
+    <footer className="footer" role="contentinfo" aria-label="Site footer">
       {/*Newsletter */}
-      {/* <section className="footer—newsletter" aria—labelledby="nl—title">
+      {/* <section className="footer-newsletter" aria-labelledby="nl-title">
         <div className="footer__container">
-          <div className="footer—newsletter__content">
-            <div className="footer—newsletter__hero">
-              <span className="footer—newsletter__hero—symbol" aria—hidden="true">
+          <div className="footer-newsletter__content">
+            <div className="footer-newsletter__hero">
+              <span className="footer-newsletter__hero-symbol" aria-hidden="true">
                 @
               </span>
-              <div className="footer—newsletter__hero—copy">
-                <p id="nl—title" className="footer—newsletter__title">
+              <div className="footer-newsletter__hero-copy">
+                <p id="nl-title" className="footer-newsletter__title">
                   Subscribe to the Better Mind Care Newsletter!
                 </p>
-                <p className="footer—newsletter__copy">
+                <p className="footer-newsletter__copy">
                   Better brain health starts with better knowledge. Get expert tips, research updates,
                   and resources delivered monthly to your inbox.
                 </p>
@@ -52,23 +52,23 @@ export default function Footer() {
           </div>
 
           <form
-            className="footer—newsletter__form"
+            className="footer-newsletter__form"
             onSubmit={(e) => e.preventDefault()}
-            aria—label="Subscribe to newsletter"
+            aria-label="Subscribe to newsletter"
           >
-            <label htmlFor="nl—email" className="sr—only">
+            <label htmlFor="nl-email" className="sr-only">
               Email Address
             </label>
-            <div className="footer—newsletter__form—controls">
+            <div className="footer-newsletter__form-controls">
               <input
-                id="nl—email"
+                id="nl-email"
                 type="email"
                 inputMode="email"
                 autoComplete="email"
                 placeholder="Enter your email address"
                 required
               />
-              <button type="submit" className="footer—btn">
+              <button type="submit" className="footer-btn">
                 Submit
               </button>
             </div>
@@ -78,18 +78,18 @@ export default function Footer() {
 
       {/* Links grid temporarily disabled */}
       {/*
-      <section className="footer—links" aria—label="Footer navigation">
-        <div className="footer__container footer—links__grid">
-          <nav aria—label="Primary footer links">
+      <section className="footer-links" aria-label="Footer navigation">
+        <div className="footer__container footer-links__grid">
+          <nav aria-label="Primary footer links">
             <ul>
               <li>
-                <a href="/early—detection">Early Detection</a>
+                <a href="/early-detection">Early Detection</a>
               </li>
               <li>
-                <a href="/preventive—care">Preventive Care</a>
+                <a href="/preventive-care">Preventive Care</a>
               </li>
               <li>
-                <a href="/our—approach">Our Approach</a>
+                <a href="/our-approach">Our Approach</a>
               </li>
               <li>
                 <a href="/pricing">Pricing</a>
@@ -97,7 +97,7 @@ export default function Footer() {
             </ul>
           </nav>
 
-          <nav aria—label="Company links">
+          <nav aria-label="Company links">
             <ul>
               <li>
                 <a href="/about">About Us</a>
@@ -109,25 +109,25 @@ export default function Footer() {
                 <a href="/faqs">FAQs</a>
               </li>
               <li>
-                <a href="/privacy—policy">Privacy Policy</a>
+                <a href="/privacy-policy">Privacy Policy</a>
               </li>
             </ul>
           </nav>
 
-          <div className="footer—social" aria—label="Follow us">
+          <div className="footer-social" aria-label="Follow us">
             <h3>FOLLOW&nbsp;US!</h3>
-            <div className="footer—social__icons">
+            <div className="footer-social__icons">
               {socialLinks.map(({ href, label, icon }) => (
                 <a
                   key={label}
                   href={href}
-                  aria—label={label}
-                  className="icon—circle"
+                  aria-label={label}
+                  className="icon-circle"
                   target="_blank"
                   rel="noreferrer"
                 >
-                  <svg className="icon—circle__svg" viewBox="0 0 44 44" aria—hidden="true" focusable="false">
-                    <circle cx="22" cy="22" r="21" className="icon—circle__ring" />
+                  <svg className="icon-circle__svg" viewBox="0 0 44 44" aria-hidden="true" focusable="false">
+                    <circle cx="22" cy="22" r="21" className="icon-circle__ring" />
                   </svg>
                   <BrandIcon icon={icon} />
                 </a>
@@ -139,19 +139,19 @@ export default function Footer() {
       */}
 
       {/* 3) Bottom bar */}
-      <section className="footer—bottom" aria—label="Brand and copyright">
-        <div className="footer__container footer—bottom__inner">
-          <img src={logo} alt="Better Mind Care" className="footer—logo" />
-          <div className="footer—bottom__meta">
+      <section className="footer-bottom" aria-label="Brand and copyright">
+        <div className="footer__container footer-bottom__inner">
+          <img src={logo} alt="Better Mind Care" className="footer-logo" />
+          <div className="footer-bottom__meta">
             <p>© Better Mind Care 2025</p>
-             <nav aria—label="Legal links" className="footer—legal">
+             <nav aria-label="Legal links" className="footer-legal">
                <a href="/privacy">Privacy Policy</a>
-               <span aria—hidden="true">•</span>
+               <span aria-hidden="true">•</span>
                <a href="/terms">Terms of Service</a>
-               <span aria—hidden="true">•</span>
+               <span aria-hidden="true">•</span>
                <a href="/disclaimer">Disclaimer</a>
-               <span aria—hidden="true">•</span>
-               <a href="/purchase—agreement">Purchase Agreement</a>
+               <span aria-hidden="true">•</span>
+               <a href="/purchase-agreement">Purchase Agreement</a>
              </nav>
           </div>
         </div>

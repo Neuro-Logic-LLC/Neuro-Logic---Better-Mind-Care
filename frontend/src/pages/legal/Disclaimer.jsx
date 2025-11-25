@@ -31,7 +31,7 @@ const Disclaimer = () => (
       <section id="not-medical-advice">
         <h2>1. Not Medical Advice</h2>
         <p>
-          All content, tools, reports, data visualizations, ratios, educational materials, and communications provided by BMC — including those informed by lab results — are for informational and wellness-education purposes only.
+          All content, tools, reports, data visualizations, ratios, educational materials, and communications provided by BMC - including those informed by lab results - are for informational and wellness-education purposes only.
         </p>
         <p>They do not constitute:</p>
         <ul>
