@@ -143,13 +143,13 @@ export default function CheckoutPage() {
           <h2 className="text-lg font-semibold mb-4">Order</h2>
           <div className="space-y-3 text-sm">
             <label className="block">
-              <span className="text-gray-700 email-label">Email (optional for receipt)</span>
+              <span className="text-gray-700 email-label mr-4 ">Email (optional for receipt)</span>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-800"
+                className="w-full rounded-xl border border-gray-300 px-3 py-2 ml-4 focus:outline-none focus:ring-2 focus:ring-gray-800"
               />
             </label>
 
