@@ -46,11 +46,42 @@ const Section = ({ section, fallbackFooter }) => {
   );
 };
 
+const sampleReport = {
+  sections: [
+    {
+      title: "Overview",
+      body: "<p>This is your personalized brain health report based on your intake and test results.</p>",
+      items: ["Key finding 1", "Key finding 2"]
+    },
+    {
+      title: "Your Personalized Recommendations",
+      body: "<p>Based on your data, here are recommendations.</p>",
+      items: ["Exercise regularly", "Eat a balanced diet"]
+    },
+    {
+      title: "Supplement Guidance",
+      body: "<p>Consider these supplements.</p>",
+      items: ["Omega-3", "Vitamin D"]
+    },
+    {
+      title: "Your Test Results",
+      body: "<p>Cognition test results: XpressO score 85/100 - Normal range.</p>",
+      items: ["MMSE: 28/30", "MoCA: 26/30"]
+    },
+    {
+      title: "FAQs & Definitions",
+      body: "<p>Frequently asked questions.</p>",
+      items: ["What is MMSE?", "How to improve scores?"]
+    }
+  ],
+  footerBanner: "This is educational content, not medical advice."
+};
+
 function PatientReport() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const initialReport = location.state?.report || null;
+  const initialReport = location.state?.report || sampleReport;
   const [report, setReport] = useState(initialReport);
   const [loading, setLoading] = useState(!initialReport);
   const [error, setError] = useState(null);
@@ -118,16 +149,7 @@ function PatientReport() {
     );
   }
 
-  if (!report) {
-    return (
-      <div className="patient-report-page">
-        <p>{error || 'No report yet.'}</p>
-        <button className="btn" type="button" onClick={() => navigate('/')}>
-          Go back
-        </button>
-      </div>
-    );
-  }
+
 
   const sections = Array.isArray(report.sections) ? report.sections : [];
   const footerBanner =
