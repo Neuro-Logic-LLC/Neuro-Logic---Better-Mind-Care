@@ -71,9 +71,9 @@ export default function CheckoutStep() {
 
    const email = state.email || '';
 
-   // useEffect(() => {
-   //   if (!email) navigate('/join');
-   // }, [email, navigate]);
+   useEffect(() => {
+     if (!email) navigate('/join');
+   }, [email, navigate]);
 
    function toggle(key, val) {
     setCart((prev) => ({ ...prev, [key]: val }));
