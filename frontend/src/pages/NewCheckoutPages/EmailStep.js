@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSignup } from './SignupContext';
 import { useAuth } from '../../auth/AuthContext';
@@ -15,6 +15,15 @@ export default function EmailStep() {
   const [checking, setChecking] = useState(false);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const resumed = params.get('resume_id') || state.email;
+
+    if (resumed) {
+      navigate('/join/checkout' + window.location.search);
+    }
+  }, []);
 
   async function checkAndValidateEmailExists(email) {
     try {

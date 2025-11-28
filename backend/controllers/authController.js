@@ -1166,7 +1166,10 @@ exports.paidSignup = async (req, res) => {
         email_canon: eCanon,
         email_hash: identHash(eCanon)
       });
-
+    await knex('pending_signup').where({ email: eCanon }).update({
+      intake_ok: true,
+      date_last_modified: knex.fn.now()
+    });
     // ---------------------------------------
     // 6. AUDIT
     // ---------------------------------------
@@ -1489,4 +1492,102 @@ exports.checkAndValidateEmailExists = async (req, res) => {
     console.error("❌ Check email exists error: user doesn't exist or other error", err);
     return res.status(500).json({ error: 'Server error' });
   }
+};
+
+exports.resumeSignup = async (req, res) => {
+  const knex = await initKnex();
+  const { token } = req.query;
+
+  if (!token) {
+    return res.status(400).send('Missing token');
+  }
+
+  try {
+    const rows = await knex('pending_signup').select('*').whereNotNull('magic_token_hash');
+
+    let matched = null;
+
+    for (const row of rows) {
+      const ok = await bcrypt.compare(token, row.magic_token_hash);
+      if (ok) {
+        matched = row;
+        break;
+      }
+    }
+
+    if (!matched) {
+      return res.status(400).send('Invalid or expired link');
+    }
+
+    // Clear token so it's one-time-use
+    await knex('pending_signup').where({ id: matched.id }).update({
+      magic_token_hash: null,
+      magic_token_expires_at: null,
+      date_last_modified: knex.fn.now()
+    });
+
+    // Determine next step
+    let next = '/join/checkout';
+
+    if (matched.stripe_ok && !matched.intake_ok) next = '/account-info';
+    if (matched.stripe_ok && matched.intake_ok) next = '/success';
+
+    const base = (process.env.FRONTEND_URL || '').replace(/\/$/, '');
+
+    // ⚠️ IMPORTANT: include resume_id
+    const url = `${base}${next}?email=${encodeURIComponent(matched.email)}&resume_id=${matched.id}`;
+
+    return res.redirect(url);
+  } catch (err) {
+    console.error('❌ Resume signup failed:', err);
+    return res.status(500).send('Server error');
+  }
+};
+
+exports.getPendingSignup = async (req, res) => {
+  const knex = await initKnex();
+  const { id } = req.params;
+
+  const row = await knex('pending_signup').where({ id }).first();
+
+  if (!row) return res.status(404).json({ error: 'Not found' });
+
+  res.json({
+    email: row.email,
+    pickedCore: row.picked_core,
+    pickedApoe: row.picked_apoe,
+    stripe_ok: row.stripe_ok,
+    intake_ok: row.intake_ok
+    // Add anything else you store
+  });
+};
+
+exports.reachedCheckout = async (req, res) => {
+  const knex = await initKnex();
+  const { email } = req.body;
+
+  if (!email) return res.status(400).json({ error: 'Missing email' });
+
+  await knex('pending_signup').where({ email }).update({
+    checkout_reached_at: knex.fn.now(),
+    reminder_sent_checkout: false, // FIXED
+    date_last_modified: knex.fn.now()
+  });
+
+  res.json({ ok: true });
+};
+
+exports.reachedAccountInfo = async (req, res) => {
+  const knex = await initKnex();
+  const { email } = req.body;
+
+  if (!email) return res.status(400).json({ error: 'Missing email' });
+
+  await knex('pending_signup').where({ email }).update({
+    account_info_reached_at: knex.fn.now(),
+    reminder_sent_intake: false, // FIXED
+    date_last_modified: knex.fn.now()
+  });
+
+  res.json({ ok: true });
 };

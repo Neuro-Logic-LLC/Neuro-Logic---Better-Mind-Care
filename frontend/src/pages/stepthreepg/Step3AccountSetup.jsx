@@ -66,6 +66,36 @@ export default function StepThreeAccountSetup() {
     }
   }, [state.email]);
 
+  useEffect(() => {
+  if (!email) return;
+
+  fetch('/api/auth/reached-account-info', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+}, [email]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const resumeId = params.get('resume_id');
+    if (!resumeId) return;
+
+    async function load() {
+      const res = await fetch(`/api/auth/pending-signup/${resumeId}`);
+      const data = await res.json();
+
+      if (!res.ok) return;
+
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          setField(key, value);
+        }
+      });
+    }
+
+    load();
+  }, []);
   // useEffect(() => {
   //   const url = new URL(window.location.href);
   //   const sessionId = url.searchParams.get('session_id');
@@ -207,11 +237,11 @@ export default function StepThreeAccountSetup() {
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.error || 'Signup failed.');
-        return;
-      }
+      console.log(data);
+      // const newUserId = data.user_id;
+      // if (!newUserId) {
+      //   throw new Error('Paid signup did not return user_id');
+      // }
 
       // ------------------------------------------------------------
       // SUCCESS → redirect
@@ -309,6 +339,16 @@ export default function StepThreeAccountSetup() {
       const ProductID =
         orderJson.Product_ID || orderJson.ProductID || orderJson.productID;
 
+      setField('evexia_patient_order_id', PatientOrderID);
+      setField('evexia_patient_id', PatientID);
+      setField('evexia_product_id', ProductID);
+
+      if (session.metadata.pickedCore === '1') {
+        await addItem(205704);
+        console.log(
+          'should have added core here, but doesnt and needs to be updated'
+        );
+      }
       if (session.metadata.pickedApoe === '1') {
         await addItem(6724);
       }

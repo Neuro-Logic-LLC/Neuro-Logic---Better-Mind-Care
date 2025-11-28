@@ -1,11 +1,9 @@
-const { verifyToken, requireAdminOrDoctor} = require("../middleware/auth");
+const { verifyToken, requireAdminOrDoctor } = require('../middleware/auth');
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 
 // 🔐 Public routes
-
-
 
 /**
  * @openapi
@@ -54,8 +52,7 @@ const authController = require('../controllers/authController');
  *       '401': { description: Invalid credentials }
  */
 
-
-router.post("/login", authController.login);         // Login and sets HttpOnly cookie
+router.post('/login', authController.login); // Login and sets HttpOnly cookie
 
 /**
  * @openapi
@@ -66,7 +63,7 @@ router.post("/login", authController.login);         // Login and sets HttpOnly 
  *       '204': { description: Logged out }
  */
 
-router.post("/logout", verifyToken, authController.logout);       // Clears the cookie
+router.post('/logout', verifyToken, authController.logout); // Clears the cookie
 
 // 👤 Authenticated user session check
 /**
@@ -80,7 +77,7 @@ router.post("/logout", verifyToken, authController.logout);       // Clears the 
  *       '200':
  *         description: Current user
  */
-router.get("/me", verifyToken,  authController.getMe); // Gets user from verified JWT
+router.get('/me', verifyToken, authController.getMe); // Gets user from verified JWT
 
 // 🛡️ Admin-only protected routes
 /**
@@ -104,9 +101,9 @@ router.get("/me", verifyToken,  authController.getMe); // Gets user from verifie
  *       '201': { description: Created }
  *       '401': { description: Unauthorized }
  */
-router.post("/admin-create-user", verifyToken, authController.adminCreateUser)
+router.post('/admin-create-user', verifyToken, authController.adminCreateUser);
 
-router.post("/create-user", verifyToken, authController.createUser);
+router.post('/create-user', verifyToken, authController.createUser);
 /**
  * @openapi
  * /api/auth/users/{id}:
@@ -123,7 +120,7 @@ router.post("/create-user", verifyToken, authController.createUser);
  *       '200': { description: OK }
  *       '404': { description: Not found }
  */
-router.get("/users/:id", verifyToken, authController.getUserById);
+router.get('/users/:id', verifyToken, authController.getUserById);
 
 /**
  * @openapi
@@ -136,11 +133,9 @@ router.get("/users/:id", verifyToken, authController.getUserById);
  *       '200': { description: OK }
  */
 
-router.get("/users", verifyToken, requireAdminOrDoctor,authController.getAllUsers);
-
+router.get('/users', verifyToken, requireAdminOrDoctor, authController.getAllUsers);
 
 // router.post("/users/reset-password", verifyToken, authController.resetUserPassword);
-
 
 /**
  * @openapi
@@ -157,9 +152,7 @@ router.get("/users", verifyToken, requireAdminOrDoctor,authController.getAllUser
  *     responses:
  *       '204': { description: Deleted }
  */
-router.delete("/users/:id", verifyToken, authController.deleteUser);
-
-
+router.delete('/users/:id', verifyToken, authController.deleteUser);
 
 /**
  * @openapi
@@ -191,8 +184,10 @@ router.get('/dev-mfa', async (req, res) => {
   const knex = await require('../db/initKnex')();
   const { identHash } = require('../utils/identHash');
   const email = String(req.query.email || '');
-  const row = await knex('users').select('mfa_code','mfa_expires_at')
-    .where({ email_hash: identHash(email) }).first();
+  const row = await knex('users')
+    .select('mfa_code', 'mfa_expires_at')
+    .where({ email_hash: identHash(email) })
+    .first();
   if (!row) return res.status(404).json({ error: 'not_found' });
   res.json(row);
 });
@@ -242,7 +237,6 @@ router.post('/users/reactivate', verifyToken, authController.reactivateUser);
  */
 router.put('/users/:id', verifyToken, authController.updateUser);
 
-
 /**
  * @openapi
  * /api/auth/public-signup:
@@ -255,7 +249,34 @@ router.post('/public-signup', authController.publicSignup);
 
 router.post('/paid-signup', authController.paidSignup);
 
+router.post('/reached-checkout', authController.reachedCheckout);
 
+router.post('/reached-account-info', authController.reachedAccountInfo);
+
+/**
+ * @openapi
+ * /api/auth/resume-signup:
+ *   get:
+ *     tags:
+ *       - Auth
+ *     summary: Resume a partially completed signup flow
+ *     parameters:
+ *       - name: token
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '302':
+ *         description: Redirect to signup step
+ *       '400':
+ *         description: Invalid or missing token
+ *       '500':
+ *         description: Server error
+ */
+router.get('/resume-signup', authController.resumeSignup);
+
+router.get('/pending-signup/:id', authController.getPendingSignup);
 
 /**
  * @openapi
@@ -323,9 +344,8 @@ router.post('/resend-confirmation', authController.resendEmailConfirmation);
  *       '204': { description: Deleted }
  */
 // ✅ SuperAdmin-only Hard Delete
-router.delete("/admin/user/hard-delete/:id", verifyToken, authController.hardDeleteUser);
+router.delete('/admin/user/hard-delete/:id', verifyToken, authController.hardDeleteUser);
 
-
-router.get("/check-email-exists", authController.checkAndValidateEmailExists);
+router.get('/check-email-exists', authController.checkAndValidateEmailExists);
 
 module.exports = router;
