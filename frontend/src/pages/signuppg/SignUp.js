@@ -155,8 +155,7 @@ export default function SignUp() {
               value={form.phone}
               onChange={handleChange}
               autoComplete="tel"
-             />
-          <div>
+              />
             <input
               className="form-input"
               name="first_name"
