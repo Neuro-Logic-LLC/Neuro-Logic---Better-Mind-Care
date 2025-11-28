@@ -72,7 +72,7 @@ async function loadSSMIntoEnv({
     ['GOOGLE_CLIENT_ID','GOOGLE_CLIENT_SECRET','JWT_SECRET','SESSION_SECRET']
       .filter(k => process.env[k]).join(', ')
   );
-
+// Debug Comment1
   // Start your server
   require('./server');
 })().catch(err => {
