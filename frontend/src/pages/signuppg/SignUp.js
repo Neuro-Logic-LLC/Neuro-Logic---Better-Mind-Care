@@ -133,13 +133,6 @@ export default function SignUp() {
           <div>
             <input
               className="form-input"
-              name="first_name"
-              placeholder="First Name (optional)"
-              value={form.first_name}
-              onChange={handleChange}
-            />
-            <input
-              className="form-input"
               name="last_name"
               placeholder="Last Name (optional)"
               value={form.last_name}
@@ -162,8 +155,7 @@ export default function SignUp() {
               value={form.phone}
               onChange={handleChange}
               autoComplete="tel"
-            />
-        <form onSubmit={handleSubmit} noValidate>
+             />
           <div>
             <input
               className="form-input"
@@ -283,7 +275,6 @@ export default function SignUp() {
             onChange={handleChange}
           /> */}
 
-            {error && <p className="error">{error}</p>}
             {error && <p className="error">{error}</p>}
 
             <OutlineButtonHoverDark
