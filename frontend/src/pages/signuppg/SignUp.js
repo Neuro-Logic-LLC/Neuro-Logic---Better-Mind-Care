@@ -297,20 +297,6 @@ export default function SignUp() {
           </div>
         )}
       </div>
-        {showResend && (
-          <div className="resend-confirmation-box">
-            <p>Didn't get the confirmation email?</p>
-            <OutlineButton
-              type="button"
-              className="btn-outline-teal"
-              onClick={handleResend}
-              style={{ width: '33.33%', margin: '0 auto' }}
-            >
-              Resend Email
-            </OutlineButton>
-            <p>Redirecting to login shortly...</p>
-          </div>
-        )}
       </div>
     </div>
   );
