@@ -48,13 +48,12 @@ import SignupProvider from './pages/NewCheckoutPages/SignupContext';
 import PatientOrders from './pages/evexiapatientorderspg/EvexiaPatientOrders';
 import PatientRequisitionViewer from './pages/patientrequisitionviewerpg/PatientRequisitionViewer';
 import StepThreeAccountSetup from './pages/stepthreepg/Step3AccountSetup';
-import Account from './pages/accountpg/Account';
+<import Account from './pages/accountpg/Account';
 import Support from './pages/supportpg/Support';
 import Messages from './pages/messagespg/Messages';
 import Appointments from './pages/appointmentspg/Appointments';
 import Article from './pages/myreportspg/articles/Article';
 import NotFound from './pages/notfoundpg/NotFound';
-
 
 function App() {
   return (
@@ -70,8 +69,22 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/evexia-lab-results" element={<EvexiaLabReport />} />
-            <Route path="/google-calendar" element={<GoogleCalendar />} />
+             <Route
+               path="/evexia-lab-results"
+               element={
+                 <ProtectedRoute>
+                   <EvexiaLabReport />
+                 </ProtectedRoute>
+               }
+             />
+             <Route
+               path="/google-calendar"
+               element={
+                 <ProtectedRoute>
+                   <GoogleCalendar />
+                 </ProtectedRoute>
+               }
+             />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/success" element={<SuccessPage />} />
             <Route path="/cancel-order" element={<CancelPage />} />
@@ -96,6 +109,7 @@ function App() {
               element={<AutomatedLabResults />}
             />
 
+<<<<<<< HEAD
             <Route path="/patient-req" element={<PatientRequisitionViewer />} />
 
             <Route path="/confirm-email" element={<ConfirmEmail />} />
@@ -111,6 +125,97 @@ function App() {
             <Route path="/faq" element={<Resources />} />
             <Route path="/resources/articles/:slug" element={<Article />} />
             <Route path="*" element={<NotFound />} />
+=======
+            <Route
+              path="/patient-orders"
+              element={
+                <ProtectedRoute>
+                  <PatientOrders />
+                </ProtectedRoute>
+              }
+            />
+
+             <Route
+               path="/automated-lab-results"
+               element={
+                 <ProtectedRoute>
+                   <AutomatedLabResults />
+                 </ProtectedRoute>
+               }
+             />
+
+             <Route
+               path="/patient-req"
+               element={
+                 <ProtectedRoute>
+                   <PatientRequisitionViewer />
+                 </ProtectedRoute>
+               }
+             />
+
+            <Route path="/confirm-email" element={<ConfirmEmail />} />
+
+             <Route path="/join" element={<EmailStep />} />
+            <Route path="/join/checkout" element={<CheckoutStep />} />
+             <Route
+               path="/account-info"
+               element={
+                 <ProtectedRoute>
+                   <StepThreeAccountSetup />
+                 </ProtectedRoute>
+               }
+             />
+             <Route path="/sign-up" element={<SignUp />} />
+             <Route
+               path="/account"
+               element={
+                 <ProtectedRoute>
+                   <Account />
+                 </ProtectedRoute>
+               }
+             />
+             <Route
+               path="/support"
+               element={
+                 <ProtectedRoute>
+                   <Support />
+                 </ProtectedRoute>
+               }
+             />
+             <Route
+               path="/messages"
+               element={
+                 <ProtectedRoute>
+                   <Messages />
+                 </ProtectedRoute>
+               }
+             />
+             <Route
+               path="/appointments"
+               element={
+                 <ProtectedRoute>
+                   <Appointments />
+                 </ProtectedRoute>
+               }
+             />
+             <Route
+               path="/faq"
+               element={
+                 <ProtectedRoute>
+                   <Resources />
+                 </ProtectedRoute>
+               }
+             />
+             <Route
+               path="/resources/articles/:slug"
+               element={
+                 <ProtectedRoute>
+                   <Article />
+                 </ProtectedRoute>
+               }
+             />
+             <Route path="*" element={<NotFound />} />
+>>>>>>> main
           </Routes>
         </SignupProvider>
       </main>
