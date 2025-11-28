@@ -63,6 +63,11 @@ a.btn:active {
   font-weight: 500;
 }
 
+.privacy-item h4 {
+  white-space: nowrap;
+  margin-bottom: 1rem; /* Add more space below */
+}
+
 /* CTA Buttons for landing page */
 .cta-buttons {
   display: flex;
