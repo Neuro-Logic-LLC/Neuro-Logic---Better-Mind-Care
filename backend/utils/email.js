@@ -69,6 +69,26 @@ exports.sendEmailConfirmation = async (to, token) => {
   }
 };
 
+exports.sendMagicResumeLink = async (to, token) => {
+  const base = (process.env.FRONTEND_URL || "").replace(/\/$/, "");
+  const link = `${base}/resume-signup?token=${encodeURIComponent(token)}`;
+
+  try {
+    await mg.messages.create(DOMAIN, {
+      from: FROM,
+      to,
+      subject: "Resume Your Signup",
+      html: `
+        <p>You can resume your signup below:</p>
+        <p><a href="${link}" style="background:#333;color:#fff;padding:10px 15px;text-decoration:none;border-radius:4px;">Resume Signup</a></p>
+        <p>If you didn't start creating an account, ignore this email.</p>
+      `
+    });
+  } catch (err) {
+    console.error("❌ Mailgun magic-link email failed:", err);
+    throw err;
+  }
+};
 // ------------------------------
 // USERNAME REMINDER
 // ------------------------------

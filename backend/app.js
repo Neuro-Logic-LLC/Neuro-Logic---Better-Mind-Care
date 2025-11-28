@@ -109,9 +109,7 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
     const event = stripe.webhooks.constructEvent(req.body, sig, whSecret);
     console.log('[webhook] Verified:', event.type);
 
-    // ----------------------------------------------------
-    // Helper: split name safely
-    // ----------------------------------------------------
+    // Helper
     const splitName = full => {
       if (!full) return { first: null, last: null };
       const parts = full.trim().split(/\s+/);
@@ -122,68 +120,44 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
     };
 
     // ====================================================
-    // 1. CHECKOUT SESSION COMPLETED
+    // 1. CHECKOUT SESSION COMPLETED  (PRELIMINARY RECORD)
     // ====================================================
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
 
-      const customerDetails = session.customer_details || {};
+      const details = session.customer_details || {};
       const shipping = session.shipping || {};
 
-      // Determine customer name + phone
-      const name = customerDetails.name || shipping?.name || null;
-
-      const phone = customerDetails.phone || shipping?.phone || null;
-
+      const name = details.name || shipping?.name || null;
       const { first, last } = splitName(name);
 
-      // Build shipping block
-      const shippingInfo = {
-        name: shipping.name || customerDetails.name || null,
-        phone: shipping.phone || customerDetails.phone || null,
-        address: {
-          line1: shipping.address?.line1 || customerDetails.address?.line1 || null,
-          line2: shipping.address?.line2 || customerDetails.address?.line2 || null,
-          city: shipping.address?.city || customerDetails.address?.city || null,
-          state: shipping.address?.state || customerDetails.address?.state || null,
-          postal_code:
-            shipping.address?.postal_code || customerDetails.address?.postal_code || null,
-          country: shipping.address?.country || customerDetails.address?.country || null
-        }
-      };
+      const email = details.email || session.customer_email || shipping.email || null;
 
-      const email = customerDetails.email || session.customer_email || shipping.email || null;
+      const phone = details.phone || shipping?.phone || null;
 
-      // Insert payment row
       await knex('stripe_payments').insert({
         stripe_session_id: session.id,
         stripe_payment_intent_id: session.payment_intent || null,
-        product_key: session.metadata?.product_key || session.metadata?.productKey || '',
+        product_key: session.metadata?.product_key || '',
         amount: session.amount_total / 100,
         currency: session.currency,
         status: session.payment_status || 'unknown',
         customer_email: email,
-
-        customer_first_name: name ? first : null,
-        customer_last_name: name ? last : null,
+        customer_first_name: first,
+        customer_last_name: last,
         customer_phone: phone,
-
-        shipping_address: JSON.stringify(shippingInfo.address),
-        shipping_name: shippingInfo.name,
-        shipping_phone: shippingInfo.phone,
-
         metadata: JSON.stringify(session.metadata || {}),
         evexia_processed: false,
-        user_id: null, // updated later in charge.succeeded
+        user_id: null,
         created_at: new Date(),
         updated_at: new Date()
       });
 
-      console.log('[webhook] checkout.session completed inserted');
+      console.log('[webhook] checkout.session.completed logged');
     }
 
     // ====================================================
-    // 2. CHARGE SUCCEEDED — REAL PAYMENT
+    // 2. CHARGE SUCCEEDED (THE REAL PAYMENT)
     // ====================================================
     if (event.type === 'charge.succeeded') {
       const charge = event.data.object;
@@ -195,34 +169,40 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
         null;
 
       if (!email) {
-        console.log('[webhook] No email on charge.succeeded');
+        console.log('[webhook] No email in charge.succeeded');
         return res.sendStatus(200);
       }
 
+      const email_canon = email.toLowerCase();
+
+      // Payment must be successful
       if (!charge.paid || charge.status !== 'succeeded') {
         console.log('[webhook] Charge not paid; skipping');
         return res.sendStatus(200);
       }
 
-      // Normalize email
-      const email_canon = email.toLowerCase();
+      // Mark abandoned signup as paid
+      await knex('pending_signup').whereRaw('LOWER(email) = ?', [email_canon]).update({
+        stripe_ok: true,
+        date_last_modified: knex.fn.now()
+      });
 
-      // Try linking to user
+      // Try linking to existing user
       let userId = null;
       const user = await knex('users').where({ email_canon }).first();
+
       if (user) {
         userId = user.id;
-        await knex('users')
-          .where({ id: userId })
-          .update({ has_paid: true, updated_at: new Date() });
+        await knex('users').where({ id: userId }).update({
+          has_paid: true,
+          updated_at: new Date()
+        });
 
         console.log('[webhook] Linked charge to user', userId);
       }
 
-      // Split billing name
       const { first, last } = splitName(charge.billing_details?.name);
 
-      // Update payment row
       await knex('stripe_payments')
         .where({ stripe_payment_intent_id: charge.payment_intent })
         .update({
