@@ -117,45 +117,9 @@ export default function SignUp() {
     >
       <div className="auth-form">
         <h2 className="title">Create Your Account</h2>
-    <div
-      style={{
-        background: 'var(--teal-gradient)',
-        minHeight: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}
-    >
-      <div className="auth-form">
-        <h2 className="title">Create Your Account</h2>
 
         <form onSubmit={handleSubmit} noValidate>
           <div>
-            <input
-              className="form-input"
-              name="last_name"
-              placeholder="Last Name (optional)"
-              value={form.last_name}
-              onChange={handleChange}
-            />
-            <input
-              className="form-input"
-              name="email"
-              placeholder="Email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              required
-              autoComplete="email"
-            />
-            <input
-              className="form-input"
-              name="phone"
-              placeholder="Phone (optional)"
-              value={form.phone}
-              onChange={handleChange}
-              autoComplete="tel"
-              />
             <input
               className="form-input"
               name="first_name"
@@ -188,98 +152,72 @@ export default function SignUp() {
               onChange={handleChange}
               autoComplete="tel"
             />
-
-            <div className="password-field" style={{ position: 'relative' }}>
-              <input
-                className="form-input"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Password (min 8 characters + 1 special character)"
-                value={form.password}
-                onChange={handleChange}
-                required
-                autoComplete="new-password"
-                style={{ paddingRight: 44 }}
-              />
-              <span
-                role="switch"
-                aria-checked={showPassword}
-                tabIndex={0}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => setShowPassword((v) => !v)}
-                style={{
-                  position: 'absolute',
-                  right: 12,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  width: 28,
-                  height: 28,
-                  display: 'grid',
-                  placeItems: 'center',
-                  cursor: 'pointer',
-                  userSelect: 'none'
-                }}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                title={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
-              </span>
-            </div>
-            <div className="password-field" style={{ position: 'relative' }}>
-              <input
-                className="form-input"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Password (min 8 characters + 1 special character)"
-                value={form.password}
-                onChange={handleChange}
-                required
-                autoComplete="new-password"
-                style={{ paddingRight: 44 }}
-              />
-              <span
-                role="switch"
-                aria-checked={showPassword}
-                tabIndex={0}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => setShowPassword((v) => !v)}
-                style={{
-                  position: 'absolute',
-                  right: 12,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  width: 28,
-                  height: 28,
-                  display: 'grid',
-                  placeItems: 'center',
-                  cursor: 'pointer',
-                  userSelect: 'none'
-                }}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                title={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
-              </span>
-              </div>
-            </div>
-
-
-
-            {error && <p className="error">{error}</p>}
-
-            <OutlineButtonHoverDark
-              type="submit"
-              className="btn-outline-hover-dark"
-              style={{
-                width: '33.33%',
-                margin: '0 auto',
-                padding: '0.8rem 2rem',
-                display: 'block'
-              }}
+            <select
+              className="form-input"
+              name="gender"
+              value={form.gender}
+              onChange={handleChange}
             >
-              Sign Up
-            </OutlineButtonHoverDark>
+              <option value="">Gender (optional)</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+              <option value="non-binary">Non-binary</option>
+              <option value="prefer-not-to-say">Prefer not to say</option>
+              <option value="other">Other</option>
+            </select>
+
+            <div className="password-field" style={{ position: 'relative' }}>
+              <input
+                className="form-input"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Password (min 8 characters + 1 special character)"
+                value={form.password}
+                onChange={handleChange}
+                required
+                autoComplete="new-password"
+                style={{ paddingRight: 44 }}
+              />
+              <span
+                role="switch"
+                aria-checked={showPassword}
+                tabIndex={0}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setShowPassword((v) => !v)}
+                style={{
+                  position: 'absolute',
+                  right: 12,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: 28,
+                  height: 28,
+                  display: 'grid',
+                  placeItems: 'center',
+                  cursor: 'pointer',
+                  userSelect: 'none'
+                }}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+              </span>
+            </div>
           </div>
+
+          {error && <p className="error">{error}</p>}
+
+          <OutlineButtonHoverDark
+            type="submit"
+            className="btn-outline-hover-dark"
+            style={{
+              width: '33.33%',
+              margin: '0 auto',
+              padding: '0.8rem 2rem',
+              display: 'block'
+            }}
+          >
+            Sign Up
+          </OutlineButtonHoverDark>
         </form>
 
         {showResend && (
@@ -296,7 +234,6 @@ export default function SignUp() {
             <p>Redirecting to login shortly...</p>
           </div>
         )}
-      </div>
       </div>
     </div>
   );

@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import Card from '../../components/cards/Card';
 
 export default function EvexiaLabReport() {
   const [params, setSearchParams] = useSearchParams();
@@ -139,16 +138,7 @@ export default function EvexiaLabReport() {
   const needsIds = !patientID || !patientOrderID;
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gap: 12,
-        padding: 16,
-        minHeight: '60vh',
-        maxWidth: '800px',
-        margin: '0 auto'
-      }}
-    >
+    <div style={{ display: 'grid', gap: 12, padding: 16 }}>
       <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
         <h2 style={{ margin: 0, flex: 1 }}>Lab Report</h2>
         {!needsIds && (
@@ -188,7 +178,7 @@ export default function EvexiaLabReport() {
       </div>
 
       {needsIds && (
-        <Card className="card-form" style={{ padding: '16px' }}>
+        <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 12 }}>
           <p style={{ marginTop: 0 }}>
             Missing <code>PatientID</code> or <code>PatientOrderID</code>. Enter
             them below.
@@ -260,7 +250,7 @@ export default function EvexiaLabReport() {
               Fill example
             </button>
           </div>
-        </Card>
+        </div>
       )}
 
       {!needsIds && status === 'loading' && <p>Fetching report…</p>}

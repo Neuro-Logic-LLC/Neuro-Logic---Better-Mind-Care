@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSignup } from '../NewCheckoutPages/SignupContext';
 import { PrimaryButton } from '../../components/button/Buttons';
+import { useAuth } from './../../auth/AuthContext';
 
 export default function StepThreeAccountSetup() {
+  const { setEvexiaData, reloadUser } = useAuth();
   const { state, setField } = useSignup();
   const navigate = useNavigate();
 
@@ -67,14 +69,14 @@ export default function StepThreeAccountSetup() {
   }, [state.email]);
 
   useEffect(() => {
-  if (!email) return;
+    if (!state.email) return;
 
-  fetch('/api/auth/reached-account-info', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email })
-  });
-}, [email]);
+    fetch('/api/auth/reached-account-info', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: state.email })
+    });
+  }, [state.email]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -123,7 +125,7 @@ export default function StepThreeAccountSetup() {
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
+      credentials: 'include', //changed
       body: JSON.stringify(body)
     });
 
@@ -199,9 +201,9 @@ export default function StepThreeAccountSetup() {
         (res) => res.json()
       );
 
+      // setField('pickedCore', session.brainhealth || false);
+      setField('pickedCore', session.core || false || session.brainhealth);
       setField('pickedApoe', session.apoe || false);
-      setField('pickedCore', session.brainhealth || false);
-      setField('pickedDoctorsData', session.doctors_data || false);
 
       if (local.isCaregiver) {
         setField('cgFirst', local.cgFirst);
@@ -233,15 +235,16 @@ export default function StepThreeAccountSetup() {
       const res = await fetch('/api/auth/paid-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(signupBody)
       });
 
       const data = await res.json();
-<
-      if (!res.ok) {
-        alert(data.error || 'Signup failed.');
-        return;
-      }
+      console.log(data);
+      // const newUserId = data.user_id;
+      // if (!newUserId) {
+      //   throw new Error('Paid signup did not return user_id');
+      // }
 
       // ------------------------------------------------------------
       // SUCCESS → redirect
@@ -279,23 +282,24 @@ export default function StepThreeAccountSetup() {
           EmailAddress: state.email,
           FirstName: state.first,
           LastName: state.last,
-          StreetAddress: state.address,
+
+          // correct stripe fields:
+          StreetAddress: state.street,
           StreetAddress2: state.address2 || '',
           City: state.city,
           State: state.state,
           PostalCode: state.zip,
           Phone: state.phone,
+
           DOB: local.dob,
           Gender: local.gender === 'Male' ? 'M' : 'F',
+
+          // caregiver (only fields you actually have)
           Guardian: local.cgFirst || '',
-          GuardianRelationship: local.GuardianRelationship || '',
-          GuardianAddress: local.GuardianAddress || '',
-          GuardianAddress2: local.GuardianAddress2 || '',
-          GuardianCity: local.GuardianCity || '',
-          GuardianPostalCode: local.GuardianPostalCode || '',
-          GuardianState: local.GuardianState || '',
-          GuardianPhone: local.GuardianPhone || '',
-          ExternalClientID: state.externalClientId
+          GuardianPhone: local.cgPhone || '',
+          GuardianEmail: local.cgEmail || '',
+
+          ExternalClientID: state.externalClientId || ''
         };
 
         const patRes = await fetch('/api/evexia/patient-add', {
@@ -339,7 +343,7 @@ export default function StepThreeAccountSetup() {
       const ProductID =
         orderJson.Product_ID || orderJson.ProductID || orderJson.productID;
 
-<      setField('evexia_patient_order_id', PatientOrderID);
+      setField('evexia_patient_order_id', PatientOrderID);
       setField('evexia_patient_id', PatientID);
       setField('evexia_product_id', ProductID);
 
@@ -353,11 +357,9 @@ export default function StepThreeAccountSetup() {
         await addItem(6724);
       }
 
-      // if (session.metaData.pickedDoctorsData === "1") {
-      //   await addItem(347);
-      // }
-
       // 3. ADD ORDER ITEMS
+      // NEED THIS ADDED BY EVEXIA FOR TESTING 11-23-25
+
       async function addItem(productID) {
         return fetch('/api/evexia/order-item-add', {
           method: 'POST',
@@ -373,7 +375,10 @@ export default function StepThreeAccountSetup() {
       // if (state.pickedCore) {
       //   await addItem('CORE');
       // }
-
+      setEvexiaData({
+        patientId: PatientID,
+        orderId: PatientOrderID
+      });
       // Let Evexia finish processing
       await new Promise((res) => setTimeout(res, 4000));
 
@@ -390,6 +395,27 @@ export default function StepThreeAccountSetup() {
       // Submit order
       await fetch(`/api/evexia/patient-order-complete?${completeQuery}`, {
         method: 'GET'
+      });
+
+      // await fetch('/api/auth/login', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   credentials: 'include',
+      //   body: JSON.stringify({
+      //     email: state.email,
+      //     password
+      //   })
+      // });
+
+      await fetch('/api/evexia/save-evexia-ids', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          evxPatientID: PatientID,
+          evxPatientOrderID: PatientOrderID,
+          evxProductID: ProductID
+        })
       });
 
       navigate('/success');

@@ -1,12 +1,7 @@
 /** @format */
 
 import React from 'react';
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate
-} from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
 // Shared Layout Components
@@ -15,7 +10,7 @@ import Footer from './components/Footer/Footer';
 
 // Pages
 import Home from './pages/homepg/home';
-
+import About from './pages/aboutpg/about';
 import Contact from './pages/contactpg/contact';
 import Resources from './pages/myreportspg/resourcepg/resources';
 import IntakeForm from './pages/intakepg/intakeForm';
@@ -28,6 +23,7 @@ import ScreeningOrder from './pages/screeningorderpg/ScreeningOrder';
 import UserList from './pages/userslistpg/UserList';
 import AuditLog from '../src/pages/auditpg/AuditLog';
 import { AuthProvider } from './auth/AuthContext';
+import ProtectedRoute from './auth/ProtectedRoute';
 import Login from './pages/loginpg/login';
 import SignUp from './pages/signuppg/SignUp';
 import ForgotPassword from './pages/forgotpasswordpg/ForgotPassword';
@@ -92,21 +88,70 @@ function App() {
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
 
-            <Route path="/admin/users/:id" element={<UserDetails />} />
-            <Route path="/intake-form" element={<IntakeForm />} />
-            <Route path="/report" element={<PatientReport />} />
-            <Route path="/my-reports" element={<MyReports />} />
-            <Route path="/admin/dashboard" element={<Dashboard />} />
-            <Route path="/admin/users" element={<UserList />} />
-            <Route path="/admin/logs" element={<AuditLog />} />
-
-            <Route path="/screening-order" element={<ScreeningOrder />} />
-
-            <Route path="/patient-orders" element={<PatientOrders />} />
+            <Route
+              path="/admin/users/:id"
+              element={
+                <ProtectedRoute>
+                  <UserDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/intake-form"
+              element={
+                <ProtectedRoute>
+                  <IntakeForm />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/report"
+              element={
+                <ProtectedRoute>
+                  <PatientReport />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-reports"
+              element={
+                <ProtectedRoute>
+                  <MyReports />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute>
+                  <UserList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/logs"
+              element={
+                <ProtectedRoute>
+                  <AuditLog />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
-              path="/automated-lab-results"
-              element={<AutomatedLabResults />}
+              path="/screening-order"
+              element={
+                <ProtectedRoute>
+                  <ScreeningOrder />
+                </ProtectedRoute>
+              }
             />
 
             <Route
