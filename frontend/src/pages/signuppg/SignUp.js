@@ -263,14 +263,7 @@ export default function SignUp() {
               </div>
             </div>
 
-            {/* Gender remains optional. Enable if you want to collect it. */}
-            {/* <input
-            className="form-input"
-            name="gender"
-            placeholder="Gender (optional)"
-            value={form.gender}
-            onChange={handleChange}
-          /> */}
+
 
             {error && <p className="error">{error}</p>}
 
