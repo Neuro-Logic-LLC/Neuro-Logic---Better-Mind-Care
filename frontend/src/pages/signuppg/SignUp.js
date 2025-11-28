@@ -265,8 +265,6 @@ export default function SignUp() {
 
             {/* Gender remains optional. Enable if you want to collect it. */}
             {/* <input
-            {/* Gender remains optional. Enable if you want to collect it. */}
-            {/* <input
             className="form-input"
             name="gender"
             placeholder="Gender (optional)"
