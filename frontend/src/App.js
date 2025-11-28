@@ -48,18 +48,12 @@ import SignupProvider from './pages/NewCheckoutPages/SignupContext';
 import PatientOrders from './pages/evexiapatientorderspg/EvexiaPatientOrders';
 import PatientRequisitionViewer from './pages/patientrequisitionviewerpg/PatientRequisitionViewer';
 import StepThreeAccountSetup from './pages/stepthreepg/Step3AccountSetup';
-import Account from './pages/accountpg/Account';
-import Support from './pages/supportpg/Support';
-import Messages from './pages/messagespg/Messages';
-import Appointments from './pages/appointmentspg/Appointments';
-import Article from './pages/myreportspg/articles/Article';
-import NotFound from './pages/notfoundpg/NotFound';
-import Account from './pages/accountpg/Account';
-import Support from './pages/supportpg/Support';
-import Messages from './pages/messagespg/Messages';
-import Appointments from './pages/appointmentspg/Appointments';
-import Article from './pages/myreportspg/articles/Article';
-import NotFound from './pages/notfoundpg/NotFound';
+// import Account from './pages/accountpg/Account';
+// import Support from './pages/supportpg/Support';
+// import Messages from './pages/messagespg/Messages';
+// import Appointments from './pages/appointmentspg/Appointments';
+// import Article from './pages/myreportspg/articles/Article';
+// import NotFound from './pages/notfoundpg/NotFound';
 
 function App() {
   return (
