@@ -369,7 +369,6 @@ function AddPatientDialog({ onClose, onCreated }) {
         >
           <div style={{ fontWeight: 600 }}>Add Patient</div>
           <button onClick={onClose} className="btn btn-outline-teal">
-          <button onClick={onClose} className="btn btn-outline-teal">
             Close
           </button>
         </div>

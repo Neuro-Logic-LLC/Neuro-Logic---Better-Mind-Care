@@ -154,7 +154,4 @@ function Messages() {
   );
 }
 
-<<<<<<< HEAD
-export default Messages;
-=======
 export default Messages;

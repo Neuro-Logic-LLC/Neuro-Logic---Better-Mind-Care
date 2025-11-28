@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import Card from '../../components/cards/Card';
-import Card from '../../components/cards/Card';
 
 export default function EvexiaLabReport() {
   const [params, setSearchParams] = useSearchParams();

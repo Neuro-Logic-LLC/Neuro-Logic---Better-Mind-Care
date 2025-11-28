@@ -1028,7 +1028,6 @@ function AddOrderDialog({
               Cancel
             </button>
             <button type="submit" className="btn btn-primary" disabled={busy}>
-            <button type="submit" className="btn btn-primary" disabled={busy}>
               {busy ? 'Saving…' : 'Save Order'}
             </button>
           </div>

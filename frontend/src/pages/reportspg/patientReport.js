@@ -42,8 +42,6 @@ const Section = ({ section, fallbackFooter }) => {
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9-]/g, '');
 
-  const sectionId = section.id || section.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-
   return (
     <section className="report-section" id={sectionId}>
       <h2>{section.title}</h2>
