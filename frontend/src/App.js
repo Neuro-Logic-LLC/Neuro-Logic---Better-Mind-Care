@@ -109,7 +109,7 @@ function App() {
               element={<AutomatedLabResults />}
             />
 
-<            <Route
+            <Route
               path="/patient-orders"
               element={
                 <ProtectedRoute>
