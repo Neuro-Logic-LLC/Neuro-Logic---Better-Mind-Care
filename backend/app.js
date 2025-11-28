@@ -232,6 +232,7 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
   }
 });
 
+
 // ---- Global parsers (after webhook only) ----
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
