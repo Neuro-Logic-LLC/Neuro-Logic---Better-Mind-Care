@@ -320,7 +320,10 @@ function HealthQuestionsForm({ gender, setGender }) {
       }
     });
 
-    if (formData.diabetes === 'Yes' && !formData.diabetesType) {
+    if (
+      ['Yes', 'Unsure'].includes(formData.diabetes) &&
+      !formData.diabetesType
+    ) {
       newErrors.diabetesType = 'Please indicate the diabetes type.';
     }
 
@@ -591,9 +594,9 @@ function HealthQuestionsForm({ gender, setGender }) {
           id="understandCondition"
           label="Which best describes your current experience with brain health / Alzheimer's?"
           options={[
-            { value: 1, label: '1. Preventative — no symptoms' },
-            { value: 2, label: '2. Preventative — family history' },
-            { value: 3, label: '3. Preventative — mild age-related decline' },
+            { value: 1, label: '1. Preventative - no symptoms' },
+            { value: 2, label: '2. Preventative - family history' },
+            { value: 3, label: '3. Preventative - mild age-related decline' },
             { value: 4, label: '4. Worrisome forgetfulness, no testing' },
             { value: 5, label: '5. Diagnosed with Alzheimer’s' }
           ]}
@@ -652,10 +655,10 @@ function HealthQuestionsForm({ gender, setGender }) {
           onChange={handleChange}
           error={errors.diabetes}
         />
-        {formData.diabetes === 'Yes' && (
+        {['Yes', 'Unsure'].includes(formData.diabetes) && (
           <RadioQuestions
             id="diabetesType"
-            label="If yes, which type?"
+            label="What type?"
             options={['Type 1', 'Type 2']}
             value={formData.diabetesType}
             onChange={handleChange}

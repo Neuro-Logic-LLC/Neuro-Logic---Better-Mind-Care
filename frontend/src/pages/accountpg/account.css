@@ -1,0 +1,274 @@
+/* Account Page Styles */
+
+.account-page {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--seafoam-gradient);
+  padding: 2rem 1rem;
+}
+
+.account-content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.account-page h1 {
+  color: var(--teal);
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.account-page > p {
+  color: var(--charcoal);
+  margin-bottom: 2rem;
+}
+
+.account-form {
+  display: grid;
+  gap: 2rem;
+}
+
+.account-section {
+  border: 1px solid color-mix(in oklab, var(--soft-blue) 55%, white);
+  border-radius: 16px;
+  padding: 1.5rem;
+  background: #ffffff;
+}
+
+.account-section h2 {
+  color: var(--teal);
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.account-section h3 {
+  color: var(--teal);
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.form-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 480px) {
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.input-group {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.input-group label {
+  font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--teal);
+}
+
+.checkbox-group {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  color: var(--charcoal);
+  cursor: pointer;
+}
+
+.checkbox-label input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--teal);
+  cursor: pointer;
+}
+
+.toggle-label {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.caregiver-fields {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: color-mix(in oklab, var(--soft-blue) 12%, white);
+  border-radius: 12px;
+  border: 1px solid color-mix(in oklab, var(--soft-blue) 35%, white);
+}
+
+.account-actions,
+.support-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.btn-outline {
+  background: none;
+  border: 2px solid var(--teal);
+  color: var(--teal);
+  padding: 0.3rem 0.75rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn-outline:hover {
+  background: var(--seafoam);
+  color: var(--charcoal);
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.btn-danger {
+  background: var(--warm-coral);
+  border: 2px solid var(--warm-coral);
+  color: white;
+  padding: 0.3rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-danger:hover {
+  background: color-mix(in oklab, var(--warm-coral) 80%, black);
+  border-color: color-mix(in oklab, var(--warm-coral) 80%, black);
+}
+
+.danger-zone {
+  border-color: var(--warm-coral);
+  background: color-mix(in oklab, var(--warm-coral) 5%, white);
+}
+
+.danger-zone h2 {
+  color: var(--warm-coral);
+}
+
+.appointments-widget,
+.messages-preview {
+  margin-bottom: 1rem;
+}
+
+.appointment-item,
+.message-item {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid color-mix(in oklab, var(--soft-blue) 35%, white);
+}
+
+.appointment-item.upcoming {
+  border-left: 4px solid var(--teal);
+}
+
+.appointment-item.past {
+  opacity: 0.6;
+  border-left: 4px solid var(--slate);
+}
+
+.appointment-details p,
+.message-item p {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.9rem;
+  color: var(--charcoal);
+}
+
+.message-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.message-date {
+  font-size: 0.85rem;
+  color: var(--slate);
+  align-self: flex-end;
+}
+
+.reschedule-text {
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  font-style: italic;
+  margin-top: 1rem;
+}
+
+.no-messages,
+.no-appointments {
+  color: var(--color-muted);
+  font-style: italic;
+  padding: 1rem;
+  text-align: center;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+
+.btn {
+  background: var(--teal);
+  border: 2px solid var(--teal);
+  color: white;
+  padding: 0.3rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.account-page .btn:hover {
+  background: var(--gold-amber);
+  border-color: var(--gold-amber);
+}
+
+.btn .btn-icon,
+.btn-danger .btn-icon {
+  filter: brightness(0) invert(1); /* Make icons white on colored buttons */
+}
+
+@media (max-width: 600px) {
+  .account-page {
+    max-width: 100%;
+    padding: 1rem;
+  }
+
+  .account-section {
+    padding: 1rem;
+  }
+
+  .form-actions {
+    justify-content: center;
+  }
+
+  .account-actions,
+  .support-links {
+    flex-direction: column;
+  }
+
+  .btn-outline,
+  .btn-danger,
+  .btn {
+    width: 100%;
+  }
+}

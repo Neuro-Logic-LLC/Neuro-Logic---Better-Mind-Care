@@ -69,14 +69,14 @@ export default function StepThreeAccountSetup() {
   }, [state.email]);
 
   useEffect(() => {
-  if (!email) return;
+    if (!state.email) return;
 
-  fetch('/api/auth/reached-account-info', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email })
-  });
-}, [email]);
+    fetch('/api/auth/reached-account-info', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: state.email })
+    });
+  }, [state.email]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

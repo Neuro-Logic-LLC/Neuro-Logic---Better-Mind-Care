@@ -148,6 +148,10 @@ export default function Footer() {
               <a href="/privacy">Privacy Policy</a>
               <span aria-hidden="true">•</span>
               <a href="/terms">Terms of Service</a>
+              <span aria-hidden="true">•</span>
+              <a href="/disclaimer">Disclaimer</a>
+              <span aria-hidden="true">•</span>
+              <a href="/purchase-agreement">Purchase Agreement</a>
             </nav>
           </div>
         </div>

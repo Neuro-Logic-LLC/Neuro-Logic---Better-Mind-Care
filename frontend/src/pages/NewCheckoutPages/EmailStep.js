@@ -74,19 +74,23 @@ export default function EmailStep() {
         <div
           style={{ display: 'flex', alignItems: 'center', marginLeft: '20px' }}
         >
-          <h1 className="text-2xl font-semibold mb-2">Join</h1>
+          <h1 className="text-2xl font-semibold my-4">Join</h1>
         </div>
+        <p style={{ marginLeft: '20px' }} className="text-sm text-neutral-600">
+          Let's get your account set up.
+        </p>
         <p
           style={{ marginLeft: '20px' }}
-          className="text-sm text-neutral-600 mb-6"
+          className="text-sm text-neutral-600 mb-4"
         >
-          Enter your email to start.
+          Enter your email to begin. It only takes a moment.
         </p>
         <div style={{ marginLeft: '20px' }} className="flex items-center gap-3">
           <input
             style={{ cursor: 'pointer', marginRight: '30px' }}
             className="flex-1 h-11 rounded-lg border px-3"
             type="email"
+            placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"

@@ -1,0 +1,12 @@
+{
+  "name": "neuro-logic-better-mind-care",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "npm start --prefix frontend",
+    "dev": "npm start --prefix backend",
+    "build": "npm run build --prefix frontend",
+    "test": "npm test --prefix frontend"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

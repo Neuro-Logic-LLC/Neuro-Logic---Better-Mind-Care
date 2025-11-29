@@ -32,9 +32,7 @@ if (isDev && typeof window !== 'undefined') {
   const realFetch = window.fetch.bind(window);
 
   window.fetch = async (input, init) => {
-    const url = typeof input === 'string'
-      ? input
-      : input?.url || '';
+    const url = typeof input === 'string' ? input : input?.url || '';
 
     // Warn ONLY on absolute 5050 calls
     if (url.startsWith('https://localhost:5050')) {
@@ -140,7 +138,7 @@ export default function Login() {
     const pwd = String(password || '');
 
     if (!emailClean) {
-      setError('Email is required.');
+      setError('Please double-check this field.');
       return;
     }
     if (pwd.length < 8) {
@@ -167,7 +165,8 @@ export default function Login() {
 
       // ❌ Wrong password — stop here
       if (!res.ok) {
-        setError(data.error || 'Invalid credentials');
+        const isDev = process.env.NODE_ENV === 'development';
+        setError(data.error || 'Something didn’t go through — try again.');
         setBusy(false);
         return;
       }
@@ -201,7 +200,12 @@ export default function Login() {
       // Backend may not say "mfa_required" but still need code
       setStep(2);
     } catch (err) {
-      setError(String(err?.message || err));
+      const isDev = process.env.NODE_ENV === 'development';
+      setError(
+        isDev
+          ? String(err?.message || err)
+          : 'Something didn’t go through — try again.'
+      );
     } finally {
       setBusy(false);
     }
@@ -213,7 +217,7 @@ export default function Login() {
     const emailCanon = canonEmail(email);
 
     if (code.length !== 6) {
-      setError('Enter the 6-digit code.');
+      setError('Please enter the 6-digit code.');
       return;
     }
 
@@ -235,9 +239,21 @@ export default function Login() {
         navigate('/admin/dashboard');
         return;
       }
-      setError(data.error || data.message || `MFA failed (${res.status})`);
+      const isDev = process.env.NODE_ENV === 'development';
+      setError(
+        data.error ||
+          data.message ||
+          (isDev
+            ? `MFA failed (${res.status})`
+            : 'Something didn’t go through — try again.')
+      );
     } catch (e) {
-      setError(String(e?.message || e));
+      const isDev = process.env.NODE_ENV === 'development';
+      setError(
+        isDev
+          ? String(e?.message || e)
+          : 'Something didn’t go through — try again.'
+      );
     } finally {
       setBusy(false);
     }
@@ -264,7 +280,12 @@ export default function Login() {
 
   return (
     <div
-      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'var(--teal-gradient)'
+      }}
     >
       <main
         style={{

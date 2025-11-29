@@ -53,7 +53,7 @@ export async function fetchDayAvailability(date) {
   );
 
   if (!res.ok) {
-    console.error("Failed to load day availability:", await res.text());
+    console.error('Failed to load day availability:', await res.text());
     return { slots: [] };
   }
 

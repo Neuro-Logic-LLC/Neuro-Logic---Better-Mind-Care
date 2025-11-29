@@ -1,4 +1,4 @@
-/* ===== Navbar (brand-updated) ===== */
+/* ===== Navbar ===== */
 
 .navbar {
   display: flex;
@@ -41,6 +41,79 @@
   text-transform: lowercase;
   font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
   letter-spacing: -0.01em;
+}
+
+/* Account menu */
+.account-menu-container {
+  position: relative;
+}
+
+.account-menu-button {
+  background: none;
+  border: none;
+  color: var(--color-link);
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.account-menu-button:hover {
+  color: var(--color-link-hover);
+}
+
+.account-submenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  min-width: 150px;
+  z-index: 1000;
+}
+
+.account-submenu li {
+  border-bottom: 1px solid #eee;
+}
+
+.account-submenu li:last-child {
+  border-bottom: none;
+}
+
+.account-submenu a,
+.account-submenu button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--color-text);
+  text-decoration: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.account-submenu a:hover,
+.account-submenu button:hover {
+  background: #f9f9f9;
+  color: var(--color-link);
+}
+
+.logout-button {
+  color: var(--color-danger);
+}
+
+.logout-button:hover {
+  color: var(--color-danger);
+  background: #fef2f2;
 }
 
 /* Right nav */
@@ -289,6 +362,7 @@
   gap: 8px;
   font-weight: 600;
 }
+
 .navbar-auth-row a {
   color: var(--charcoal);
   text-decoration: none;
@@ -305,6 +379,16 @@
 @media (max-width: 900px) {
   .navbar-right {
     gap: 0.9rem;
+  }
+}
+@media (max-width: 745px) {
+  .navbar {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .navbar-right {
+    justify-content: center;
   }
 }
 @media (max-width: 700px) {

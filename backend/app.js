@@ -19,6 +19,7 @@ app.set('trust proxy', 1);
 
 const stripeRoutes = require('./routes/stripeRoutes');
 const evexiaWebhookRoutes = require('./routes/evexiaWebhookRoutes');
+const { startSignupReminderWorker } = require('./workers/signupReminderWorker');
 
 // ---- HTTPS session setup ----
 if (!process.env.SESSION_SECRET) throw new Error('SESSION_SECRET missing before session()');
@@ -259,6 +260,9 @@ if (process.env.NODE_ENV === 'production') {
   // In development, just skip static serving
   app.get('/', (_req, res) => res.send('API running in development mode'));
 }
+
+// ---- Start workers ----
+startSignupReminderWorker();
 
 // ---- Error handler ----
 app.use((err, _req, res, _next) => {

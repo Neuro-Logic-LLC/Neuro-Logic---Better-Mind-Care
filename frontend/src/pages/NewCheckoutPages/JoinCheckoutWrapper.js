@@ -24,7 +24,6 @@ export default function JoinCheckoutWrapper() {
     if (fetched.current) return;
     fetched.current = true;
 
-    
     async function fetchIntent() {
       const res = await fetch('/api/stripe/stripe-payment-intent', {
         method: 'POST',

@@ -59,7 +59,10 @@ export default function EvexiaPatientList({
       setPatients(normalize(list));
     } catch (e) {
       if (e?.name !== 'AbortError')
-        setError(e?.message || 'Failed to load patients');
+        setError(
+          e?.message ||
+            'We couldn’t load this section. Refresh the page or try again shortly.'
+        );
     } finally {
       setLoading(false);
     }
@@ -115,15 +118,12 @@ export default function EvexiaPatientList({
           Evexia Patients
         </h2>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            onClick={fetchPatients}
-            className="btn btn-outline-teal"
-          >
+          <button onClick={fetchPatients} className="btn btn-outline-teal">
             Refresh
           </button>
           <button
             onClick={() => setShowAdd(true)}
-            className="btn btn-primary"
+            className="btn btn-secondary"
           >
             Add Patient
           </button>
@@ -175,7 +175,16 @@ export default function EvexiaPatientList({
                       <td style={td}>
                         <button
                           onClick={() => handleSelect(p)}
-                          className={selected === p.id ? 'btn btn-secondary' : 'btn btn-outline-teal'}
+                          className={
+                            selected === p.id
+                              ? 'btn btn-secondary'
+                              : 'btn btn-outline-teal'
+                          }
+                          className={
+                            selected === p.id
+                              ? 'btn btn-secondary'
+                              : 'btn btn-outline-teal'
+                          }
                         >
                           {selected === p.id ? 'Selected' : 'Select'}
                         </button>
@@ -300,7 +309,9 @@ function AddPatientDialog({ onClose, onCreated }) {
       if (!res.ok) {
         const msg =
           data?.error ||
-          (Array.isArray(data) ? data.join('; ') : 'Failed to add patient');
+          (Array.isArray(data)
+            ? data.join('; ')
+            : 'Something didn’t go through — try again.');
         throw new Error(msg);
       }
       onCreated?.(data);
@@ -357,10 +368,7 @@ function AddPatientDialog({ onClose, onCreated }) {
           }}
         >
           <div style={{ fontWeight: 600 }}>Add Patient</div>
-          <button
-            onClick={onClose}
-            className="btn btn-outline-teal"
-          >
+          <button onClick={onClose} className="btn btn-outline-teal">
             Close
           </button>
         </div>

@@ -37,7 +37,10 @@ function MyReports() {
         setReports(list);
       } catch (e) {
         console.error('my-reports fetch failed:', e);
-        setErr(e.message || 'Failed to load reports');
+        setErr(
+          e.message ||
+            'The reports failed to load. Refresh the page or try again shortly.'
+        );
         setReports([]);
       } finally {
         setLoading(false);
@@ -77,21 +80,36 @@ function MyReports() {
   if (err) return <p style={{ color: 'crimson' }}>Error: {err}</p>;
 
   return (
-    <div className="report-list-page">
-      <h1>My Past Reports</h1>
+    <div className="report-list-page bg-gradient-white-seafoam">
+      <div className="reports-section-header">
+        <h1>REPORTS LIST</h1>
+        <h2>Your Reports & Documents</h2>
+      </div>
       {reports.length === 0 ? (
-        <p>You haven’t submitted any reports yet.</p>
+        <div className="no-reports-empty-state">
+          <p>
+            No reports are available yet. Once your lab results or personalized
+            Brain Health Report are ready, they’ll appear here automatically.
+          </p>
+        </div>
       ) : (
         <ul className="report-list">
           {reports.map((r) => (
-            <li key={r.id} className="report-card">
-              <p>
-                <strong>Date:</strong>{' '}
-                {new Date(r.submitted_at || r.created_at).toLocaleDateString()}
-              </p>
-              <button className="btn" onClick={() => handleView(r)}>
-                View Report
-              </button>
+            <li key={r.id} className="report-item">
+              <div className="report-item-content">
+                <div className="report-item-subtext">
+                  Added on{' '}
+                  {new Date(
+                    r.submitted_at || r.created_at
+                  ).toLocaleDateString()}
+                </div>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => handleView(r)}
+                >
+                  View Report
+                </button>
+              </div>
             </li>
           ))}
         </ul>

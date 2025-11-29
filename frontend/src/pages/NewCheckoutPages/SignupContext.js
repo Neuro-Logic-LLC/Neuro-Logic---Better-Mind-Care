@@ -18,7 +18,7 @@ export default function SignupProvider({ children }) {
     cgEmail: '',
     pickedCore: false,
     pickedApoe: false,
-    // pickedDoctorsData: false
+    pickedDoctorsData: false
   });
 
   const setField = (key, value) =>

@@ -36,3 +36,6 @@ https-on-localhost/key.pem
 https-on-localhost/cert.pem
 https-on-localhost/localhost.crt
 https-on-localhost/localhost.key
+setupProxy.js
+frontend/src/App.js
+backend/

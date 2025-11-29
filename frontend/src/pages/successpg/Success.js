@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { fetchPaidCalendarAccess } from '../../calendarApi/calendarApi';
+import { OutlineButtonHoverDark } from '../../components/button/Buttons';
 
 export default function SuccessPage() {
   const location = useLocation();
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    document.body.classList.add('success-bg');
+    return () => document.body.classList.remove('success-bg');
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -30,7 +36,7 @@ export default function SuccessPage() {
   }, [location.search]);
 
   return (
-    <div className="max-w-2xl mx-auto p-6 text-center">
+    <div className="max-w-2xl mx-auto p-4 sm:p-6 text-center flex-1 flex items-center justify-center">
       <h1 className="text-3xl font-bold mb-2">Payment complete</h1>
       <p className="text-gray-700 mb-6">
         Thanks! A receipt will be emailed by Stripe.
@@ -38,13 +44,12 @@ export default function SuccessPage() {
 
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
-      <Link
-      
+      <OutlineButtonHoverDark
         to="/login"
-        className="inline-block rounded-xl border border-gray-900 px-4 py-2 font-semibold"
+        className="inline-block rounded-xl border-2 border-teal-600 text-teal-600 px-4 py-2 font-semibold hover:bg-teal-600 hover:text-white transition-colors"
       >
         Go to Login
-      </Link>
+      </OutlineButtonHoverDark>
     </div>
   );
 }
