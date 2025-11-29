@@ -245,42 +245,11 @@ router.put('/users/:id', verifyToken, authController.updateUser);
  *     responses:
  *       '201': { description: Created }
  */
-router.post('/public-signup', authController.publicSignup);
+  router.post('/public-signup', authController.publicSignup);
 
-router.post('/paid-signup', authController.paidSignup);
-
-router.post('/reached-checkout', authController.reachedCheckout);
-
-router.post('/reached-account-info', authController.reachedAccountInfo);
-
-/**
- * @openapi
- * /api/auth/resume-signup:
- *   get:
- *     tags:
- *       - Auth
- *     summary: Resume a partially completed signup flow
- *     parameters:
- *       - name: token
- *         in: query
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       '302':
- *         description: Redirect to signup step
- *       '400':
- *         description: Invalid or missing token
- *       '500':
- *         description: Server error
- */
-router.get('/resume-signup', authController.resumeSignup);
-
-router.get('/pending-signup/:id', authController.getPendingSignup);
-
-/**
- * @openapi
- * /api/auth/forgot-password:
+  /**
+   * @openapi
+   * /api/auth/forgot-password:
  *   post:
  *     summary: Forgot password
  *     responses:

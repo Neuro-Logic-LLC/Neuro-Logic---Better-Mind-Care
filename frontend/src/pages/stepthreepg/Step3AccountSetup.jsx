@@ -24,10 +24,12 @@ export default function StepThreeAccountSetup() {
     username: ''
   });
 
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const sessionId = url.searchParams.get('session_id');
-  }, [navigate]);
+useEffect(() => {
+  const url = new URL(window.location.href);
+  const sessionId = url.searchParams.get('session_id');
+  
+
+}, [navigate]);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -189,7 +191,6 @@ export default function StepThreeAccountSetup() {
     e.preventDefault();
 
     try {
-      // Save to context (optional depending on your app)
       setField('dob', local.dob);
       setField('gender', local.gender);
       setField('isCaregiver', local.isCaregiver);
@@ -212,211 +213,7 @@ export default function StepThreeAccountSetup() {
         setField('cgEmail', local.cgEmail);
       }
 
-      // Save password temporarily
       sessionStorage.setItem('TEMP_PASSWORD', password);
-
-      // ------------------------------------------------------------
-      // ⭐ CALL YOUR BACKEND TO CREATE THE ENCRYPTED USER ACCOUNT
-      // ------------------------------------------------------------
-      const signupBody = {
-        email: state.email,
-        password,
-        dob: local.dob,
-        gender: local.gender,
-
-        // match backend format:
-        is_caregiver: local.isCaregiver ? '1' : '0',
-        cg_first: local.cgFirst,
-        cg_last: local.cgLast,
-        cg_phone: local.cgPhone,
-        cg_email: local.cgEmail
-      };
-
-      const res = await fetch('/api/auth/paid-signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(signupBody)
-      });
-
-      const data = await res.json();
-      console.log(data);
-      // const newUserId = data.user_id;
-      // if (!newUserId) {
-      //   throw new Error('Paid signup did not return user_id');
-      // }
-
-      // ------------------------------------------------------------
-      // SUCCESS → redirect
-      // ------------------------------------------------------------
-      // 2. Create order
-      // 1. CREATE PATIENT IN EVEXIA
-
-      // ------------------------------------------------------------
-      const searchQuery =
-        `/api/evexia/patient-search` +
-        `?emailAddress=${encodeURIComponent(state.email)}` +
-        `&dob=${encodeURIComponent(local.dob)}`;
-
-      const searchRes = await fetch(searchQuery);
-      let existingPatients = [];
-
-      try {
-        existingPatients = await searchRes.json();
-      } catch (err) {
-        console.warn('⚠ patient-search returned non-JSON', err);
-      }
-
-      let PatientID = null;
-
-      // ------------------------------------------------------------
-      // 2. USE EXISTING PATIENT IF FOUND
-      // ------------------------------------------------------------
-      if (Array.isArray(existingPatients) && existingPatients.length > 0) {
-        PatientID = existingPatients[0].PatientID;
-        console.log('✔ Found existing patient:', PatientID);
-      } else {
-        console.log('➕ No existing patient — creating new one');
-
-        const patientPayload = {
-          EmailAddress: state.email,
-          FirstName: state.first,
-          LastName: state.last,
-
-          // correct stripe fields:
-          StreetAddress: state.street,
-          StreetAddress2: state.address2 || '',
-          City: state.city,
-          State: state.state,
-          PostalCode: state.zip,
-          Phone: state.phone,
-
-          DOB: local.dob,
-          Gender: local.gender === 'Male' ? 'M' : 'F',
-
-          // caregiver (only fields you actually have)
-          Guardian: local.cgFirst || '',
-          GuardianPhone: local.cgPhone || '',
-          GuardianEmail: local.cgEmail || '',
-
-          ExternalClientID: state.externalClientId || ''
-        };
-
-        const patRes = await fetch('/api/evexia/patient-add', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(patientPayload)
-        });
-
-        const patientData = await patRes.json();
-        PatientID = patientData.PatientID;
-        console.log('🆕 Created new patient:', PatientID);
-      }
-
-      // 2. CREATE ORDER
-      const orderRes = await fetch('/api/evexia/order-add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          PatientID: PatientID,
-          OrderType: '',
-          PhlebotomyOptions: ''
-        })
-      });
-
-      // READ JSON ONCE — NEVER TWICE
-      const orderJson = await orderRes.json();
-      console.log('OrderAdd JSON:', orderJson);
-
-      // Normalize ID from any casing Evexia might send
-      const PatientOrderID =
-        orderJson.Patient_Order_ID ||
-        orderJson.PatientOrderID ||
-        orderJson.patientOrderID;
-
-      if (!PatientOrderID) {
-        console.error('❌ OrderAdd missing patient order ID', orderJson);
-        throw new Error('OrderAdd returned no PatientOrderID');
-      }
-      console.log(state);
-      console.log(session);
-      const ProductID =
-        orderJson.Product_ID || orderJson.ProductID || orderJson.productID;
-
-      setField('evexia_patient_order_id', PatientOrderID);
-      setField('evexia_patient_id', PatientID);
-      setField('evexia_product_id', ProductID);
-
-      if (session.metadata.pickedCore === '1') {
-        await addItem(205704);
-        console.log(
-          'should have added core here, but doesnt and needs to be updated'
-        );
-      }
-      if (session.metadata.pickedApoe === '1') {
-        await addItem(6724);
-      }
-
-      // 3. ADD ORDER ITEMS
-      // NEED THIS ADDED BY EVEXIA FOR TESTING 11-23-25
-
-      async function addItem(productID) {
-        return fetch('/api/evexia/order-item-add', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            patientOrderID: PatientOrderID,
-            productID,
-            isPanel: false
-          })
-        });
-      }
-
-      // if (state.pickedCore) {
-      //   await addItem('CORE');
-      // }
-      setEvexiaData({
-        patientId: PatientID,
-        orderId: PatientOrderID
-      });
-      // Let Evexia finish processing
-      await new Promise((res) => setTimeout(res, 4000));
-
-      const completeQuery = new URLSearchParams({
-        externalClientId: '1B2FA0C0-3CBB-402A-9800-F3965A2D3DF5',
-        patientOrderID: PatientOrderID,
-        patientPay: 'False',
-        includeFHR: 'False',
-        clientPhysicianID: 0
-      }).toString();
-
-      const JSONCompleteQuery = JSON.stringify(completeQuery);
-
-      // Submit order
-      await fetch(`/api/evexia/patient-order-complete?${completeQuery}`, {
-        method: 'GET'
-      });
-
-      // await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   credentials: 'include',
-      //   body: JSON.stringify({
-      //     email: state.email,
-      //     password
-      //   })
-      // });
-
-      await fetch('/api/evexia/save-evexia-ids', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          evxPatientID: PatientID,
-          evxPatientOrderID: PatientOrderID,
-          evxProductID: ProductID
-        })
-      });
 
       navigate('/success');
     } catch (err) {

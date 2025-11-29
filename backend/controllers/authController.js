@@ -98,14 +98,6 @@ exports.login = async (req, res) => {
 
     await knex('users').where({ id: user.id }).update({ last_login: knex.fn.now(), last_ip: ip });
 
-    await knex('audit_log').insert({
-      user_id: user.id,
-      action: 'LOGIN_ATTEMPT',
-      description: `User ${canon(email)} passed initial login, awaiting MFA`,
-      ip_address: ip,
-      timestamp: getCentralTimestamp()
-    });
-
     // 6-digit code + 10 min expiry
     const code = String(Math.floor(100000 + Math.random() * 900000));
     const expires = dayjs().add(10, 'minute').toISOString();
@@ -949,21 +941,22 @@ exports.publicSignup = async (req, res) => {
     cg_email
   } = req.body || {};
 
-  const caregiver = is_caregiver === '1';
+  const caregiver = is_caregiver === "1";
 
   try {
     // Required for all signups
     if (!email || !password || !dob || !gender || !first_name || !last_name || !phone) {
-      return res.status(400).json({ error: 'missing_fields' });
+      return res.status(400).json({ error: "missing_fields" });
     }
 
     // Required only for caregivers
     if (caregiver && (!cg_first || !cg_last || !cg_phone || !cg_email)) {
-      return res.status(400).json({ error: 'missing_caregiver_fields' });
+      return res.status(400).json({ error: "missing_caregiver_fields" });
     }
 
     // Password strength
     if (
+<<<<<<< HEAD
       typeof password !== 'string' ||
       password.length < 8 ||
       !/[!@#$%^&*(),.?":{}|<>]/.test(password)
@@ -1060,6 +1053,9 @@ exports.paidSignup = async (req, res) => {
 
     if (
       typeof password !== 'string' ||
+=======
+      typeof password !== "string" ||
+>>>>>>> parent of fc636f8 (new paid signup function)
       password.length < 8 ||
       !/[!@#$%^&*(),.?":{}|<>]/.test(password)
     ) {
@@ -1069,6 +1065,7 @@ exports.paidSignup = async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
     if (caregiver && (!cg_first || !cg_last || !cg_phone || !cg_email)) {
       return res.status(400).json({ error: 'missing_caregiver_fields' });
     }
@@ -1099,6 +1096,8 @@ exports.paidSignup = async (req, res) => {
     // ---------------------------------------
     // 3. HASH PASSWORD + LOOKUP ROLE
     // ---------------------------------------
+=======
+>>>>>>> parent of fc636f8 (new paid signup function)
     const key = process.env.PGPCRYPTO_KEY;
     if (!key) return res.status(500).json({ error: 'Server misconfiguration' });
 
@@ -1110,12 +1109,10 @@ exports.paidSignup = async (req, res) => {
       return res.status(400).json({ error: 'Default role not found' });
     }
 
-    // ---------------------------------------
-    // 4. CREATE EMAIL CONFIRMATION TOKEN
-    // ---------------------------------------
     const confirmationToken = uuidv4();
     const tokenHash = await bcrypt.hash(confirmationToken, 10);
 
+<<<<<<< HEAD
     //Check for existing user
 
     const existing = await knex('users')
@@ -1136,18 +1133,25 @@ exports.paidSignup = async (req, res) => {
     // ---------------------------------------
     const [created] = await knex('users')
       .returning(['id'])
+=======
+    const eCanon = canon(String(email).trim().toLowerCase());
+
+    const [created] = await knex("users")
+      .returning(["id"])
+>>>>>>> parent of fc636f8 (new paid signup function)
       .insert({
+        username: eCanon, // auto-assign username == email_canon
         password: hashedPassword,
         role_id: roleRow.id,
         member_since: knex.fn.now(),
         is_active: true,
         is_deleted: false,
         is_email_confirmed: false,
-        has_paid: true,
         date_created: knex.fn.now(),
         date_last_modified: knex.fn.now(),
         confirmation_token_hash: tokenHash,
 
+<<<<<<< HEAD
         // encrypted fields
         email: knex.raw('pgp_sym_encrypt(?, ?)', [eCanon, key]),
         dob: knex.raw('pgp_sym_encrypt(?, ?)', [dob, key]),
@@ -1155,8 +1159,16 @@ exports.paidSignup = async (req, res) => {
         first_name: knex.raw('pgp_sym_encrypt(?, ?)', [first_name, key]),
         last_name: knex.raw('pgp_sym_encrypt(?, ?)', [last_name, key]),
         phone: knex.raw('pgp_sym_encrypt(?, ?)', [phone, key]),
+=======
+        // encrypted PII
+        email: knex.raw("pgp_sym_encrypt(?, ?)", [eCanon, key]),
+        dob: knex.raw("pgp_sym_encrypt(?, ?)", [dob, key]),
+        gender: knex.raw("pgp_sym_encrypt(?, ?)", [gender, key]),
+        first_name: knex.raw("pgp_sym_encrypt(?, ?)", [first_name, key]),
+        last_name: knex.raw("pgp_sym_encrypt(?, ?)", [last_name, key]),
+        phone: knex.raw("pgp_sym_encrypt(?, ?)", [phone, key]),
+>>>>>>> parent of fc636f8 (new paid signup function)
 
-        // caregiver
         is_caregiver: caregiver,
         cg_first: caregiver ? knex.raw('pgp_sym_encrypt(?, ?)', [cg_first, key]) : null,
         cg_last: caregiver ? knex.raw('pgp_sym_encrypt(?, ?)', [cg_last, key]) : null,
@@ -1166,6 +1178,7 @@ exports.paidSignup = async (req, res) => {
         email_canon: eCanon,
         email_hash: identHash(eCanon)
       });
+<<<<<<< HEAD
     await knex('pending_signup').where({ email: eCanon }).update({
       intake_ok: true,
       date_last_modified: knex.fn.now()
@@ -1178,14 +1191,20 @@ exports.paidSignup = async (req, res) => {
       action: 'PAID_SIGNUP',
       description: `New paid signup: ${eCanon}`,
       ip_address: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+=======
+
+    await knex("audit_log").insert({
+      user_id: created.id,
+      action: "SELF_SIGNUP",
+      description: `New public signup: ${eCanon}`,
+      ip_address: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
+>>>>>>> parent of fc636f8 (new paid signup function)
       timestamp: knex.fn.now()
     });
 
-    // ---------------------------------------
-    // 7. SEND CONFIRMATION EMAIL
-    // ---------------------------------------
     await sendEmailConfirmation(eCanon, confirmationToken);
 
+<<<<<<< HEAD
     return res.status(201).json({ success: true, user_id: created.id });
   } catch (err) {
     console.error('paidSignup failed', err);
@@ -1193,6 +1212,15 @@ exports.paidSignup = async (req, res) => {
       return res.status(409).json({ error: 'Email already exists' });
     }
     return res.status(500).json({ error: 'Server Error' });
+=======
+    return res.status(201).json({ message: "Signup successful. Please confirm your email." });
+  } catch (err) {
+    if (err && err.code === "23505") {
+      return res.status(409).json({ error: "Email already exists" });
+    }
+    console.error("signup failed", err);
+    return res.status(500).json({ error: "Server Error" });
+>>>>>>> parent of fc636f8 (new paid signup function)
   }
 };
 
