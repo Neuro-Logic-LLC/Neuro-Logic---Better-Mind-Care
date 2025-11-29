@@ -3,16 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useSignup } from './SignupContext';
 import { useAuth } from '../../auth/AuthContext';
 import {
-  PrimaryButton,
-  SecondaryButton
+  PrimaryButton
 } from '../../components/button/Buttons';
 
 export default function EmailStep() {
-  const { user, loading } = useAuth();
+
   const { state, setField } = useSignup();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
-  const [checking, setChecking] = useState(false);
+  const [, setChecking] = useState(false);
 
   const navigate = useNavigate();
 
@@ -23,6 +22,7 @@ export default function EmailStep() {
     if (resumed) {
       navigate('/join/checkout' + window.location.search);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function checkAndValidateEmailExists(email) {

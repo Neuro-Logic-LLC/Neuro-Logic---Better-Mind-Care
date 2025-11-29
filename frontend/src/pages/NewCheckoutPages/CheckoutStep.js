@@ -105,6 +105,7 @@ export default function CheckoutStep() {
     }
 
     load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -137,6 +138,7 @@ export default function CheckoutStep() {
     }
 
     load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function toggle(key, val) {
@@ -186,12 +188,7 @@ export default function CheckoutStep() {
     (cart.APOE ? PRICES.APOE : 0) +
     (cart.DOCTORS_DATA ? PRICES.DOCTORS_DATA : 0);
 
-  function validateBeforeStripe() {
-    if (!(cart.CORE || cart.APOE || cart.DOCTORS_DATA))
-      return 'Pick at least one item.';
-    if (!agreeTos) return 'You must accept the terms.';
-    return null;
-  }
+
 
   return (
     <div style={S.page}>

@@ -1,7 +1,7 @@
 /** @format */
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 
 // Shared Layout Components
@@ -33,7 +33,7 @@ import GoogleCalendar from './pages/calendarpg/GoogleCalendar';
 import SuccessPage from './pages/successpg/Success';
 import CancelPage from './pages/cancelpg/Cancel';
 import CheckoutPage from './pages/checkoutpg/Checkout';
-import ProductsPage from './pages/stripeproductspg/ProductsPage';
+
 import TermsOfService from './pages/tosPg/termsofservice';
 import PrivacyPolicy from './pages/privacypolicypg/privacypolicy';
 import AutomatedLabResults from './pages/automatedlabresults/AutomatedLabResults';
