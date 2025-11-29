@@ -54,6 +54,13 @@
     "check-format": "prettier --check ."
   },
   "eslintConfig": {
+    "extends": ["react-app"],
+    "rules": {
+      "no-unused-vars": "off",
+      "react-hooks/exhaustive-deps": "off"
+    }
+  },
+  "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"

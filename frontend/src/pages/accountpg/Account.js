@@ -6,14 +6,12 @@ import { useNavigate } from 'react-router-dom';
 import InputText from '../../components/inputs/InputText';
 import LockNKeyIcon from '../../assets/icons/LockNKeyIcon.png';
 import CircleCheckIcon from '../../assets/icons/CircleCheckIcon.png';
-import HelpIcon from '../../assets/icons/HelpIcon.png';
-import MessagesIcon from '../../assets/icons/MessagesIcon.png';
-import LogOutIcon from '../../assets/icons/LogOutIcon.png';
+
 import './account.css';
 
 function Account() {
   const { user } = useAuth();
-  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     firstName: user?.first_name || '',
     lastName: user?.last_name || '',
@@ -33,9 +31,9 @@ function Account() {
 
   // TODO: Implement real API calls to check user lab status from Evexia and message counts from backend
   // Mock user status for conditional messages
-  const hasOrderedLabs = false; // Replace with real check
-  const labsReady = false; // Replace with real check
-  const hasAppointments = true; // Replace with real check - whether user has any appointments
+  // const hasOrderedLabs = false; // Replace with real check
+  // const labsReady = false; // Replace with real check
+  // const hasAppointments = true; // Replace with real check - whether user has any appointments
 
   const hasMessages = messageCount > 0;
 

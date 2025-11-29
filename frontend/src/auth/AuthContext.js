@@ -8,10 +8,6 @@ import {
 } from 'react';
 
 // ---- shared API base detection (same as your login file) ----
-function normalizeBase(raw) {
-  const b = (raw || '').trim();
-  return b ? b.replace(/\/+$/, '') : '';
-}
 function readMeta(name) {
   const el = document.querySelector(`meta[name="${name}"]`);
   return el ? el.getAttribute('content') : '';

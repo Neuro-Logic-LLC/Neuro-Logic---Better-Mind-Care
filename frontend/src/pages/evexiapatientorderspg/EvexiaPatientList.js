@@ -180,11 +180,6 @@ export default function EvexiaPatientList({
                               ? 'btn btn-secondary'
                               : 'btn btn-outline-teal'
                           }
-                          className={
-                            selected === p.id
-                              ? 'btn btn-secondary'
-                              : 'btn btn-outline-teal'
-                          }
                         >
                           {selected === p.id ? 'Selected' : 'Select'}
                         </button>

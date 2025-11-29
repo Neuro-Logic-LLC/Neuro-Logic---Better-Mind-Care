@@ -1,6 +1,6 @@
 const crypto = require("crypto");
-const bcrypt = require("bcryptjs");
-const initKnex = require("../db/knex-init");
+const bcrypt = require("bcrypt");
+const initKnex = require("../db/initKnex");
 const { sendMagicResumeLink } = require("../utils/email");
 
 async function runSignupReminderWorker() {
