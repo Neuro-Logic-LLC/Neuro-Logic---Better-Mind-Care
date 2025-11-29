@@ -131,6 +131,8 @@ jobs:
             (cd "$NEW_REL/backend" && npm ci --omit=dev)
             # ensure AWS SDK v3 is present for SSM bootstrap
             (cd "$NEW_REL/backend" && npm ls @aws-sdk/client-ssm >/dev/null 2>&1 || npm i @aws-sdk/client-ssm)
+            # run DB migrations
+            (cd "$NEW_REL/backend" && npx knex migrate:latest)
           fi
 
           # --- repoint current ---
